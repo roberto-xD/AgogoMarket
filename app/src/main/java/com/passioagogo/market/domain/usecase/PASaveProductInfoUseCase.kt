@@ -1,0 +1,29 @@
+package com.passioagogo.market.domain.usecase
+
+import com.google.firebase.Firebase
+import com.google.firebase.firestore.SetOptions
+import com.google.firebase.firestore.firestore
+import com.passioagogo.market.domain.PAConstants.COLLECTION_CONSUMABLES
+import com.passioagogo.market.domain.PAConstants.COLLECTION_PRODUCTS
+import com.passioagogo.market.domain.bean.PAProductBean
+import com.passioagogo.market.domain.state.PADomainState
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import javax.inject.Inject
+
+class PASaveProductInfoUseCase @Inject constructor() {
+    val bd = Firebase.firestore
+    operator fun invoke(
+        infoProduct : PAProductBean
+    ): Flow<PADomainState<String>> = flow{
+        bd.collection(COLLECTION_PRODUCTS)
+            .document(COLLECTION_CONSUMABLES)
+            .set(infoProduct, SetOptions.merge())
+            .addOnSuccessListener {
+
+            }
+            .addOnFailureListener {
+
+            }
+    }
+}
