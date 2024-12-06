@@ -1,0 +1,7 @@
+package com.passioagogo.market.presentation.navigation
+
+sealed class Routes(val Name: String) {
+    object Dashboard: Routes("Dashboard")
+    object Login: Routes("Login")
+    object Search: Routes("Search")
+}
