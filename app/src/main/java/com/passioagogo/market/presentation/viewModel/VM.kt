@@ -8,7 +8,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class PABaseViewModel @Inject constructor(
+class VM @Inject constructor(
     private val productInfo: PAGetProductInfoUseCase
 ) : ViewModel(){
 

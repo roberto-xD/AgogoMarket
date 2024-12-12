@@ -26,10 +26,6 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = false
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
         }
     }
     compileOptions {
@@ -77,10 +73,11 @@ dependencies {
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
 
-    kapt(libs.hilt.compiler)
     implementation(libs.hilt.android)
+    kapt(libs.hilt.compiler)
+    kapt (libs.androidx.hilt.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
-
+    kapt(libs.kotlinx.metadata.jvm)
 }
 
 kapt {

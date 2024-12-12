@@ -7,12 +7,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.passioagogo.market.presentation.viewModel.PABaseViewModel
-import dagger.hilt.android.lifecycle.HiltViewModel
+import com.passioagogo.market.presentation.viewModel.VM
 
 @Composable
 fun DashboardScreen(
-    viewModel: PABaseViewModel = hiltViewModel()
+    viewModel: VM = hiltViewModel()
 ){
     LaunchedEffect(Unit) {
         viewModel.getProductData()
