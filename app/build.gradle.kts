@@ -70,14 +70,19 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
+    implementation ("com.google.firebase:firebase-storage-ktx")
+    implementation ("com.google.firebase:firebase-auth-ktx")
 
     implementation(libs.hilt.android)
     kapt(libs.hilt.compiler)
     kapt (libs.androidx.hilt.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
     kapt(libs.kotlinx.metadata.jvm)
+
+    implementation (libs.landscapist.glide)
 }
 
 kapt {
