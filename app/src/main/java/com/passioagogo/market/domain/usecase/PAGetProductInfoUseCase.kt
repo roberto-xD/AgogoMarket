@@ -2,28 +2,47 @@ package com.passioagogo.market.domain.usecase
 
 import android.util.Log
 import com.google.firebase.Firebase
+import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.firestore
+import com.google.firebase.firestore.toObject
+import com.google.gson.Gson
 import com.passioagogo.market.domain.PAConstants.COLLECTION_CONSUMABLES
 import com.passioagogo.market.domain.PAConstants.COLLECTION_PRODUCTS
 import com.passioagogo.market.domain.bean.PAProductBean
 import com.passioagogo.market.domain.state.PADomainState
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class PAGetProductInfoUseCase @Inject constructor(
 
 ) {
     val bd = Firebase.firestore
-    operator fun invoke(): Flow<PADomainState<PAProductBean>> = flow{
+    operator fun invoke(
+        field: String,
+        value: String,
+        limit: Long = 10,
+        response: (PADomainState<List<PAProductBean>>) -> Unit,
+    ){
+        response(PADomainState.Loading())
         bd.collection(COLLECTION_PRODUCTS)
-            .document(COLLECTION_CONSUMABLES)
+            .whereEqualTo(field,value)
+            .limit(limit)
             .get()
             .addOnSuccessListener{  result ->
-                Log.i("tag","$result")
+                val plop = result.map {
+                    it.toObject(PAProductBean::class.java)
+                }
+                Log.i("tag success", "${plop}")
+                response(PADomainState.Success(plop))
             }
             .addOnFailureListener { exception ->
-                Log.i("tag","$exception")
+                Log.i("tag fail","$exception")
+                response(PADomainState.Error(exception.message))
             }
     }
 }

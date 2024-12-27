@@ -5,6 +5,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.passioagogo.market.presentation.viewModel.VM
@@ -13,6 +14,7 @@ import com.passioagogo.market.presentation.viewModel.VM
 fun DashboardScreen(
     viewModel: VM = hiltViewModel()
 ){
+    val product = viewModel.productData.collectAsState()
     LaunchedEffect(Unit) {
         viewModel.getProductData()
     }
@@ -23,6 +25,10 @@ fun DashboardScreen(
         content = { paddingValues ->
             Text(
                 text = "Hello !",
+                modifier = Modifier.padding(paddingValues)
+            )
+            Text(
+                text = product.value.toString(),
                 modifier = Modifier.padding(paddingValues)
             )
         },

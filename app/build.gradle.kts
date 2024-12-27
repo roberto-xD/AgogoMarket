@@ -83,6 +83,7 @@ dependencies {
     kapt(libs.kotlinx.metadata.jvm)
 
     implementation (libs.landscapist.glide)
+    implementation (libs.gson)
 }
 
 kapt {

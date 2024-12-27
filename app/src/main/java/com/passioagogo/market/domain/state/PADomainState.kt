@@ -7,5 +7,5 @@ sealed class PADomainState<T>(
 ){
     class Success<T>(data: T?) : PADomainState<T>(data = data)
     class Error<T>(error: String?) : PADomainState<T>(error = error)
-    class Loading<T>(isLoading: Boolean?) : PADomainState<T>(isLoading = isLoading)
+    class Loading<T>(isLoading: Boolean? = null) : PADomainState<T>(isLoading = isLoading)
 }
