@@ -84,6 +84,8 @@ dependencies {
 
     implementation (libs.landscapist.glide)
     implementation (libs.gson)
+
+    implementation(libs.coil.compose)
 }
 
 kapt {

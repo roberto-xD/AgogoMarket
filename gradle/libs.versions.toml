@@ -1,5 +1,6 @@
 [versions]
 agp = "8.3.1"
+coilCompose = "2.4.0"
 firebaseAnalytics = "22.1.2"
 firebaseAnalyticsVersion = "22.1.2"
 firebaseBom = "33.6.0"
@@ -29,6 +30,7 @@ ksp-version = "1.9.22-1.0.17"
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-hilt-compiler = { module = "androidx.hilt:hilt-compiler", version.ref = "hiltCompiler" }
+coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
 firebase-analytics = { module = "com.google.firebase:firebase-analytics", version.ref = "firebaseAnalyticsVersion" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version = "33.7.0" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }

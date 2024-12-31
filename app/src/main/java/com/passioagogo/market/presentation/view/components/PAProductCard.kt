@@ -1,0 +1,20 @@
+package com.passioagogo.market.presentation.view.components
+
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import coil.compose.rememberAsyncImagePainter
+
+@Composable
+fun ProductCard(){
+    Box {
+        Image(
+            painter = rememberAsyncImagePainter(model = ""),
+            contentDescription = null,
+            modifier = Modifier.size(100.dp)
+        )
+    }
+}
