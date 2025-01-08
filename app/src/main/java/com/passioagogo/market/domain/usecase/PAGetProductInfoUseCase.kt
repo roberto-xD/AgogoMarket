@@ -2,20 +2,10 @@ package com.passioagogo.market.domain.usecase
 
 import android.util.Log
 import com.google.firebase.Firebase
-import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.firestore
-import com.google.firebase.firestore.toObject
-import com.google.gson.Gson
-import com.passioagogo.market.domain.PAConstants.COLLECTION_CONSUMABLES
 import com.passioagogo.market.domain.PAConstants.COLLECTION_PRODUCTS
 import com.passioagogo.market.domain.bean.PAProductBean
 import com.passioagogo.market.domain.state.PADomainState
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.tasks.await
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class PAGetProductInfoUseCase @Inject constructor(
@@ -25,17 +15,17 @@ class PAGetProductInfoUseCase @Inject constructor(
     operator fun invoke(
         field: String,
         value: String,
-        limit: Long = 10,
+        limit: Long?,
         response: (PADomainState<List<PAProductBean>>) -> Unit,
     ){
         response(PADomainState.Loading())
         bd.collection(COLLECTION_PRODUCTS)
             .whereEqualTo(field,value)
-            .limit(limit)
+            .limit(limit ?: 10)
             .get()
             .addOnSuccessListener{  result ->
                 val plop = result.map {
-                    it.toObject(PAProductBean::class.java)
+                    it.toObject(PAProductBean::class.java).apply { id = it.id }
                 }
                 Log.i("tag success", "${plop}")
                 response(PADomainState.Success(plop))

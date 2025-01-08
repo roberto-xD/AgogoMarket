@@ -19,12 +19,16 @@ class VM @Inject constructor(
     private val _productData = MutableStateFlow(listOf<PAProductBean>())
     val productData: StateFlow<List<PAProductBean>> = _productData
 
-    fun getProductData(){
+    fun getProductData(
+        filter: String = "store",
+        value: String = "sexshop",
+        limit: Long ?= null
+    ){
         viewModelScope.launch {
             productInfo(
-                field = "store",
-                value = "sexshop",
-                limit = 3
+                field = filter,
+                value = value,
+                limit = limit
             ){  response ->
                 when(response){
                     is PADomainState.Success -> {
