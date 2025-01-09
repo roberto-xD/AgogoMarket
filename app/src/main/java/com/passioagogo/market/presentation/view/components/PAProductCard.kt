@@ -100,7 +100,6 @@ fun ProductCard(
                     .aspectRatio(3f)
                     .padding(bottom = 5.dp),
                 maxLines = 3,
-
             )
             Row {
                 originalPrice?.let {
@@ -139,11 +138,11 @@ fun ProductCard(
 
 @Composable
 @Preview
-fun Preview(){
+private fun ProductPre(){
     ProductCard(
         id = "cuac",
         discount = "",
-        onStock = false,
+        onStock = true,
         tittle = "Rose tongue licking & suction",
         urlImage = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQKqtZRN86wSXbhdhZteqKTyfOAASDirHwrldktjgnn9rCqWLIXCY9nQwbB79DrGhCtiL0&usqp=CAU",
         finalPrice = "",

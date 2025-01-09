@@ -18,6 +18,7 @@ class VM @Inject constructor(
 ) : ViewModel(){
     private val _productData = MutableStateFlow(listOf<PAProductBean>())
     val productData: StateFlow<List<PAProductBean>> = _productData
+    val isEditor = MutableStateFlow(false)
 
     fun getProductData(
         filter: String = "store",
