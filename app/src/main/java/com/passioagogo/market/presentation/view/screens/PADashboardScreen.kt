@@ -24,6 +24,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -37,8 +38,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.passioagogo.market.R
 import com.passioagogo.market.domain.bean.PAProductBean
 import com.passioagogo.market.presentation.view.components.DetailBottomSheet
+import com.passioagogo.market.presentation.view.components.Loading
 import com.passioagogo.market.presentation.view.components.ProductCard
 import com.passioagogo.market.presentation.viewModel.VM
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -51,7 +54,8 @@ fun DashboardScreen(
     val currentProduct = remember {
         mutableStateOf(PAProductBean())
     }
-    val sheetState = rememberModalBottomSheetState()
+    val scope = rememberCoroutineScope()
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val showBottomSheet = remember {
         mutableStateOf(false)
     }
@@ -61,36 +65,38 @@ fun DashboardScreen(
     }
     Scaffold(
         topBar = {
-            Box(
-                modifier = Modifier
-                    .height(50.dp)
-                    .fillMaxWidth(),
-                contentAlignment = Alignment.Center
-            ) {
-                Image(
+            if(product.value.size != 0){
+                Box(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .padding(top = 5.dp)
-                        .combinedClickable(
-                            onLongClick = {
-                                viewModel.isEditor.value = viewModel.isEditor.value.not()
-                                Toast
-                                    .makeText(
-                                        context, if (viewModel.isEditor.value) {
-                                            "Modo Editor"
-                                        } else {
-                                            "Modo Observador"
-                                        }, Toast.LENGTH_SHORT
-                                    )
-                                    .show()
-                            },
-                            onClick = {}
-                        ),
-                    painter = painterResource(
-                        id = R.drawable.branding_passion_20),
-                    colorFilter = ColorFilter.tint(Color.Black),
-                    contentDescription = null,
-                )
+                        .height(50.dp)
+                        .fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Image(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(top = 5.dp)
+                            .combinedClickable(
+                                onLongClick = {
+                                    viewModel.isEditor.value = viewModel.isEditor.value.not()
+                                    Toast
+                                        .makeText(
+                                            context, if (viewModel.isEditor.value) {
+                                                "Modo Editor"
+                                            } else {
+                                                "Modo Observador"
+                                            }, Toast.LENGTH_SHORT
+                                        )
+                                        .show()
+                                },
+                                onClick = {}
+                            ),
+                        painter = painterResource(
+                            id = R.drawable.branding_passion_20),
+                        colorFilter = ColorFilter.tint(Color.Black),
+                        contentDescription = null,
+                    )
+                }
             }
         },
         content = { paddingValues ->
@@ -120,7 +126,7 @@ fun DashboardScreen(
                     }
                 }
             }else{
-                viewModel.getProductData()
+                Loading()
             }
 
             if(showBottomSheet.value){
@@ -130,12 +136,18 @@ fun DashboardScreen(
                 ) {
                     DetailBottomSheet(
                         enableEdit = isEditor.value,
-                        title = currentProduct.value.title,
-                        description = currentProduct.value.description,
-                        urlImage = currentProduct.value.image,
-                        finalPrice = currentProduct.value.price?.price_og.orEmpty(),
-                        originalPrice = currentProduct.value.price?.price_normal_og.orEmpty(),
-                    )
+                        currentProduct = currentProduct.value
+                    ){
+                        if(it){
+                            viewModel.isEditor.value = false
+                            viewModel.getProductData()
+                        }
+                        scope.launch { sheetState.hide() }.invokeOnCompletion {
+                            if(!sheetState.isVisible){
+                                showBottomSheet.value = false
+                            }
+                        }
+                    }
                 }
             }
         }

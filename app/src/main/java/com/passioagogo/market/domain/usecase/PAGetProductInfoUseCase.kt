@@ -8,9 +8,7 @@ import com.passioagogo.market.domain.bean.PAProductBean
 import com.passioagogo.market.domain.state.PADomainState
 import javax.inject.Inject
 
-class PAGetProductInfoUseCase @Inject constructor(
-
-) {
+class PAGetProductInfoUseCase @Inject constructor() {
     val bd = Firebase.firestore
     operator fun invoke(
         field: String,

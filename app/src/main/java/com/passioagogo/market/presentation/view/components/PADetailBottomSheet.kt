@@ -1,15 +1,10 @@
 package com.passioagogo.market.presentation.view.components
 
 import android.content.ClipData
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.scrollable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -25,6 +20,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -33,72 +30,54 @@ import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.rememberAsyncImagePainter
 import com.passioagogo.market.R
+import com.passioagogo.market.domain.bean.PAPriceBean
+import com.passioagogo.market.domain.bean.PAProductBean
+import com.passioagogo.market.presentation.viewModel.VM
 
 @Composable
 fun DetailBottomSheet(
     enableEdit: Boolean = false,
-    title: String,
-    description: String,
-    urlImage: String,
-    finalPrice: String,
-    originalPrice: String = "",
+    currentProduct: PAProductBean,
+    hideModal: (updateList: Boolean) -> Unit,
 ){
     if(enableEdit){
         EditDetails(
-            title,
-            description,
-            urlImage,
-            finalPrice,
-            originalPrice
+            currentProduct = currentProduct,
+            hideModal = hideModal
         )
     }else{
         ShowDetails(
-            title,
-            description,
-            urlImage,
-            finalPrice,
-            originalPrice
+            currentProduct = currentProduct,
         )
     }
 }
 
 @Composable
 fun EditDetails(
-    title: String,
-    description: String,
-    urlImage: String,
-    finalPrice: String,
-    originalPrice: String = "",
+    viewModel: VM = hiltViewModel(),
+    currentProduct: PAProductBean,
+    hideModal: (updateList: Boolean) -> Unit,
 ){
     val context = LocalContext.current
-    val scroll = rememberScrollState()
-    val editTitle = remember {
-        mutableStateOf(title)
+    val editedProduct = remember {
+        mutableStateOf(currentProduct)
     }
-    val editOriginalPrice = remember {
-        mutableStateOf(originalPrice.removePrefix("$"))
-    }
-    val editFinalPrice = remember {
-        mutableStateOf(finalPrice.removePrefix("$"))
-    }
-    val editDescription = remember {
-        mutableStateOf(description)
-    }
+
+
     Column {
         TextField(
-            value = editTitle.value,
+            value = editedProduct.value.title,
             onValueChange = {
-                editTitle.value = it
+                editedProduct.value = currentProduct.copy(title= it)
             },
             modifier = Modifier
                 .padding(10.dp)
@@ -113,9 +92,9 @@ fun EditDetails(
                 .fillMaxWidth()
         ) {
             TextField(
-                value = editOriginalPrice.value,
+                value = editedProduct.value.price?.price_normal_og.orEmpty().removePrefix("$"),
                 onValueChange = {
-                    editOriginalPrice.value = it
+                    editedProduct.value = currentProduct.copy(price = currentProduct.price?.copy(price_normal_og = "$"+it))
                 },
                 modifier = Modifier
                     .weight(1f)
@@ -129,9 +108,9 @@ fun EditDetails(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
             )
             TextField(
-                value = editFinalPrice.value,
+                value = editedProduct.value.price?.price_og.orEmpty().removePrefix("$"),
                 onValueChange = {
-                    editFinalPrice.value = it
+                    editedProduct.value = currentProduct.copy(price = currentProduct.price?.copy(price_og = "$"+it))
                 },
                 modifier = Modifier
                     .weight(1f)
@@ -146,9 +125,21 @@ fun EditDetails(
             )
         }
         TextField(
-            value = editDescription.value,
+            value = editedProduct.value.category,
             onValueChange = {
-                editDescription.value = it
+                editedProduct.value = currentProduct.copy(category = it)
+            },
+            modifier = Modifier
+                .padding(10.dp)
+                .fillMaxWidth(),
+            label = {
+                Text(text = "Categoría del producto")
+            }
+        )
+        TextField(
+            value = editedProduct.value.description,
+            onValueChange = {
+                editedProduct.value = currentProduct.copy(description = it)
             },
             modifier = Modifier
                 .padding(10.dp)
@@ -156,10 +147,10 @@ fun EditDetails(
             label = {
                 Text(text = "Descripción del producto")
             },
-            minLines = 10
+            minLines = 3
         )
         Image(
-            painter = rememberAsyncImagePainter(model ="https://www.distribuidoradesexshop.com"+urlImage),
+            painter = rememberAsyncImagePainter(model ="https://www.distribuidoradesexshop.com"+currentProduct.image),
             contentDescription = null,
             modifier = Modifier
                 .fillMaxWidth()
@@ -174,6 +165,9 @@ fun EditDetails(
         ){
             Button(
                 onClick = {
+                    viewModel.updateInfoData(editedProduct.value){
+                        hideModal(true)
+                    }
                     Toast.makeText(context,"Actualizando",Toast.LENGTH_SHORT).show()
                 }
             ) {
@@ -189,15 +183,16 @@ fun EditDetails(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ShowDetails(
-    title: String,
-    description: String,
-    urlImage: String,
-    finalPrice: String,
-    originalPrice: String? = null,
+    currentProduct: PAProductBean,
 ){
     val context = LocalContext.current
     val clipBoardManager = LocalClipboardManager.current
     val scroll = rememberScrollState()
+    val title = currentProduct.title
+    val urlImage = currentProduct.image
+    val originalPrice = currentProduct.price?.price_og.orEmpty()
+    val finalPrice = currentProduct.price?.price_normal_og.orEmpty()
+    val description = currentProduct.description
 
     Column {
         Text(
@@ -219,18 +214,16 @@ fun ShowDetails(
         Row(
             modifier = Modifier.padding(10.dp)
         ) {
-            originalPrice?.let {
-                if(it.isNotEmpty() && it.equals(finalPrice).not()){
-                    Text(
-                        text = it,
-                        modifier = Modifier
-                            .padding(end = 5.dp)
-                            .weight(1f),
-                        style = MaterialTheme.typography.titleLarge,
-                        textDecoration = TextDecoration.LineThrough,
-                        textAlign = TextAlign.Center
-                    )
-                }
+            if(originalPrice.isNotEmpty() && originalPrice.equals(finalPrice).not()){
+                Text(
+                    text = originalPrice,
+                    modifier = Modifier
+                        .padding(end = 5.dp)
+                        .weight(1f),
+                    style = MaterialTheme.typography.titleLarge,
+                    textDecoration = TextDecoration.LineThrough,
+                    textAlign = TextAlign.Center
+                )
             }
             if(finalPrice.isNotEmpty()){
                 Text(
@@ -286,21 +279,25 @@ fun ShowDetails(
 @Preview
 private fun Preview1(){
     ShowDetails(
-        title = "Desensibilizador para sexo oral \"Garganta profunda\"",
-        description = "Spray oral de acción rápida con benzocaína.\n" +
-                "\n" +
-                "\uD83D\uDE08Desensibiliza ligeramente la garganta para un juego aún más profundo.\n" +
-                "\n" +
-                " Está formulado naturalmente para una deliciosa experiencia de placer. \n" +
-                "\n" +
-                "La fórmula de acción rápida adormece\uD83D\uDE34 ligeramente la garganta \uD83D\uDE35\uD83D\uDE35 con benzocaína natural con un toque sabroso de menta verde\uD83C\uDF43\uD83C\uDF43 refrescante. \n" +
-                "\n" +
-                "La sensación de adormecimiento se desvanece naturalmente con el tiempo.\n" +
-                "\n" +
-                " Cont. Neto 60 ml.",
-        urlImage = "",
-        finalPrice = "$300.00",
-        originalPrice = ""
+        currentProduct = PAProductBean(
+            title = "Desensibilizador para sexo oral \"Garganta profunda\"",
+            description = "Spray oral de acción rápida con benzocaína.\n" +
+                    "\n" +
+                    "\uD83D\uDE08Desensibiliza ligeramente la garganta para un juego aún más profundo.\n" +
+                    "\n" +
+                    " Está formulado naturalmente para una deliciosa experiencia de placer. \n" +
+                    "\n" +
+                    "La fórmula de acción rápida adormece\uD83D\uDE34 ligeramente la garganta \uD83D\uDE35\uD83D\uDE35 con benzocaína natural con un toque sabroso de menta verde\uD83C\uDF43\uD83C\uDF43 refrescante. \n" +
+                    "\n" +
+                    "La sensación de adormecimiento se desvanece naturalmente con el tiempo.\n" +
+                    "\n" +
+                    " Cont. Neto 60 ml.",
+            image = "",
+            price = PAPriceBean(
+                price_normal_og = "$300.00",
+                price_og = ""
+            ),
+        )
     )
 }
 
@@ -308,20 +305,25 @@ private fun Preview1(){
 @Preview
 private fun Preview2(){
     EditDetails(
-        title = "Desensibilizador para sexo oral \"Garganta profunda\"",
-        description = "Spray oral de acción rápida con benzocaína.\n" +
-                "\n" +
-                "\uD83D\uDE08Desensibiliza ligeramente la garganta para un juego aún más profundo.\n" +
-                "\n" +
-                " Está formulado naturalmente para una deliciosa experiencia de placer. \n" +
-                "\n" +
-                "La fórmula de acción rápida adormece\uD83D\uDE34 ligeramente la garganta \uD83D\uDE35\uD83D\uDE35 con benzocaína natural con un toque sabroso de menta verde\uD83C\uDF43\uD83C\uDF43 refrescante. \n" +
-                "\n" +
-                "La sensación de adormecimiento se desvanece naturalmente con el tiempo.\n" +
-                "\n" +
-                " Cont. Neto 60 ml.",
-        urlImage = "",
-        finalPrice = "300.00",
-        originalPrice = "300.00"
-    )
+        viewModel = hiltViewModel(),
+        currentProduct = PAProductBean(
+            title = "Desensibilizador para sexo oral \"Garganta profunda\"",
+            description = "Spray oral de acción rápida con benzocaína.\n" +
+                    "\n" +
+                    "\uD83D\uDE08Desensibiliza ligeramente la garganta para un juego aún más profundo.\n" +
+                    "\n" +
+                    " Está formulado naturalmente para una deliciosa experiencia de placer. \n" +
+                    "\n" +
+                    "La fórmula de acción rápida adormece\uD83D\uDE34 ligeramente la garganta \uD83D\uDE35\uD83D\uDE35 con benzocaína natural con un toque sabroso de menta verde\uD83C\uDF43\uD83C\uDF43 refrescante. \n" +
+                    "\n" +
+                    "La sensación de adormecimiento se desvanece naturalmente con el tiempo.\n" +
+                    "\n" +
+                    " Cont. Neto 60 ml.",
+            image = "",
+            price = PAPriceBean(
+                price_normal_og = "$300.00",
+                price_og = ""
+            ),
+        )
+    ){}
 }

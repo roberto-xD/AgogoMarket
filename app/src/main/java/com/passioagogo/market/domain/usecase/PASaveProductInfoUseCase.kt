@@ -1,5 +1,6 @@
 package com.passioagogo.market.domain.usecase
 
+import android.util.Log
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.firestore
@@ -14,16 +15,19 @@ import javax.inject.Inject
 class PASaveProductInfoUseCase @Inject constructor() {
     val bd = Firebase.firestore
     operator fun invoke(
-        infoProduct : PAProductBean
-    ): Flow<PADomainState<String>> = flow{
+        infoProduct : PAProductBean,
+        response: (PADomainState<PAProductBean>) -> Unit,
+    ) {
+        response(PADomainState.Loading())
         bd.collection(COLLECTION_PRODUCTS)
-            .document(COLLECTION_CONSUMABLES)
+            .document(infoProduct.id)
             .set(infoProduct, SetOptions.merge())
             .addOnSuccessListener {
-
+                response(PADomainState.Success(infoProduct))
             }
-            .addOnFailureListener {
-
+            .addOnFailureListener { exception ->
+                Log.i("tag fail","$exception")
+                response(PADomainState.Error(exception.message))
             }
     }
 }
