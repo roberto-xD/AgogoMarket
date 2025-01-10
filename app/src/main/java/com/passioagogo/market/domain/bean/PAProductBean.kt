@@ -9,6 +9,7 @@ data class PAProductBean(
     val image: String = "",
     val price: PAPriceBean ?= null,
     val category: String = "",
+    val stock: String = "",
     val link: String = "",
     val hasOffer: Boolean = false,
     val isActive: Boolean = false,

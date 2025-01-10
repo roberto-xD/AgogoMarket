@@ -86,6 +86,7 @@ dependencies {
     implementation (libs.gson)
 
     implementation(libs.coil.compose)
+    implementation("com.google.mlkit:barcode-scanning:17.3.0")
 }
 
 kapt {

@@ -1,5 +1,6 @@
 package com.passioagogo.market.presentation.view.screens
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
@@ -15,6 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
@@ -59,6 +61,14 @@ fun DashboardScreen(
     val showBottomSheet = remember {
         mutableStateOf(false)
     }
+    val columstate = rememberLazyGridState()
+    val isAtBottom = columstate.canScrollForward.not()
+    LaunchedEffect(isAtBottom) {
+        if(isAtBottom){
+            Log.i("tag","load more data...")
+            viewModel.getProductData()
+        }
+    }
 
     LaunchedEffect(Unit) {
         viewModel.getProductData()
@@ -78,16 +88,16 @@ fun DashboardScreen(
                             .padding(top = 5.dp)
                             .combinedClickable(
                                 onLongClick = {
-                                    viewModel.isEditor.value = viewModel.isEditor.value.not()
-                                    Toast
-                                        .makeText(
-                                            context, if (viewModel.isEditor.value) {
-                                                "Modo Editor"
-                                            } else {
-                                                "Modo Observador"
-                                            }, Toast.LENGTH_SHORT
-                                        )
-                                        .show()
+//                                    viewModel.isEditor.value = viewModel.isEditor.value.not()
+//                                    Toast
+//                                        .makeText(
+//                                            context, if (viewModel.isEditor.value) {
+//                                                "Modo Editor"
+//                                            } else {
+//                                                "Modo Observador"
+//                                            }, Toast.LENGTH_SHORT
+//                                        )
+//                                        .show()
                                 },
                                 onClick = {}
                             ),
@@ -105,7 +115,8 @@ fun DashboardScreen(
                     modifier = Modifier
                         .padding(paddingValues)
                         .padding(top = 5.dp),
-                    columns = GridCells.Adaptive(minSize = 128.dp)
+                    columns = GridCells.Adaptive(minSize = 128.dp),
+                    state = columstate
                 ) {
                     items(
                         product.value.size

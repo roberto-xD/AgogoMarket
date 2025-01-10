@@ -28,19 +28,27 @@ class VM @Inject constructor(
     fun getProductData(
         filter: String = "store",
         value: String = "sexshop",
-        limit: Long ?= null
+        limit: Long ?= null,
+        orderBy: String ?= null,
+        lastDocument: String ?= null,
     ){
         viewModelScope.launch {
             productInfo(
                 field = filter,
                 value = value,
-                limit = limit
+                limit = limit,
+                orderBy = orderBy,
+                lastDocument = lastDocument,
             ){  response ->
                 when(response){
                     is PADomainState.Success -> {
                         Log.i("tag","viewmodel success: ${response.data}")
                         response.data?.let {
-                            _productData.value = it
+                            if(_productData.value.containsAll(it).not()){
+                                val newList = ArrayList(_productData.value)
+                                newList.addAll(it)
+                                _productData.value = newList
+                            }
                         }
                     }
                     is PADomainState.Error -> {

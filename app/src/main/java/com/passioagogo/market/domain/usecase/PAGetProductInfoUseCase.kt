@@ -6,6 +6,7 @@ import com.google.firebase.firestore.firestore
 import com.passioagogo.market.domain.PAConstants.COLLECTION_PRODUCTS
 import com.passioagogo.market.domain.bean.PAProductBean
 import com.passioagogo.market.domain.state.PADomainState
+import kotlinx.coroutines.delay
 import javax.inject.Inject
 
 class PAGetProductInfoUseCase @Inject constructor() {
@@ -13,20 +14,22 @@ class PAGetProductInfoUseCase @Inject constructor() {
     operator fun invoke(
         field: String,
         value: String,
-        limit: Long?,
+        limit: Long?= null,
+        lastDocument: String?= null,
+        orderBy: String?= null,
         response: (PADomainState<List<PAProductBean>>) -> Unit,
     ){
         response(PADomainState.Loading())
         bd.collection(COLLECTION_PRODUCTS)
             .whereEqualTo(field,value)
-            .limit(limit ?: 10)
+            .limit(limit ?: 5)
             .get()
             .addOnSuccessListener{  result ->
-                val plop = result.map {
-                    it.toObject(PAProductBean::class.java).apply { id = it.id }
-                }
-                Log.i("tag success", "${plop}")
-                response(PADomainState.Success(plop))
+            val plop = result.map {
+                it.toObject(PAProductBean::class.java).apply { id = it.id }
+            }
+            Log.i("tag success", "${plop}")
+            response(PADomainState.Success(plop))
             }
             .addOnFailureListener { exception ->
                 Log.i("tag fail","$exception")
