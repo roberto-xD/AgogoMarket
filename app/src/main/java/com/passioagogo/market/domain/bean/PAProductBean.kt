@@ -7,7 +7,7 @@ data class PAProductBean(
     val store: String = "",
     val description: String = "",
     val image: String = "",
-    val price: PAPriceBean ?= null,
+    val price: PAPriceBean = PAPriceBean(),
     val category: String = "",
     val stock: String = "",
     val link: String = "",

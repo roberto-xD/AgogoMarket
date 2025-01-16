@@ -18,18 +18,20 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
+import com.passioagogo.market.R
 import com.passioagogo.market.domain.bean.PAPriceBean
 import com.passioagogo.market.domain.bean.PAProductBean
 
 @Composable
 fun ProductEditor(
     currentProduct: PAProductBean,
-    updateItem:(item: PAProductBean) -> Unit,
-){
+    updateItem: (item: PAProductBean) -> Unit,
+) {
     val context = LocalContext.current
     val editedProduct = remember {
         mutableStateOf(currentProduct)
@@ -39,13 +41,13 @@ fun ProductEditor(
         TextField(
             value = editedProduct.value.title,
             onValueChange = {
-                editedProduct.value = editedProduct.value.copy(title= it)
+                editedProduct.value = editedProduct.value.copy(title = it)
             },
             modifier = Modifier
                 .padding(10.dp)
                 .fillMaxWidth(),
             label = {
-                Text(text = "Nombre del producto")
+                Text(text = stringResource(id = R.string.label_name))
             }
         )
         Row(
@@ -54,15 +56,16 @@ fun ProductEditor(
                 .fillMaxWidth()
         ) {
             TextField(
-                value = editedProduct.value.price?.price_normal_og.orEmpty().removePrefix("$"),
+                value = editedProduct.value.price.price_normal_og.orEmpty().removePrefix("$"),
                 onValueChange = {
-                    editedProduct.value = currentProduct.copy(price = editedProduct.value.price?.copy(price_normal_og = "$"+it))
+                    editedProduct.value =
+                        editedProduct.value.copy(price = editedProduct.value.price.copy(price_normal_og = "$" + it))
                 },
                 modifier = Modifier
                     .weight(1f)
                     .padding(end = 3.dp),
                 label = {
-                    Text(text = "Precio original")
+                    Text(text = stringResource(id = R.string.label_original_price))
                 },
                 prefix = {
                     Text(text = "$")
@@ -70,15 +73,16 @@ fun ProductEditor(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
             )
             TextField(
-                value = editedProduct.value.price?.price_og.orEmpty().removePrefix("$"),
+                value = editedProduct.value.price.price_og.removePrefix("$"),
                 onValueChange = {
-                    editedProduct.value = currentProduct.copy(price = editedProduct.value.price?.copy(price_og = "$"+it))
+                    editedProduct.value =
+                        editedProduct.value.copy(price = editedProduct.value.price.copy(price_og = "$"+it))
                 },
                 modifier = Modifier
                     .weight(1f)
                     .padding(start = 3.dp),
                 label = {
-                    Text(text = "Precio final")
+                    Text(text = stringResource(id = R.string.label_final_price))
                 },
                 prefix = {
                     Text(text = "$")
@@ -89,13 +93,25 @@ fun ProductEditor(
         TextField(
             value = editedProduct.value.category,
             onValueChange = {
-                editedProduct.value = currentProduct.copy(category = it)
+                editedProduct.value = editedProduct.value.copy(category = it)
             },
             modifier = Modifier
                 .padding(10.dp)
                 .fillMaxWidth(),
             label = {
-                Text(text = "Categoría del producto")
+                Text(text = stringResource(id = R.string.label_category))
+            }
+        )
+        TextField(
+            value = editedProduct.value.code,
+            onValueChange = {
+                editedProduct.value = editedProduct.value.copy(code = it)
+            },
+            modifier = Modifier
+                .padding(10.dp)
+                .fillMaxWidth(),
+            label = {
+                Text(text = stringResource(id = R.string.label_code))
             }
         )
         TextField(
@@ -107,32 +123,36 @@ fun ProductEditor(
                 .padding(10.dp)
                 .fillMaxWidth(),
             label = {
-                Text(text = "Descripción del producto")
+                Text(text = stringResource(id = R.string.label_description))
             },
             minLines = 3
         )
         Image(
-            painter = rememberAsyncImagePainter(model ="https://www.distribuidoradesexshop.com"+currentProduct.image),
+            painter = rememberAsyncImagePainter(model = "https://www.distribuidoradesexshop.com" + currentProduct.image),
             contentDescription = null,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(5.dp)
                 .height(150.dp)
         )
-        Box (
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(5.dp),
             contentAlignment = Alignment.Center
-        ){
+        ) {
             Button(
                 onClick = {
                     updateItem(editedProduct.value)
-                    Toast.makeText(context,"Actualizando",Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Actualizando", Toast.LENGTH_SHORT).show()
                 }
             ) {
                 Text(
-                    text = "Actualizar información",
+                    text = if (currentProduct.id.isEmpty()) {
+                        stringResource(id = R.string.update_info)
+                    } else {
+                        stringResource(id = R.string.add_new_item)
+                    },
                     modifier = Modifier
                 )
             }
@@ -142,7 +162,7 @@ fun ProductEditor(
 
 @Composable
 @Preview
-private fun Preview2(){
+private fun Preview2() {
     ProductEditor(
         currentProduct = PAProductBean(
             title = "Desensibilizador para sexo oral \"Garganta profunda\"",
@@ -160,8 +180,8 @@ private fun Preview2(){
             image = "",
             price = PAPriceBean(
                 price_normal_og = "$300.00",
-                price_og = ""
+                price_og = "20"
             ),
         )
-    ){}
+    ) {}
 }

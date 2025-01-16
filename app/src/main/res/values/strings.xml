@@ -1,4 +1,12 @@
 <resources>
     <string name="app_name">PassioAgogoMarket</string>
     <string name="title_activity_pamain">PassioAgogo</string>
+    <string name="update_info">Actualizar información</string>
+    <string name="add_new_item">Añadir producto</string>
+    <string name="label_name">Nombre del producto</string>
+    <string name="label_original_price">Precio original</string>
+    <string name="label_final_price">Precio final</string>
+    <string name="label_category">Categoría del producto</string>
+    <string name="label_description">Descripción del producto</string>
+    <string name="label_code">Codigo del producto</string>
 </resources>
