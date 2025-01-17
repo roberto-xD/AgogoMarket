@@ -1,10 +1,12 @@
 package com.passioagogo.market.presentation.view.components
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.DrawerValue
@@ -18,8 +20,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.passioagogo.market.R
 import com.passioagogo.market.presentation.navigation.Routes
@@ -27,10 +31,11 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun DrawerSheet(
-    addItem : () -> Unit,
-    navigate: (route : String) -> Unit,
-    content : @Composable (PaddingValues) -> Unit
-){
+    addItem: () -> Unit,
+    search: () -> Unit,
+    navigate: (route: String) -> Unit,
+    content: @Composable (PaddingValues) -> Unit
+) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
@@ -43,17 +48,38 @@ fun DrawerSheet(
                         .padding(6.dp)
                         .verticalScroll(rememberScrollState())
                 ) {
-                    Spacer(modifier = Modifier.height(12.dp))
-                    NavigationDrawerItem(
-                        label = { Text(text = "Inicio") },
-                        selected = false,
-                        onClick = { navigate.invoke(Routes.Dashboard.Name)  }
+                    Image(
+                        painter = painterResource(
+                            id = R.drawable.branding_passion_27
+                        ),
+                        modifier = Modifier
+                            .size(200.dp)
+                            .padding(top = 16.dp)
+                            .align(Alignment.CenterHorizontally),
+                        contentDescription = null
                     )
                     HorizontalDivider()
                     NavigationDrawerItem(
-                        label = { Text(text = "Buscar")},
+                        label = { Text(text = "Inicio") },
                         selected = false,
-                        icon = { Icon(painter = painterResource(id = R.drawable.add_24), contentDescription = null)},
+                        icon = {
+                            Icon(
+                                painter = painterResource(id = R.drawable.shop_24),
+                                contentDescription = null
+                            )
+                        },
+                        onClick = { navigate.invoke(Routes.Dashboard.Name) }
+                    )
+                    HorizontalDivider()
+                    NavigationDrawerItem(
+                        label = { Text(text = "Crear orden") },
+                        selected = false,
+                        icon = {
+                            Icon(
+                                painter = painterResource(id = R.drawable.folder_upload_24),
+                                contentDescription = null
+                            )
+                        },
                         onClick = { navigate.invoke(Routes.Search.Name) }
                     )
                 }
@@ -65,16 +91,15 @@ fun DrawerSheet(
                 Toolbar(
                     showDrawer = {
                         scope.launch {
-                            if(drawerState.isClosed){
+                            if (drawerState.isClosed) {
                                 drawerState.open()
                             } else {
                                 drawerState.close()
                             }
                         }
                     },
-                    addItem = {
-                        addItem()
-                    }
+                    addItem = addItem,
+                    search = search
                 )
             },
             content = { paddingValues ->
@@ -82,4 +107,15 @@ fun DrawerSheet(
             }
         )
     }
+}
+
+@Composable
+@Preview
+private fun Preview() {
+    DrawerSheet(
+        addItem = {},
+        navigate = {},
+        content = {},
+        search = {}
+    )
 }

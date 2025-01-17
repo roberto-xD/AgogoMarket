@@ -1,4 +1,5 @@
 package com.passioagogo.market.presentation.view.components
+
 import android.content.ClipData
 import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -21,6 +22,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
@@ -41,17 +44,18 @@ import com.passioagogo.market.domain.bean.PAProductBean
 fun ProductDetails(
     currentProduct: PAProductBean,
     changeView: () -> Unit
-){
+) {
     val context = LocalContext.current
     val clipBoardManager = LocalClipboardManager.current
     val scroll = rememberScrollState()
     val title = currentProduct.title
     val urlImage = currentProduct.image
-    val originalPrice = currentProduct.price?.price_og.orEmpty()
-    val finalPrice = currentProduct.price?.price_normal_og.orEmpty()
+    val originalPrice = currentProduct.price.price_og
+    val finalPrice = currentProduct.price.price_normal_og
     val description = currentProduct.description
     val category = currentProduct.category
     val isActive = currentProduct.isActive
+    val code = currentProduct.code
 
     Column {
         Text(
@@ -59,12 +63,14 @@ fun ProductDetails(
             style = MaterialTheme.typography.titleMedium,
             textAlign = TextAlign.Center,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(10.dp)
+            modifier = Modifier
+                .padding(10.dp)
+                .fillMaxWidth()
         )
-        if(isActive){
+        if (isActive) {
             Row(
                 modifier = Modifier.padding(10.dp)
-            ){
+            ) {
                 Text(
                     text = "Existencias:",
                     style = MaterialTheme.typography.bodyLarge,
@@ -91,24 +97,28 @@ fun ProductDetails(
                 .height(150.dp)
         ) {
             Image(
-                painter = rememberAsyncImagePainter(model ="https://www.distribuidoradesexshop.com"+urlImage),
+                painter = rememberAsyncImagePainter(model = "https://www.distribuidoradesexshop.com" + urlImage),
                 contentDescription = null,
                 modifier = Modifier
                     .fillMaxSize()
             )
             Image(
-                painter = painterResource(id = com.google.android.material.R.drawable.btn_radio_on_mtrl),
+                painter = painterResource(id = R.drawable.edit_24),
+                colorFilter = ColorFilter.tint(Color.Black),
                 contentDescription = null,
-                modifier = Modifier.align(Alignment.TopEnd).clickable {
-                    changeView()
-                }
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(2.dp)
+                    .clickable {
+                        changeView()
+                    }
             )
         }
 
         Row(
-            modifier = Modifier.padding(8.dp)
+            modifier = Modifier.padding(3.dp)
         ) {
-            if(originalPrice.isNotEmpty() && originalPrice.equals(finalPrice).not()){
+            if (originalPrice.isNotEmpty() && originalPrice.equals(finalPrice).not()) {
                 Text(
                     text = originalPrice,
                     modifier = Modifier
@@ -119,7 +129,7 @@ fun ProductDetails(
                     textAlign = TextAlign.Center
                 )
             }
-            if(finalPrice.isNotEmpty()){
+            if (finalPrice.isNotEmpty()) {
                 Text(
                     text = finalPrice,
                     style = MaterialTheme.typography.titleLarge,
@@ -130,10 +140,10 @@ fun ProductDetails(
                 )
             }
         }
-        if(category.isNotEmpty()){
+        if (category.isNotEmpty()) {
             Row(
-                modifier = Modifier.padding(10.dp)
-            ){
+                modifier = Modifier.padding(3.dp)
+            ) {
                 Text(
                     text = "Categoria:",
                     style = MaterialTheme.typography.bodyLarge,
@@ -144,6 +154,28 @@ fun ProductDetails(
                 )
                 Text(
                     text = category,
+                    style = MaterialTheme.typography.bodyLarge,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .padding(start = 3.dp)
+                        .weight(1f)
+                )
+            }
+        }
+        if (code.isNotEmpty()) {
+            Row(
+                modifier = Modifier.padding(3.dp)
+            ) {
+                Text(
+                    text = "Código:",
+                    style = MaterialTheme.typography.bodyLarge,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .padding(end = 3.dp)
+                        .weight(1f)
+                )
+                Text(
+                    text = code,
                     style = MaterialTheme.typography.bodyLarge,
                     textAlign = TextAlign.Center,
                     modifier = Modifier
@@ -193,7 +225,7 @@ fun ProductDetails(
 
 @Composable
 @Preview
-private fun Preview1(){
+private fun Preview1() {
     ProductDetails(
         currentProduct = PAProductBean(
             title = "Desensibilizador para sexo oral \"Garganta profunda\"",
@@ -209,11 +241,12 @@ private fun Preview1(){
                     "\n" +
                     " Cont. Neto 60 ml.",
             image = "",
+            code = "10234",
             category = "BDSM",
             price = PAPriceBean(
                 price_normal_og = "$300.00",
                 price_og = ""
             ),
         )
-    ){}
+    ) {}
 }

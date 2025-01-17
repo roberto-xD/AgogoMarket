@@ -19,6 +19,7 @@ class PAGetProductInfoUseCase @Inject constructor() {
         response: (PADomainState<QuerySnapshot>) -> Unit,
     ){
         response(PADomainState.Loading())
+
         val query = bd.collection(COLLECTION_PRODUCTS)
             .whereEqualTo(field,value)
             .limit(limit ?: 15)

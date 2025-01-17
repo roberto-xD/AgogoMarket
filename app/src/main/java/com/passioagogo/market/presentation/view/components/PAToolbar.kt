@@ -24,7 +24,8 @@ import com.passioagogo.market.R
 @Composable
 fun Toolbar(
     addItem: () -> Unit,
-    showDrawer: () -> Unit
+    showDrawer: () -> Unit,
+    search: () -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -32,9 +33,9 @@ fun Toolbar(
             .fillMaxWidth(),
     ) {
         Image(
-            painter = painterResource(id = R.drawable.add_24),
+            painter = painterResource(id = R.drawable.list_24),
             contentDescription = null,
-            colorFilter = ColorFilter.tint(Color.Magenta),
+            colorFilter = ColorFilter.tint(Color.Black),
             modifier = Modifier
                 .align(Alignment.CenterStart)
                 .size(40.dp)
@@ -46,8 +47,10 @@ fun Toolbar(
         Image(
             modifier = Modifier
                 .align(Alignment.Center)
-                .fillMaxSize()
-                .padding(top = 5.dp),
+                .padding(top = 5.dp)
+                .clickable {
+                    search()
+                },
             painter = painterResource(
                 id = R.drawable.branding_passion_20
             ),
@@ -55,9 +58,9 @@ fun Toolbar(
             contentDescription = null,
         )
         Image(
-            painter = painterResource(id = R.drawable.add_24),
+            painter = painterResource(id = R.drawable.layer_plus_24),
             contentDescription = null,
-            colorFilter = ColorFilter.tint(Color.Magenta),
+            colorFilter = ColorFilter.tint(Color.Black),
             modifier = Modifier
                 .align(Alignment.CenterEnd)
                 .size(40.dp)
@@ -74,6 +77,7 @@ fun Toolbar(
 private fun Preview(){
     Toolbar(
         showDrawer = {},
-        addItem = {}
+        addItem = {},
+        search = {}
     )
 }

@@ -16,7 +16,8 @@ fun SearchScreen(
         addItem = {
 
         },
-        navigate = navigate
+        navigate = navigate,
+        search = {}
     ) {
 
     }

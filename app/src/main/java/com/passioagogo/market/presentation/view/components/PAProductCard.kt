@@ -25,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -35,117 +36,148 @@ import kotlin.math.round
 @Composable
 fun ProductCard(
     id: String,
-    tittle : String,
+    tittle: String,
     urlImage: String,
     finalPrice: String,
     originalPrice: String? = null,
     onStock: Boolean = true,
     discount: String? = null,
     onDetailClick: (id: String) -> Unit,
-){
+) {
     Column(
         modifier = Modifier
+            .padding(3.dp)
             .background(
-                color = colorResource(id = R.color.gray),
+                color = colorResource(id = R.color.white),
                 shape = RoundedCornerShape(15.dp)
             )
     ) {
-        if(onStock){
-            Row(
+        if (onStock) {
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(10.dp)
+                    .background(
+                        color = colorResource(id = R.color.gray),
+                        shape = RoundedCornerShape(15.dp)
+                    )
             ) {
-                Text(
-                    text = "En Existencia",
-                    modifier = Modifier.weight(2.0f),
-                )
-                Image(
-                    painter = painterResource(id = R.drawable.ic_launcher_background),
-                    contentDescription = null,
-                    modifier = Modifier.size(15.dp)
-                )
-            }
-        }
-        discount?.let {
-            if(it.isNotEmpty()){
-                Box (
-                    modifier = Modifier.fillMaxWidth(),
-                    contentAlignment = Alignment.CenterEnd
-                ){
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(10.dp)
+                ) {
                     Text(
-                        text = "Descuento ${it}%",
-                        modifier = Modifier.padding(end = 5.dp),
+                        text = "En Existencia",
+                        modifier = Modifier.weight(2.0f),
+                    )
+                    Image(
+                        painter = painterResource(id = R.drawable.ic_launcher_background),
+                        contentDescription = null,
+                        modifier = Modifier.size(15.dp)
                     )
                 }
-            }
-        }
-        Image(
-            painter = rememberAsyncImagePainter(model ="https://www.distribuidoradesexshop.com"+urlImage),
-            contentDescription = null,
-            modifier = Modifier
-                .fillMaxWidth()
-                .aspectRatio(1f)
-                .padding(5.dp)
-                .height(200.dp)
-        )
-        Column (
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(5.dp)
-        ){
-            Text(
-                text = tittle,
-                modifier = Modifier
-                    .aspectRatio(3f)
-                    .padding(bottom = 5.dp),
-                maxLines = 3,
-            )
-            Row {
-                originalPrice?.let {
-                    if(it.isNotEmpty() && it.equals(finalPrice).not()){
-                        Text(
-                            text = it,
-                            textDecoration = TextDecoration.LineThrough,
-                            modifier = Modifier.padding(end = 5.dp),
-                        )
+                discount?.let {
+                    if (it.isNotEmpty()) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(10.dp),
+                            contentAlignment = Alignment.CenterEnd
+                        ) {
+                            Text(
+                                text = "Descuento ${it}%",
+                                modifier = Modifier.padding(end = 5.dp),
+                            )
+                        }
                     }
                 }
-                if(finalPrice.isNotEmpty()){
-                    Text(
-                        text = finalPrice,
-                        color = colorResource(id = R.color.purple_200),
-                        modifier = Modifier
-                    )
-                }
-            }
-        }
-        Box (
-            modifier = Modifier.fillMaxWidth(),
-            contentAlignment = Alignment.Center
-        ){
-            Button(
-                onClick = {
-                    onDetailClick(id)
-                }
-            ) {
-                Text(text = "Ver detalle")
             }
         }
 
+        Image(
+            painter = rememberAsyncImagePainter(model = "https://www.distribuidoradesexshop.com" + urlImage),
+            contentDescription = null,
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    color = colorResource(id = R.color.white),
+                    RoundedCornerShape(15.dp)
+                )
+                .padding(5.dp)
+                .height(200.dp)
+        )
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    color = colorResource(id = R.color.gray),
+                    shape = RoundedCornerShape(15.dp)
+                )
+        ) {
+            Text(
+                text = tittle,
+                modifier = Modifier
+                    .padding(5.dp)
+                    .fillMaxWidth(),
+                maxLines = 3,
+                minLines = 3
+            )
+            Row(
+                modifier = Modifier
+                    .padding(5.dp)
+                    .fillMaxWidth()
+            ) {
+                originalPrice?.let {
+                    if (it.isNotEmpty() && it.equals(finalPrice).not()) {
+                        Text(
+                            text = it,
+                            textDecoration = TextDecoration.LineThrough,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier
+                                .padding(end = 5.dp)
+                                .weight(1f),
+                        )
+                    }
+                }
+                if (finalPrice.isNotEmpty()) {
+                    Text(
+                        text = finalPrice,
+                        color = colorResource(id = R.color.purple_200),
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .weight(1f)
+                    )
+                }
+            }
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+                Button(
+                    modifier = Modifier.padding(5.dp),
+                    onClick = {
+                        onDetailClick(id)
+                    }
+                ) {
+                    Text(text = "Ver detalle")
+                }
+            }
+        }
     }
 }
 
 @Composable
 @Preview
-private fun ProductPre(){
+private fun ProductPre() {
     ProductCard(
         id = "cuac",
-        discount = "",
+        discount = "45",
         onStock = true,
         tittle = "Rose tongue licking & suction",
         urlImage = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQKqtZRN86wSXbhdhZteqKTyfOAASDirHwrldktjgnn9rCqWLIXCY9nQwbB79DrGhCtiL0&usqp=CAU",
-        finalPrice = "",
-        originalPrice = ""
-    ){}
+        finalPrice = "1423.35",
+        originalPrice = "2000"
+    ) {
+
+    }
 }
