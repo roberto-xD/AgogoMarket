@@ -5,6 +5,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.passioagogo.market.domain.bean.PAProductBean
+import com.passioagogo.market.presentation.view.templates.ProductDetails
+import com.passioagogo.market.presentation.view.templates.ProductEditor
 import com.passioagogo.market.presentation.viewModel.VM
 
 @Composable

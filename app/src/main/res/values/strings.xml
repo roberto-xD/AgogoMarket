@@ -3,6 +3,7 @@
     <string name="title_activity_pamain">PassioAgogo</string>
     <string name="update_info">Actualizar información</string>
     <string name="add_new_item">Añadir producto</string>
+    <string name="label_sku">SKU</string>
     <string name="label_name">Nombre del producto</string>
     <string name="label_original_price">Precio original</string>
     <string name="label_final_price">Precio final</string>

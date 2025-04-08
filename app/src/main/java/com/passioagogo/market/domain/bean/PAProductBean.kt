@@ -2,7 +2,7 @@ package com.passioagogo.market.domain.bean
 
 data class PAProductBean(
     var id: String = "",
-    val code: String = "",
+    val sku: String = "",
     val title: String = "",
     val store: String = "",
     val description: String = "",

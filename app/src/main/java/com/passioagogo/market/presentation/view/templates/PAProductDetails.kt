@@ -1,4 +1,4 @@
-package com.passioagogo.market.presentation.view.components
+package com.passioagogo.market.presentation.view.templates
 
 import android.content.ClipData
 import android.widget.Toast
@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -55,7 +54,7 @@ fun ProductDetails(
     val description = currentProduct.description
     val category = currentProduct.category
     val isActive = currentProduct.isActive
-    val code = currentProduct.code
+    val code = currentProduct.sku
 
     Column {
         Text(
@@ -241,7 +240,7 @@ private fun Preview1() {
                     "\n" +
                     " Cont. Neto 60 ml.",
             image = "",
-            code = "10234",
+            sku = "10234",
             category = "BDSM",
             price = PAPriceBean(
                 price_normal_og = "$300.00",

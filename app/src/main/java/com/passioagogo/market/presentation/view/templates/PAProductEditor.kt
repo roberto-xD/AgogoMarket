@@ -1,4 +1,4 @@
-package com.passioagogo.market.presentation.view.components
+package com.passioagogo.market.presentation.view.templates
 
 import android.widget.Toast
 import androidx.compose.foundation.Image
@@ -8,10 +8,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -26,6 +24,7 @@ import coil.compose.rememberAsyncImagePainter
 import com.passioagogo.market.R
 import com.passioagogo.market.domain.bean.PAPriceBean
 import com.passioagogo.market.domain.bean.PAProductBean
+import com.passioagogo.market.presentation.view.components.PATextInput
 
 @Composable
 fun ProductEditor(
@@ -38,7 +37,7 @@ fun ProductEditor(
     }
 
     Column {
-        TextField(
+        PATextInput(
             value = editedProduct.value.title,
             onValueChange = {
                 editedProduct.value = editedProduct.value.copy(title = it)
@@ -46,17 +45,15 @@ fun ProductEditor(
             modifier = Modifier
                 .padding(10.dp)
                 .fillMaxWidth(),
-            label = {
-                Text(text = stringResource(id = R.string.label_name))
-            }
+            placeHolder = stringResource(id = R.string.label_name),
         )
         Row(
             modifier = Modifier
                 .padding(10.dp)
                 .fillMaxWidth()
         ) {
-            TextField(
-                value = editedProduct.value.price.price_normal_og.orEmpty().removePrefix("$"),
+            PATextInput(
+                value = editedProduct.value.price.price_normal_og.removePrefix("$"),
                 onValueChange = {
                     editedProduct.value =
                         editedProduct.value.copy(price = editedProduct.value.price.copy(price_normal_og = "$" + it))
@@ -64,15 +61,10 @@ fun ProductEditor(
                 modifier = Modifier
                     .weight(1f)
                     .padding(end = 3.dp),
-                label = {
-                    Text(text = stringResource(id = R.string.label_original_price))
-                },
-                prefix = {
-                    Text(text = "$")
-                },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                placeHolder = stringResource(id = R.string.label_original_price),
+                keyboardType = KeyboardType.Number
             )
-            TextField(
+            PATextInput(
                 value = editedProduct.value.price.price_og.removePrefix("$"),
                 onValueChange = {
                     editedProduct.value =
@@ -81,16 +73,11 @@ fun ProductEditor(
                 modifier = Modifier
                     .weight(1f)
                     .padding(start = 3.dp),
-                label = {
-                    Text(text = stringResource(id = R.string.label_final_price))
-                },
-                prefix = {
-                    Text(text = "$")
-                },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                placeHolder = stringResource(id = R.string.label_final_price),
+                keyboardType = KeyboardType.Number
             )
         }
-        TextField(
+        PATextInput(
             value = editedProduct.value.category,
             onValueChange = {
                 editedProduct.value = editedProduct.value.copy(category = it)
@@ -98,23 +85,19 @@ fun ProductEditor(
             modifier = Modifier
                 .padding(10.dp)
                 .fillMaxWidth(),
-            label = {
-                Text(text = stringResource(id = R.string.label_category))
-            }
+            placeHolder = stringResource(id = R.string.label_category)
         )
-        TextField(
-            value = editedProduct.value.code,
+        PATextInput(
+            value = editedProduct.value.sku,
             onValueChange = {
-                editedProduct.value = editedProduct.value.copy(code = it)
+                editedProduct.value = editedProduct.value.copy(sku = it)
             },
             modifier = Modifier
                 .padding(10.dp)
                 .fillMaxWidth(),
-            label = {
-                Text(text = stringResource(id = R.string.label_code))
-            }
+            placeHolder = stringResource(id = R.string.label_code)
         )
-        TextField(
+        PATextInput(
             value = editedProduct.value.description,
             onValueChange = {
                 editedProduct.value = editedProduct.value.copy(description = it)
@@ -122,9 +105,7 @@ fun ProductEditor(
             modifier = Modifier
                 .padding(10.dp)
                 .fillMaxWidth(),
-            label = {
-                Text(text = stringResource(id = R.string.label_description))
-            },
+            placeHolder = stringResource(id = R.string.label_description),
             minLines = 3
         )
         Image(
