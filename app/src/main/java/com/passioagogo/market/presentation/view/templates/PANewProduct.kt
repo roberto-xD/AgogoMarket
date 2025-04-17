@@ -2,10 +2,15 @@ package com.passioagogo.market.presentation.view.templates
 
 import android.widget.Toast
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -24,14 +29,14 @@ import com.passioagogo.market.presentation.view.components.PATextInput
 
 @Composable
 fun PANewProduct(
-    currentProduct: PAProductBean,
+    editedProduct: MutableState<PAProductBean> ,
 ){
-    val editedProduct = remember {
-        mutableStateOf(currentProduct)
-    }
     val context = LocalContext.current
     Column(
         modifier = Modifier
+            .verticalScroll(
+                rememberScrollState()
+            )
             .padding(5.dp)
             .fillMaxSize()
     ) {
@@ -75,6 +80,7 @@ fun PANewProduct(
                     .makeText(context, "dato: $it", Toast.LENGTH_SHORT)
                     .show()
             }
+            Spacer(modifier = Modifier.size(10.dp))
         }
         PAContainer(
             modifier = Modifier,
@@ -147,7 +153,10 @@ fun PANewProduct(
 private fun Preview(
 
 ){
+    val editedProduct = remember {
+        mutableStateOf(PAProductBean())
+    }
     PANewProduct(
-        currentProduct = PAProductBean()
+        editedProduct = editedProduct
     )
 }
