@@ -19,15 +19,17 @@ class PASaveProductInfoUseCase @Inject constructor() {
         response: (PADomainState<PAProductBean>) -> Unit,
     ) {
         response(PADomainState.Loading())
-        bd.collection(COLLECTION_PRODUCTS)
-            .document(infoProduct.id)
-            .set(infoProduct, SetOptions.merge())
-            .addOnSuccessListener {
-                response(PADomainState.Success(infoProduct))
-            }
-            .addOnFailureListener { exception ->
-                Log.i("tag fail","$exception")
-                response(PADomainState.Error(exception.message))
-            }
+        infoProduct.id?.let {
+            bd.collection(COLLECTION_PRODUCTS)
+                .document(it)
+                .set(infoProduct, SetOptions.merge())
+                .addOnSuccessListener {
+                    response(PADomainState.Success(infoProduct))
+                }
+                .addOnFailureListener { exception ->
+                    Log.i("tag fail","$exception")
+                    response(PADomainState.Error(exception.message))
+                }
+        }
     }
 }

@@ -40,7 +40,6 @@ fun DashboardScreen(
     viewModel: VM = hiltViewModel(),
     navigate: (route: String) -> Unit,
 ) {
-    val context = LocalContext.current
     val product = viewModel.productData.collectAsState()
     val isEditor = viewModel.isEditor.collectAsState()
     val currentProduct = remember {
@@ -107,12 +106,12 @@ fun DashboardScreen(
                     ) {
                         product.value.get(it).let { product ->
                             ProductCard(
-                                id = product.id,
-                                tittle = product.title,
-                                urlImage = product.image,
-                                onStock = product.isActive,
-                                finalPrice = product.price.price_og,
-                                originalPrice = product.price.price_normal_og
+                                id = product.id.orEmpty(),
+                                tittle = product.title.orEmpty(),
+                                urlImage = product.image.orEmpty(),
+                                onStock = product.isActive ?: false,
+                                finalPrice = product.price?.discount.orEmpty(),
+                                originalPrice = product.price?.public
                             ) {
                                 currentProduct.value = product
                                 showBottomSheet.value = true

@@ -47,18 +47,18 @@ fun ProductDetails(
     val context = LocalContext.current
     val clipBoardManager = LocalClipboardManager.current
     val scroll = rememberScrollState()
-    val title = currentProduct.title
-    val urlImage = currentProduct.image
-    val originalPrice = currentProduct.price.price_og
-    val finalPrice = currentProduct.price.price_normal_og
-    val description = currentProduct.description
-    val category = currentProduct.category
-    val isActive = currentProduct.isActive
-    val code = currentProduct.sku
+    val title = currentProduct.title.orEmpty()
+    val urlImage = currentProduct.image.orEmpty()
+    val originalPrice = currentProduct.price?.public.orEmpty()
+    val finalPrice = currentProduct.price?.discount.orEmpty()
+    val description = currentProduct.description.orEmpty()
+    val category = currentProduct.category.orEmpty()
+    val isActive = currentProduct.isActive ?: false
+    val code = currentProduct.sku.orEmpty()
 
     Column {
         Text(
-            text = title,
+            text = title.orEmpty(),
             style = MaterialTheme.typography.titleMedium,
             textAlign = TextAlign.Center,
             fontWeight = FontWeight.Bold,
@@ -243,8 +243,8 @@ private fun Preview1() {
             sku = "10234",
             category = "BDSM",
             price = PAPriceBean(
-                price_normal_og = "$300.00",
-                price_og = ""
+                public = "$300.00",
+                discount = ""
             ),
         )
     ) {}

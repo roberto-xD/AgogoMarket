@@ -19,16 +19,16 @@ fun DetailBottomSheet(
     val edit = remember {
         mutableStateOf(enableEdit)
     }
-    if(edit.value || currentProduct.id.isEmpty()){
+    if(edit.value || currentProduct.id.isNullOrEmpty()){
         ProductEditor(
             currentProduct = currentProduct,
         ){
-            if(it.id.isNotEmpty()){
-                viewModel.updateInfoData(it){
+            if(it.id.isNullOrEmpty()){
+                viewModel.addNewProduct(it){
                     hideModal(true)
                 }
             }else {
-                viewModel.addNewProduct(it){
+                viewModel.updateInfoData(it){
                     hideModal(true)
                 }
             }

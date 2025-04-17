@@ -24,6 +24,7 @@ import coil.compose.rememberAsyncImagePainter
 import com.passioagogo.market.R
 import com.passioagogo.market.domain.bean.PAPriceBean
 import com.passioagogo.market.domain.bean.PAProductBean
+import com.passioagogo.market.domain.bean.updatePrice
 import com.passioagogo.market.presentation.view.components.PATextInput
 
 @Composable
@@ -53,10 +54,10 @@ fun ProductEditor(
                 .fillMaxWidth()
         ) {
             PATextInput(
-                value = editedProduct.value.price.price_normal_og.removePrefix("$"),
+                value = editedProduct.value.price?.public?.removePrefix("$"),
                 onValueChange = {
                     editedProduct.value =
-                        editedProduct.value.copy(price = editedProduct.value.price.copy(price_normal_og = "$" + it))
+                        editedProduct.value.updatePrice(public = "$"+it)
                 },
                 modifier = Modifier
                     .weight(1f)
@@ -65,10 +66,10 @@ fun ProductEditor(
                 keyboardType = KeyboardType.Number
             )
             PATextInput(
-                value = editedProduct.value.price.price_og.removePrefix("$"),
+                value = editedProduct.value.price?.discount?.removePrefix("$"),
                 onValueChange = {
                     editedProduct.value =
-                        editedProduct.value.copy(price = editedProduct.value.price.copy(price_og = "$"+it))
+                        editedProduct.value.updatePrice(discount = "$"+it)
                 },
                 modifier = Modifier
                     .weight(1f)
@@ -129,7 +130,7 @@ fun ProductEditor(
                 }
             ) {
                 Text(
-                    text = if (currentProduct.id.isEmpty()) {
+                    text = if (currentProduct.id.isNullOrEmpty()) {
                         stringResource(id = R.string.update_info)
                     } else {
                         stringResource(id = R.string.add_new_item)
@@ -160,8 +161,8 @@ private fun Preview2() {
                     " Cont. Neto 60 ml.",
             image = "",
             price = PAPriceBean(
-                price_normal_og = "$300.00",
-                price_og = "20"
+                public = "$300.00",
+                discount = "20"
             ),
         )
     ) {}
