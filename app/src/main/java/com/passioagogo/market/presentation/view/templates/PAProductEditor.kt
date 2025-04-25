@@ -48,7 +48,7 @@ fun ProductEditor(
                 .fillMaxWidth(),
             placeHolder = stringResource(id = R.string.label_name),
         )
-        Row(
+        /*Row(
             modifier = Modifier
                 .padding(10.dp)
                 .fillMaxWidth()
@@ -77,7 +77,7 @@ fun ProductEditor(
                 placeHolder = stringResource(id = R.string.label_final_price),
                 keyboardType = KeyboardType.Number
             )
-        }
+        }*/
         PATextInput(
             value = editedProduct.value.category,
             onValueChange = {
@@ -107,7 +107,6 @@ fun ProductEditor(
                 .padding(10.dp)
                 .fillMaxWidth(),
             placeHolder = stringResource(id = R.string.label_description),
-            minLines = 3
         )
         Image(
             painter = rememberAsyncImagePainter(model = "https://www.distribuidoradesexshop.com" + currentProduct.image),

@@ -7,6 +7,6 @@ import androidx.room.PrimaryKey
     tableName = PRODUCT_TABLE
 )
 data class PAProductEntity( //TODO completar la tabla
-    @PrimaryKey(autoGenerate = true) val id : Int = 0,
-
+    @PrimaryKey(autoGenerate = true) val id : Int? = null,
+    val nombre : String = "",
 )

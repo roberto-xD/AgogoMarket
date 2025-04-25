@@ -13,6 +13,7 @@ import com.passioagogo.market.domain.usecase.PAProductInfoUseCase
 import com.passioagogo.market.domain.usecase.PASaveProductInfoUseCase
 import com.passioagogo.market.domain.usecase.PASearchProductInfoUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -24,7 +25,7 @@ class VM @Inject constructor(
     private val saveInfo: PASaveProductInfoUseCase,
     private val newProduct: PANewProductUseCase,
     private val searchProduct: PASearchProductInfoUseCase,
-    private val getLocalProducts: PAProductInfoUseCase,
+    private val localProducts: PAProductInfoUseCase,
 ) : ViewModel(){
     private val _productData = MutableStateFlow(listOf<PAProductBean>())
     val productData: StateFlow<List<PAProductBean>> = _productData
@@ -33,10 +34,39 @@ class VM @Inject constructor(
     private val lastQuery = MutableStateFlow((listOf<DocumentSnapshot>()))
     val isEditor = MutableStateFlow(false)
 
-    fun getLocalProducts(){
-        viewModelScope.launch {
-            getLocalProducts.getAllProduct().collect {
+    fun addNewProduct(
+        infoProduct : PAProductBean,
+    ){
+        viewModelScope.launch(Dispatchers.IO){
+            Log.i(TAG_PG,"viewmodel success: ${infoProduct.title}")
+            localProducts.addNewProduct(infoProduct)
+        }
+    }
 
+    fun getLocalProducts(){
+        viewModelScope.launch(Dispatchers.IO) {
+            localProducts.getAllProduct().collect {
+                Log.i(TAG_PG,"viewmodel success: ${it}")
+            }
+        }
+    }
+
+    fun searchLocalProducts(
+        searchTerm: String
+    ) {
+        viewModelScope.launch(Dispatchers.IO) {
+            localProducts.searchProductsByName(searchTerm).collect { result ->
+                when (result) {
+                    is PADomainState.Success -> {
+                        Log.i(TAG_PG,"viewmodel success: ${result.data}")
+                    }
+                    is PADomainState.Error -> {
+                        Log.i(TAG_PG,"viewmodel error: ${result.error}")
+                    }
+                    is PADomainState.Loading -> {
+
+                    }
+                }
             }
         }
     }

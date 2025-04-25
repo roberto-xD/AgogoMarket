@@ -24,9 +24,7 @@ fun DetailBottomSheet(
             currentProduct = currentProduct,
         ){
             if(it.id.isNullOrEmpty()){
-                viewModel.addNewProduct(it){
-                    hideModal(true)
-                }
+                viewModel.addNewProduct(it)
             }else {
                 viewModel.updateInfoData(it){
                     hideModal(true)
