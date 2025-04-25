@@ -9,6 +9,7 @@ import com.passioagogo.market.domain.bean.PAProductBean
 import com.passioagogo.market.domain.state.PADomainState
 import com.passioagogo.market.domain.usecase.PAGetProductInfoUseCase
 import com.passioagogo.market.domain.usecase.PANewProductUseCase
+import com.passioagogo.market.domain.usecase.PAProductInfoUseCase
 import com.passioagogo.market.domain.usecase.PASaveProductInfoUseCase
 import com.passioagogo.market.domain.usecase.PASearchProductInfoUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -23,6 +24,7 @@ class VM @Inject constructor(
     private val saveInfo: PASaveProductInfoUseCase,
     private val newProduct: PANewProductUseCase,
     private val searchProduct: PASearchProductInfoUseCase,
+    private val getLocalProducts: PAProductInfoUseCase,
 ) : ViewModel(){
     private val _productData = MutableStateFlow(listOf<PAProductBean>())
     val productData: StateFlow<List<PAProductBean>> = _productData
@@ -31,6 +33,13 @@ class VM @Inject constructor(
     private val lastQuery = MutableStateFlow((listOf<DocumentSnapshot>()))
     val isEditor = MutableStateFlow(false)
 
+    fun getLocalProducts(){
+        viewModelScope.launch {
+            getLocalProducts.getAllProduct().collect {
+
+            }
+        }
+    }
 
     fun getProductData(
         filter: String = "store",

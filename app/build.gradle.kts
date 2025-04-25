@@ -21,6 +21,15 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments += mapOf(
+                    "option_name" to "option_value",
+                    // other options...
+                )
+            }
+        }
     }
 
     buildTypes {
@@ -86,7 +95,11 @@ dependencies {
     implementation (libs.gson)
 
     implementation(libs.coil.compose)
-    implementation("com.google.mlkit:barcode-scanning:17.3.0")
+    implementation(libs.barcode.scanning)
+    implementation(libs.androidx.room.runtime)
+    kapt (libs.androidx.room.compiler)
+    implementation (libs.androidx.room.ktx)
+    testImplementation (libs.androidx.room.testing)
 }
 
 kapt {

@@ -10,4 +10,5 @@ plugins {
     id("com.google.gms.google-services") version "4.4.2" apply false
     alias(libs.plugins.ksp) apply false
     alias(libs.plugins.google.dagger.hilt) apply false
+    id("androidx.room") version "2.7.0" apply false
 }

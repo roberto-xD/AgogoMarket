@@ -1,11 +1,13 @@
 [versions]
 agp = "8.3.1"
+barcodeScanning = "17.3.0"
 coilCompose = "2.4.0"
 firebaseAnalytics = "22.1.2"
 firebaseAnalyticsVersion = "22.1.2"
 firebaseBom = "33.6.0"
 gson = "2.11.0"
 hiltCompiler = "1.2.0"
+hilt-version = "2.48"
 kotlin = "1.9.0"
 coreKtx = "1.9.0"
 junit = "4.13.2"
@@ -17,7 +19,6 @@ lifecycleRuntimeKtx = "2.8.7"
 activityCompose = "1.9.3"
 composeBom = "2024.11.00"
 navigationCompose = "2.8.4"
-hilt-version = "2.48"
 firebaseFirestore = "25.1.1"
 hiltNavigationCompose = "1.2.0"
 appcompat = "1.7.0"
@@ -25,11 +26,21 @@ material = "1.12.0"
 activity = "1.8.0"
 constraintlayout = "2.2.0"
 ksp-version = "1.9.22-1.0.17"
+roomCompiler = "2.5.1"
+roomKtx = "2.5.1"
+roomRuntime = "2.5.1"
+roomTesting = "2.5.1"
+roomRuntimeAndroid = "2.5.1"
 
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-hilt-compiler = { module = "androidx.hilt:hilt-compiler", version.ref = "hiltCompiler" }
+androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "roomCompiler" }
+androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "roomKtx" }
+androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "roomRuntime" }
+androidx-room-testing = { module = "androidx.room:room-testing", version.ref = "roomTesting" }
+barcode-scanning = { module = "com.google.mlkit:barcode-scanning", version.ref = "barcodeScanning" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
 firebase-analytics = { module = "com.google.firebase:firebase-analytics", version.ref = "firebaseAnalyticsVersion" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version = "33.7.0" }
@@ -58,6 +69,7 @@ landscapist-glide = { module = "com.github.skydoves:landscapist-glide", version.
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
 androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
+androidx-room-runtime-android = { group = "androidx.room", name = "room-runtime-android", version.ref = "roomRuntimeAndroid" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
