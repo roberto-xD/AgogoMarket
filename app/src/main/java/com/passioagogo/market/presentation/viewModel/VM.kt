@@ -7,11 +7,13 @@ import com.google.firebase.firestore.DocumentSnapshot
 import com.passioagogo.market.domain.PAConstants.TAG_PG
 import com.passioagogo.market.domain.bean.PAProductBean
 import com.passioagogo.market.domain.state.PADomainState
+import com.passioagogo.market.domain.usecase.PAGetAllProductLocalUseCase
 import com.passioagogo.market.domain.usecase.PAGetProductInfoUseCase
 import com.passioagogo.market.domain.usecase.PANewProductUseCase
-import com.passioagogo.market.domain.usecase.PAProductInfoUseCase
+import com.passioagogo.market.domain.usecase.PASaveProductLocalUseCase
 import com.passioagogo.market.domain.usecase.PASaveProductInfoUseCase
 import com.passioagogo.market.domain.usecase.PASearchProductInfoUseCase
+import com.passioagogo.market.domain.usecase.PASearchProductLocalUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,7 +27,9 @@ class VM @Inject constructor(
     private val saveInfo: PASaveProductInfoUseCase,
     private val newProduct: PANewProductUseCase,
     private val searchProduct: PASearchProductInfoUseCase,
-    private val localProducts: PAProductInfoUseCase,
+    private val savelocalProduct: PASaveProductLocalUseCase,
+    private val getAllLocalProducts: PAGetAllProductLocalUseCase,
+    private val searchProductLocal: PASearchProductLocalUseCase,
 ) : ViewModel(){
     private val _productData = MutableStateFlow(listOf<PAProductBean>())
     val productData: StateFlow<List<PAProductBean>> = _productData
@@ -37,16 +41,18 @@ class VM @Inject constructor(
     fun addNewProduct(
         infoProduct : PAProductBean,
     ){
-        viewModelScope.launch(Dispatchers.IO){
+        viewModelScope.launch{
             Log.i(TAG_PG,"viewmodel success: ${infoProduct.title}")
-            localProducts.addNewProduct(infoProduct)
+            savelocalProduct(infoProduct)
         }
     }
 
     fun getLocalProducts(){
-        viewModelScope.launch(Dispatchers.IO) {
-            localProducts.getAllProduct().collect {
-                Log.i(TAG_PG,"viewmodel success: ${it}")
+        Log.i(TAG_PG,"call get")
+        viewModelScope.launch {
+            Log.i(TAG_PG,"on launch")
+            getAllLocalProducts().collect {
+                Log.i(TAG_PG,"get all local success: ${it}")
             }
         }
     }
@@ -55,7 +61,7 @@ class VM @Inject constructor(
         searchTerm: String
     ) {
         viewModelScope.launch(Dispatchers.IO) {
-            localProducts.searchProductsByName(searchTerm).collect { result ->
+            searchProductLocal(searchTerm).collect { result ->
                 when (result) {
                     is PADomainState.Success -> {
                         Log.i(TAG_PG,"viewmodel success: ${result.data}")

@@ -61,7 +61,6 @@ fun DashboardScreen(
     LaunchedEffect(isAtBottom) {
         if (isAtBottom) {
             Log.i(TAG_PG, "load more data...")
-//            viewModel.getProductData(startAfterLast = true)
             viewModel.getLocalProducts()
         }
     }
