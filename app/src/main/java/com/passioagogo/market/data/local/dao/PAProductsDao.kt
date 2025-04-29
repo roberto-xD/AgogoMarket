@@ -21,8 +21,7 @@ interface PAProductsDao {
     fun searchProductsByName(searchTerm: String): Flow<List<PAProductEntity>>
 
     @Insert(entity = PAProductEntity::class, onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertProduct(product: PAProductEntity): Flow<Long>
-
+    fun insertProduct(product: PAProductEntity): Long
     @Update(entity = PAProductEntity::class)
     suspend fun updateProduct(producto: PAProductEntity): Int
 

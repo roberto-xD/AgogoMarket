@@ -15,6 +15,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -88,10 +89,7 @@ fun DashboardScreen(
             if (searchState.value) {
                 SearchInput {
                     Log.i(TAG_PG,"keyboard search press: $it")
-                    viewModel.searchItems(
-                        filter = "title",
-                        value = it
-                    )
+                    viewModel.searchLocalProducts(it)
                 }
             }
             if (product.value.size != 0) {

@@ -38,12 +38,17 @@ class VM @Inject constructor(
     private val lastQuery = MutableStateFlow((listOf<DocumentSnapshot>()))
     val isEditor = MutableStateFlow(false)
 
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery: StateFlow<String> = _searchQuery
+
     fun addNewProduct(
         infoProduct : PAProductBean,
     ){
-        viewModelScope.launch{
+        viewModelScope.launch(Dispatchers.IO){
             Log.i(TAG_PG,"viewmodel success: ${infoProduct.title}")
-            savelocalProduct(infoProduct)
+            savelocalProduct(infoProduct).collect{
+                Log.i(TAG_PG,"local item: $it")
+            }
         }
     }
 
@@ -57,23 +62,23 @@ class VM @Inject constructor(
         }
     }
 
+    @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
     fun searchLocalProducts(
         searchTerm: String
     ) {
-        viewModelScope.launch(Dispatchers.IO) {
-            searchProductLocal(searchTerm).collect { result ->
-                when (result) {
-                    is PADomainState.Success -> {
-                        Log.i(TAG_PG,"viewmodel success: ${result.data}")
-                    }
-                    is PADomainState.Error -> {
-                        Log.i(TAG_PG,"viewmodel error: ${result.error}")
-                    }
-                    is PADomainState.Loading -> {
-
-                    }
+        Log.i(TAG_PG,"searchTerm: $searchTerm ")
+        _searchQuery.value = searchTerm
+        viewModelScope.launch {
+            _searchQuery
+                .debounce(300)
+                .distinctUntilChanged()
+                .flatMapLatest { query->
+                    Log.i(TAG_PG,"flat query: $query")
+                    searchProductLocal(query)
                 }
-            }
+                .collect { result ->
+                    Log.i(TAG_PG,"search success: ${result}")
+                }
         }
     }
 

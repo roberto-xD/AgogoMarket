@@ -19,8 +19,8 @@ class PARepositoryImpl @Inject constructor(
         return dao.searchProductsByName(searchTerm)
     }
 
-    override suspend fun insertProduct(product: PAProductEntity): Flow<Long>{
-        return dao.insertProduct(product)
+    override suspend fun insertProduct(product: PAProductEntity): Flow<Long> = flow{
+        dao.insertProduct(product)
     }
 
     override fun updateProduct(product: PAProductEntity): Flow<Int> = flow{

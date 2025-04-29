@@ -50,6 +50,7 @@ fun SearchInput(
             value = input.value,
             onValueChange = {
                 input.value = it
+                doSearch(input.value)
             },
             modifier = modifier.fillMaxWidth(),
             placeholder = { Text(text = "Buscar producto") },
@@ -59,7 +60,6 @@ fun SearchInput(
                     contentDescription = "",
                     modifier = Modifier.clickable {
                         keyboardController?.hide()
-                        doSearch(input.value)
                     }
                 )
             },
@@ -68,9 +68,7 @@ fun SearchInput(
             ),
             keyboardActions = KeyboardActions(
                 onSearch = {
-
                     keyboardController?.hide()
-                    doSearch(input.value)
                 }
             ),
             shape = CircleShape,
