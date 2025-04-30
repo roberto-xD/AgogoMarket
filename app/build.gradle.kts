@@ -1,19 +1,19 @@
 plugins {
-    alias(libs.plugins.androidApplication)
-    alias(libs.plugins.jetbrainsKotlinAndroid)
-    id("com.google.gms.google-services")
-    id("kotlin-kapt")
-    id("com.google.dagger.hilt.android")
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.jetbrains.kotlin.android)
+    alias(libs.plugins.google.gms.google.services)
+    alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.crashlytics)
 }
 
 android {
     namespace = "com.passioagogo.market"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.passioagogo.market"
         minSdk = 24
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
 
@@ -21,13 +21,9 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
-
-        javaCompileOptions {
-            annotationProcessorOptions {
-                arguments += mapOf(
-                    "option_name" to "option_value",
-                    // other options...
-                )
+        externalNativeBuild {
+            cmake {
+                cppFlags += ""
             }
         }
     }
@@ -35,6 +31,10 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = false
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
         }
     }
     compileOptions {
@@ -48,16 +48,25 @@ android {
         compose = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.1"
+        kotlinCompilerExtensionVersion = "2.1.20"
     }
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+    externalNativeBuild {
+        cmake {
+            path = file("src/main/cpp/CMakeLists.txt")
+            version = "3.22.1"
+        }
+    }
 }
 
 dependencies {
+    implementation(libs.androidx.navigation.runtime.ktx)
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.firebase.auth)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -66,12 +75,7 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
-    implementation(libs.androidx.navigation.compose)
-    implementation(libs.firebase.firestore)
-    implementation(libs.androidx.appcompat)
-    implementation(libs.material)
-    implementation(libs.androidx.activity)
-    implementation(libs.androidx.constraintlayout)
+    implementation(libs.firebase.database)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -80,28 +84,27 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
+    annotationProcessor(libs.room.compiler)
+    implementation(libs.androidx.room.ktx)
     implementation(platform(libs.firebase.bom))
-    implementation(libs.firebase.analytics)
-    implementation ("com.google.firebase:firebase-storage-ktx")
-    implementation ("com.google.firebase:firebase-auth-ktx")
 
-    implementation(libs.hilt.android)
-    kapt(libs.hilt.compiler)
-    kapt (libs.androidx.hilt.compiler)
+    implementation(libs.firebase.firestore)
+    implementation(libs.firebase.ui.auth)
+    implementation(libs.facebook.android.sdk)
+
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.hilt.navigation.compose)
-    kapt(libs.kotlinx.metadata.jvm)
-
-    implementation (libs.landscapist.glide)
-    implementation (libs.gson)
+    implementation(libs.firebase.crashlytics)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.hilt.navigation.compose)
+    implementation(libs.firebase.crashlytics)
+    implementation(libs.firebase.analytics)
+    implementation(libs.gson)
+    implementation (libs.converter.gson)
+    implementation (libs.hilt.android)
 
     implementation(libs.coil.compose)
     implementation(libs.barcode.scanning)
-    implementation(libs.androidx.room.runtime)
-    kapt (libs.androidx.room.compiler)
     implementation (libs.androidx.room.ktx)
     testImplementation (libs.androidx.room.testing)
-}
-
-kapt {
-    correctErrorTypes = true
 }
