@@ -1,3 +1,5 @@
+import com.google.devtools.ksp.processing.kspNativeArgParser
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)

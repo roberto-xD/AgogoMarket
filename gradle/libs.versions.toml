@@ -32,6 +32,7 @@ roomRxjava2 = "2.7.1"
 roomRxjava3 = "2.7.1"
 roomTesting = "2.7.1"
 crashlytics = "3.0.3"
+ksp_version = "2.0.21-1.0.27"
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
@@ -81,3 +82,4 @@ jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = 
 google-gms-google-services = { id = "com.google.gms.google-services", version.ref = "googleGmsGoogleServices" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 crashlytics = {id = "com.google.firebase.crashlytics", version.ref = "crashlytics"}
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp_version" }
