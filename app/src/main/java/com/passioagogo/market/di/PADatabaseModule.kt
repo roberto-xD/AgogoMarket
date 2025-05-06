@@ -14,8 +14,9 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object PADatabaseModule {
-    @Provides
+
     @Singleton
+    @Provides
     fun provideDatabase(
         @ApplicationContext context: Context
     ): PADataBase {
@@ -26,6 +27,7 @@ object PADatabaseModule {
         ).build()
     }
 
+    @Singleton
     @Provides
     fun provideUserDao(
         db: PADataBase

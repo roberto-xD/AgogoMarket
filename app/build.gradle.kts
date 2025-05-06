@@ -1,11 +1,11 @@
-import com.google.devtools.ksp.processing.kspNativeArgParser
-
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
     alias(libs.plugins.google.gms.google.services)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.crashlytics)
+    id ("kotlin-kapt")
+    id ("dagger.hilt.android.plugin")
 }
 
 android {
@@ -22,6 +22,13 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
+        }
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments += mapOf(
+
+                )
+            }
         }
     }
 
@@ -75,7 +82,7 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
-    annotationProcessor(libs.room.compiler)
+    kapt(libs.room.compiler)
     implementation(libs.androidx.room.ktx)
     implementation(platform(libs.firebase.bom))
 
@@ -84,18 +91,23 @@ dependencies {
     implementation(libs.facebook.android.sdk)
 
     implementation(libs.androidx.lifecycle.viewmodel.compose)
-    implementation(libs.androidx.hilt.navigation.compose)
     implementation(libs.firebase.crashlytics)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
+
     implementation(libs.androidx.hilt.navigation.compose)
+    implementation(libs.hilt.android)
+    kapt(libs.hilt.compiler)
+
     implementation(libs.firebase.crashlytics)
     implementation(libs.firebase.analytics)
     implementation(libs.gson)
     implementation (libs.converter.gson)
-    implementation (libs.hilt.android)
 
     implementation(libs.coil.compose)
     implementation(libs.barcode.scanning)
     implementation (libs.androidx.room.ktx)
     testImplementation (libs.androidx.room.testing)
+}
+kapt {
+    correctErrorTypes = true
 }

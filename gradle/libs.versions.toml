@@ -9,6 +9,7 @@ firebaseBom = "33.13.0"
 firebaseUiAuth = "9.0.0"
 gson = "2.13.1"
 hiltAndroid = "2.56.1"
+hiltCompiler = "2.56.1"
 hiltNavigationCompose = "1.2.0"
 kotlin = "2.1.20"
 coreKtx = "1.16.0"
@@ -28,11 +29,10 @@ roomCompilerVersion = "2.7.1"
 roomGuava = "2.7.1"
 roomKtx = "2.7.1"
 roomPaging = "2.7.1"
-roomRxjava2 = "2.7.1"
-roomRxjava3 = "2.7.1"
 roomTesting = "2.7.1"
 crashlytics = "3.0.3"
-ksp_version = "2.0.21-1.0.27"
+ksp_version = "2.1.0-1.0.29"
+hiltPluginVersion = "2.56.1"
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
@@ -41,8 +41,6 @@ androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-
 androidx-room-guava = { module = "androidx.room:room-guava", version.ref = "roomGuava" }
 androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "roomKtx" }
 androidx-room-paging = { module = "androidx.room:room-paging", version.ref = "roomPaging" }
-androidx-room-rxjava2 = { module = "androidx.room:room-rxjava2", version.ref = "roomRxjava2" }
-androidx-room-rxjava3 = { module = "androidx.room:room-rxjava3", version.ref = "roomRxjava3" }
 androidx-room-testing = { module = "androidx.room:room-testing", version.ref = "roomTesting" }
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "converterScalars" }
 converter-scalars = { module = "com.squareup.retrofit2:converter-scalars", version.ref = "converterScalars" }
@@ -52,6 +50,7 @@ firebase-firestore = { module = "com.google.firebase:firebase-firestore" }
 firebase-ui-auth = { module = "com.firebaseui:firebase-ui-auth", version.ref = "firebaseUiAuth" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hiltAndroid" }
+hilt-compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "hiltCompiler" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
@@ -83,3 +82,4 @@ google-gms-google-services = { id = "com.google.gms.google-services", version.re
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 crashlytics = {id = "com.google.firebase.crashlytics", version.ref = "crashlytics"}
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp_version" }
+hiltPlugin = { id = "com.google.dagger.hilt.android", version.ref = "hiltPluginVersion" }
