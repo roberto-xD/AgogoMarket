@@ -1,9 +1,10 @@
 package com.passioagogo.market.data.repository
 import com.passioagogo.market.data.local.dao.PAProductsDao
 import com.passioagogo.market.data.local.entity.PAProductEntity
+import com.passioagogo.market.data.local.relation.PAProductWithStatistics
+import com.passioagogo.market.data.local.entity.PAStatistics
 import com.passioagogo.market.domain.repository.PADBRepository
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 
@@ -15,19 +16,40 @@ class PARepositoryImpl @Inject constructor(
         return dao.getAllProducts()
     }
 
-    override fun searchProductsByName(searchTerm: String): Flow<List<PAProductEntity>> {
+    override fun searchProductsByName(
+        searchTerm: String
+    ): Flow<List<PAProductEntity>> {
         return dao.searchProductsByName(searchTerm)
     }
 
-    override suspend fun insertProduct(product: PAProductEntity): Flow<Long> = flow{
+    override fun getProductWithStatistics(
+        productId: Int
+    ): Flow<PAProductWithStatistics?> = flow{
+        dao.getProductWithStatistics(productId)
+    }
+
+    override suspend fun insertProduct(
+        product: PAProductEntity
+    ): Flow<Long> = flow{
         dao.insertProduct(product)
     }
 
-    override fun updateProduct(product: PAProductEntity): Flow<Int> = flow{
+    override suspend fun insertProductWithStatistics(
+        product: PAProductEntity,
+        statistics: PAStatistics
+    ): Flow<Long> = flow{
+       dao.insertProductWithStatistics(product, statistics)
+    }
+
+    override fun updateProduct(
+        product: PAProductEntity
+    ): Flow<Int> = flow{
         dao.updateProduct(product)
     }
 
-    override fun deleteProduct(id: Int): Flow<Int> = flow{
+    override fun deleteProduct(
+        id: Int
+    ): Flow<Int> = flow{
         dao.deleteProduct(id)
     }
 }

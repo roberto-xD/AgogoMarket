@@ -1,17 +1,19 @@
 package com.passioagogo.market.data.local.dao
 
 import androidx.room.Dao
-import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import androidx.room.Update
 import com.passioagogo.market.data.local.entity.PAProductEntity
+import com.passioagogo.market.data.local.relation.PAProductWithStatistics
+import com.passioagogo.market.data.local.entity.PAStatistics
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface PAProductsDao {
-    @Query("SELECT * FROM PRODUCT_TABLE WHERE id LIKE :productId")
+    @Query("SELECT * FROM PRODUCT_TABLE WHERE productId LIKE :productId")
     fun getProducts(productId: Int): List<PAProductEntity>
 
     @Query("SELECT * FROM PRODUCT_TABLE ORDER BY nombre")
@@ -22,27 +24,26 @@ interface PAProductsDao {
 
     @Insert(entity = PAProductEntity::class, onConflict = OnConflictStrategy.REPLACE)
     fun insertProduct(product: PAProductEntity): Long
+
     @Update(entity = PAProductEntity::class)
     suspend fun updateProduct(producto: PAProductEntity): Int
 
-    @Query("DELETE FROM PRODUCT_TABLE WHERE id = :id")
+    @Query("DELETE FROM PRODUCT_TABLE WHERE productId = :id")
     suspend fun deleteProduct(id: Int): Int
 
+    @Insert
+    suspend fun insertStatistics(statistics: PAStatistics): Long
 
-//    @Query("SELECT * FROM PRODUCT_TABLE WHERE precio BETWEEN :minPrice AND :maxPrice")
+    @Transaction
+    suspend fun insertProductWithStatistics(product: PAProductEntity, statistics: PAStatistics): Long {
+        val productId = insertProduct(product)
+        statistics.productIdRef = productId
+        insertStatistics(statistics)
+        return productId
+    }
 
-//    @Query(
-//        """
-//        SELECT * FROM PRODUCT_TABLE
-//        WHERE nombre LIKE '%' || :searchTerm || '%'
-//        AND categoria = :categoria
-//        ORDER BY precio DESC
-//        LIMIT :limit
-//        """
-//    )
-//    fun buscarProductosCombinado(
-//        searchTerm: String,
-//        categoria: String,
-//        limit: Int
-//    ): Flow<List<PAProductEntity>>
+    @Transaction
+    @Query("SELECT * FROM PRODUCT_TABLE WHERE productId = :productId")
+    suspend fun getProductWithStatistics(productId: Int): PAProductWithStatistics?
+
 }
