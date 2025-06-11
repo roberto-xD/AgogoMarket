@@ -4,15 +4,12 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import androidx.room.Transaction
 import androidx.room.Update
 import com.passioagogo.market.data.local.entity.PAProductEntity
-import com.passioagogo.market.data.local.relation.PAProductWithStatistics
-import com.passioagogo.market.data.local.entity.PAStatistics
 import kotlinx.coroutines.flow.Flow
 
 @Dao
-interface PAProductsDao {
+interface PAProductsDaoCRUD {
     @Query("SELECT * FROM PRODUCT_TABLE WHERE productId LIKE :productId")
     fun getProducts(productId: Int): List<PAProductEntity>
 
@@ -31,7 +28,7 @@ interface PAProductsDao {
     @Query("DELETE FROM PRODUCT_TABLE WHERE productId = :id")
     suspend fun deleteProduct(id: Int): Int
 
-    @Insert
+    /*@Insert
     suspend fun insertStatistics(statistics: PAStatistics): Long
 
     @Transaction
@@ -45,5 +42,5 @@ interface PAProductsDao {
     @Transaction
     @Query("SELECT * FROM PRODUCT_TABLE WHERE productId = :productId")
     suspend fun getProductWithStatistics(productId: Int): PAProductWithStatistics?
-
+*/
 }

@@ -5,7 +5,6 @@ import androidx.room.Junction
 import androidx.room.Relation
 import com.passioagogo.market.data.local.entity.PAProductEntity
 import com.passioagogo.market.data.local.entity.PAStatistics
-import com.passioagogo.market.data.local.entity.PAStatisticsProductCrossRefEntity
 
 data class PAProductWithStatistics(
     @Embedded val product: PAProductEntity,

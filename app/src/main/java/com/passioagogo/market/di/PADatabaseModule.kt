@@ -2,7 +2,8 @@ package com.passioagogo.market.data.local
 import PADataConstants.NAME_TABLE
 import android.content.Context
 import androidx.room.Room
-import com.passioagogo.market.data.local.dao.PAProductsDao
+import com.passioagogo.market.data.local.dao.PAProductPricesDao
+import com.passioagogo.market.data.local.dao.PAProductsDaoCRUD
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -31,8 +32,16 @@ object PADatabaseModule {
     @Provides
     fun provideUserDao(
         db: PADataBase
-    ): PAProductsDao {
+    ): PAProductsDaoCRUD {
         return db.productDao()
+    }
+
+    @Singleton
+    @Provides
+    fun providePricesDao(
+        db: PADataBase
+    ): PAProductPricesDao {
+        return db.priceDao()
     }
 }
 

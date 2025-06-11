@@ -8,10 +8,12 @@ import androidx.room.PrimaryKey
 )
 data class PAProductEntity(
     @PrimaryKey(autoGenerate = true) val productId : Int = 0,
+    val sku: String = "",
     val nombre : String = "",
     val descripcion : String = "",
     val imagenes : String = "",
-    val precio : String = "",
-    val stock : String = "",
-    val categoria : String = "",
+    val stock : Int = 0,
+    val reposicion: Int = 0,
+    val liga : String = "",
+    val enVenta : Boolean = false,
 )

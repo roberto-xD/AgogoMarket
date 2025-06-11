@@ -4,17 +4,14 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.firestore.DocumentSnapshot
-import com.passioagogo.market.data.local.entity.PAStatistics
 import com.passioagogo.market.domain.PAConstants.TAG_PG
 import com.passioagogo.market.domain.bean.PAProductBean
 import com.passioagogo.market.domain.state.PADomainState
 import com.passioagogo.market.domain.usecase.PAGetAllProductLocalUseCase
-import com.passioagogo.market.domain.usecase.PAGetLocalProductWithStatistics
 import com.passioagogo.market.domain.usecase.PAGetProductInfoUseCase
 import com.passioagogo.market.domain.usecase.PANewProductUseCase
-import com.passioagogo.market.domain.usecase.PASaveLocalProductWithStatistics
-import com.passioagogo.market.domain.usecase.PASaveProductLocalUseCase
 import com.passioagogo.market.domain.usecase.PASaveProductInfoUseCase
+import com.passioagogo.market.domain.usecase.PASaveProductLocalUseCase
 import com.passioagogo.market.domain.usecase.PASearchProductInfoUseCase
 import com.passioagogo.market.domain.usecase.PASearchProductLocalUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -26,7 +23,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -39,8 +35,6 @@ class VM @Inject constructor(
     private val savelocalProduct: PASaveProductLocalUseCase,
     private val getAllLocalProducts: PAGetAllProductLocalUseCase,
     private val searchProductLocal: PASearchProductLocalUseCase,
-    private val getLocalProductWithStatistics: PAGetLocalProductWithStatistics,
-    private val saveLocalProductWithStatistics: PASaveLocalProductWithStatistics
 ) : ViewModel(){
     private val _productData = MutableStateFlow(listOf<PAProductBean>())
     val productData: StateFlow<List<PAProductBean>> = _productData
@@ -57,15 +51,7 @@ class VM @Inject constructor(
     ){
         viewModelScope.launch(Dispatchers.IO){
             Log.i(TAG_PG,"viewmodel success: ${infoProduct.title}")
-            /*savelocalProduct(infoProduct).collect{
-                Log.i(TAG_PG,"local item: $it")
-            }*/
-            saveLocalProductWithStatistics(
-                product = infoProduct,
-                statistics = PAStatistics(
-                    last_sale = "10/10/2025"
-                )
-            ).collect{
+            savelocalProduct(infoProduct).collect{
                 Log.i(TAG_PG,"local item: $it")
             }
         }
@@ -75,11 +61,8 @@ class VM @Inject constructor(
         Log.i(TAG_PG,"call get")
         viewModelScope.launch {
             Log.i(TAG_PG,"on launch")
-            /*getAllLocalProducts().collect {
+            getAllLocalProducts().collect {
                 Log.i(TAG_PG,"get all local success: ${it}")
-            }*/
-            getLocalProductWithStatistics(1).collect{
-                Log.i(TAG_PG,"get local success: ${it}")
             }
         }
     }
