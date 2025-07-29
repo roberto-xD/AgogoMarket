@@ -1,0 +1,13 @@
+package com.passioagogo.market.data.local.entity.dinamics
+
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+
+@Entity(tableName = "tipos_atributos")
+data class TipoAtributoEntity(
+    @PrimaryKey(autoGenerate = true)
+    val id: Long = 0,
+    val nombre: String, // marca, material, base, sabor, recargable, etc.
+    val tipoDato: String = "TEXT", // TEXT, NUMBER, BOOLEAN, DATE
+    val activo: Boolean = true
+)
