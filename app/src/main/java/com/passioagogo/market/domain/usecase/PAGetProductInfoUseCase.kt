@@ -18,8 +18,6 @@ class PAGetProductInfoUseCase @Inject constructor() {
         lastDocument: DocumentSnapshot?= null,
         response: (PADomainState<QuerySnapshot>) -> Unit,
     ){
-        response(PADomainState.Loading())
-
         val query = bd.collection(COLLECTION_PRODUCTS)
             .whereEqualTo(field,value)
             .limit(limit ?: 15)
@@ -33,7 +31,7 @@ class PAGetProductInfoUseCase @Inject constructor() {
                 }
                 .addOnFailureListener { exception ->
                     Log.i("tag fail","$exception")
-                    response(PADomainState.Error(exception.message))
+
                 }
         } ?: run {
             query
@@ -43,7 +41,7 @@ class PAGetProductInfoUseCase @Inject constructor() {
                 }
                 .addOnFailureListener { exception ->
                     Log.i("tag fail","$exception")
-                    response(PADomainState.Error(exception.message))
+
                 }
         }
     }

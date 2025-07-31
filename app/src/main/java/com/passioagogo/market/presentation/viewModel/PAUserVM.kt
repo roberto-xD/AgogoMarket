@@ -26,10 +26,10 @@ class PAUserVM @Inject constructor(
             email = email,
             password = password,
             success = {
-                _user.value = PADomainState.Success(it)
+//                _user.value = PADomainState.Success(it)
             },
             fail = {
-                _user.value = PADomainState.Error(it)
+//                _user.value = PADomainState.Error(it)
             }
         )
     }

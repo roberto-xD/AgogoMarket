@@ -7,13 +7,10 @@ import com.google.firebase.firestore.DocumentSnapshot
 import com.passioagogo.market.domain.PAConstants.TAG_PG
 import com.passioagogo.market.domain.bean.PAProductBean
 import com.passioagogo.market.domain.state.PADomainState
-import com.passioagogo.market.domain.usecase.PAGetAllProductLocalUseCase
 import com.passioagogo.market.domain.usecase.PAGetProductInfoUseCase
 import com.passioagogo.market.domain.usecase.PANewProductUseCase
 import com.passioagogo.market.domain.usecase.PASaveProductInfoUseCase
-import com.passioagogo.market.domain.usecase.PASaveProductLocalUseCase
 import com.passioagogo.market.domain.usecase.PASearchProductInfoUseCase
-import com.passioagogo.market.domain.usecase.PASearchProductLocalUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -32,9 +29,7 @@ class VM @Inject constructor(
     private val saveInfo: PASaveProductInfoUseCase,
     private val newProduct: PANewProductUseCase,
     private val searchProduct: PASearchProductInfoUseCase,
-    private val savelocalProduct: PASaveProductLocalUseCase,
-    private val getAllLocalProducts: PAGetAllProductLocalUseCase,
-    private val searchProductLocal: PASearchProductLocalUseCase,
+
 ) : ViewModel(){
     private val _productData = MutableStateFlow(listOf<PAProductBean>())
     val productData: StateFlow<List<PAProductBean>> = _productData
@@ -51,9 +46,9 @@ class VM @Inject constructor(
     ){
         viewModelScope.launch(Dispatchers.IO){
             Log.i(TAG_PG,"viewmodel success: ${infoProduct.title}")
-            savelocalProduct(infoProduct).collect{
-                Log.i(TAG_PG,"local item: $it")
-            }
+//            savelocalProduct(infoProduct).collect{
+//                Log.i(TAG_PG,"local item: $it")
+//            }
         }
     }
 
@@ -61,9 +56,9 @@ class VM @Inject constructor(
         Log.i(TAG_PG,"call get")
         viewModelScope.launch {
             Log.i(TAG_PG,"on launch")
-            getAllLocalProducts().collect {
-                Log.i(TAG_PG,"get all local success: ${it}")
-            }
+//            getAllLocalProducts().collect {
+//                Log.i(TAG_PG,"get all local success: ${it}")
+//            }
         }
     }
 
@@ -77,10 +72,10 @@ class VM @Inject constructor(
             _searchQuery
                 .debounce(300)
                 .distinctUntilChanged()
-                .flatMapLatest { query->
-                    Log.i(TAG_PG,"flat query: $query")
-                    searchProductLocal(query)
-                }
+//                .flatMapLatest { query->
+//                    Log.i(TAG_PG,"flat query: $query")
+//                    searchProductLocal(query)
+//                }
                 .collect { result ->
                     Log.i(TAG_PG,"search success: ${result}")
                 }
@@ -119,11 +114,9 @@ class VM @Inject constructor(
                     }
                     is PADomainState.Error -> {
                         _loader.value = false
-                        Log.i(TAG_PG,"viewmodel error: ${response.error}")
                     }
                     is PADomainState.Loading -> {
                         _loader.value = true
-                        Log.i(TAG_PG,"viewmodel is loading: ${response.isLoading}")
                     }
                 }
             }
@@ -141,15 +134,15 @@ class VM @Inject constructor(
                 when(response){
                     is PADomainState.Success -> {
                         Log.i(TAG_PG,"viewmodel success: ${response.data}")
-                        response.data?.let {
+                        response.data.let {
                             success()
                         }
                     }
                     is PADomainState.Error -> {
-                        Log.i(TAG_PG,"viewmodel error: ${response.error}")
+
                     }
                     is PADomainState.Loading -> {
-                        Log.i(TAG_PG,"viewmodel is loading: ${response.isLoading}")
+
                     }
                 }
             }
@@ -172,10 +165,10 @@ class VM @Inject constructor(
                         }
                     }
                     is PADomainState.Error -> {
-                        Log.i(TAG_PG,"viewmodel error: ${response.error}")
+
                     }
                     is PADomainState.Loading -> {
-                        Log.i(TAG_PG,"viewmodel is loading: ${response.isLoading}")
+
                     }
                 }
 
@@ -205,11 +198,11 @@ class VM @Inject constructor(
                     }
                     is PADomainState.Error -> {
                         _loader.value = false
-                        Log.i(TAG_PG,"viewmodel error: ${response.error}")
+
                     }
                     is PADomainState.Loading -> {
                         _loader.value = true
-                        Log.i(TAG_PG,"viewmodel is loading: ${response.isLoading}")
+
                     }
                 }
             }
