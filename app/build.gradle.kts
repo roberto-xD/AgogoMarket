@@ -74,7 +74,7 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.firebase.database)
-    testImplementation(libs.junit)
+
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
@@ -85,15 +85,12 @@ dependencies {
     kapt(libs.room.compiler)
     implementation(libs.androidx.room.ktx)
     implementation(platform(libs.firebase.bom))
-
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.ui.auth)
     implementation(libs.facebook.android.sdk)
-
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.firebase.crashlytics)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
-
     implementation(libs.androidx.hilt.navigation.compose)
     implementation(libs.hilt.android)
     kapt(libs.hilt.compiler)
@@ -102,16 +99,20 @@ dependencies {
     implementation(libs.firebase.analytics)
     implementation(libs.gson)
     implementation (libs.converter.gson)
-
     implementation(libs.coil.compose)
     implementation(libs.barcode.scanning)
     implementation (libs.androidx.room.ktx)
+
+    testImplementation(libs.bundles.testing)
     testImplementation (libs.androidx.room.testing)
+    testImplementation(libs.hilt.android.testing)
+
+    testImplementation(libs.junit)
     testImplementation (libs.kotlinx.coroutines.test)
     testImplementation (libs.turbine)
     testImplementation(libs.mockk)
     testImplementation(libs.truth)
-    testImplementation(libs.hilt.android.testing)
+    testImplementation ("org.junit.jupiter:junit-jupiter-api:5.9.2")
 
 }
 kapt {

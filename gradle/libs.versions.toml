@@ -94,3 +94,18 @@ compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "
 crashlytics = {id = "com.google.firebase.crashlytics", version.ref = "crashlytics"}
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp_version" }
 hiltPlugin = { id = "com.google.dagger.hilt.android", version.ref = "hiltPluginVersion" }
+
+[bundles]
+testing = [
+    "junit",
+    "truth",
+    "kotlinx-coroutines-test",
+    "mockk",
+    "turbine"
+]
+
+android-testing = [
+    "androidx-junit",
+    "androidx-espresso-core",
+    "androidx-ui-test-junit4"
+]
