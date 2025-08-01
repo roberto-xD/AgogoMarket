@@ -61,3 +61,4 @@ class ResultTest {
         Truth.assertThat(executed).isFalse()
     }
 }
+
