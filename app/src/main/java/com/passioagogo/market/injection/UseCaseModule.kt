@@ -1,11 +1,11 @@
 package com.passioagogo.market.injection
 
-import com.passioagogo.market.data.repository.CategoriaRepositoryImpl
-import com.passioagogo.market.data.repository.FamiliaRepositoryImpl
-import com.passioagogo.market.data.repository.ProductoRepositoryImpl
-import com.passioagogo.market.data.repository.ProveedorRepositoryImpl
+import com.passioagogo.market.domain.implementation.CategoriaRepositoryDomainImpl
+import com.passioagogo.market.domain.implementation.HistorialRepositoryImpl
+import com.passioagogo.market.domain.implementation.ImagenRepositoryImpl
+import com.passioagogo.market.domain.implementation.ProductoRepositoryDomainImpl
+import com.passioagogo.market.domain.implementation.ProveedorRepositoryDomainImpl
 import com.passioagogo.market.domain.repository.ICategoriaRepository
-import com.passioagogo.market.domain.repository.IFamiliaRepository
 import com.passioagogo.market.domain.repository.IHistorialRepository
 import com.passioagogo.market.domain.repository.IImagenRepository
 import com.passioagogo.market.domain.repository.IProductoRepository
@@ -187,27 +187,29 @@ object UseCaseModule {
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class DomainRepositoryModule {
-
     @Binds
-    abstract fun bindIProductoRepository(
-        productoRepositoryImpl: ProductoRepositoryImpl
+    abstract fun bindProductoRepository(
+        productoRepositoryDomainImpl: ProductoRepositoryDomainImpl
     ): IProductoRepository
 
     @Binds
-    abstract fun bindICategoriaRepository(
-        categoriaRepositoryImpl: CategoriaRepositoryImpl
+    abstract fun bindCategoriaRepository(
+        categoriaRepositoryDomainImpl: CategoriaRepositoryDomainImpl
     ): ICategoriaRepository
 
     @Binds
-    abstract fun bindIProveedorRepository(
-        proveedorRepositoryImpl: ProveedorRepositoryImpl
+    abstract fun bindProveedorRepository(
+        proveedorRepositoryDomainImpl: ProveedorRepositoryDomainImpl
     ): IProveedorRepository
 
     @Binds
-    abstract fun bindIFamiliaRepository(
-        familiaRepositoryImpl: FamiliaRepositoryImpl
-    ): IFamiliaRepository
+    abstract fun bindHistorialRepository(
+        historialRepositoryDomainImpl: HistorialRepositoryImpl
+    ): IHistorialRepository
 
-    // Nota: IImagenRepository e IHistorialRepository necesitan implementaciones
-    // que puedes crear siguiendo el mismo patrón de los repositorios existentes
+    @Binds
+    abstract fun bindImagenRepository(
+        imagenRepositoryDomainImpl: ImagenRepositoryImpl
+    ): IImagenRepository
+
 }

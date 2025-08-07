@@ -8,9 +8,6 @@ import com.passioagogo.market.domain.PAConstants.TAG_PG
 import com.passioagogo.market.domain.bean.PAProductBean
 import com.passioagogo.market.domain.state.PADomainState
 import com.passioagogo.market.domain.usecase.PAGetProductInfoUseCase
-import com.passioagogo.market.domain.usecase.PANewProductUseCase
-import com.passioagogo.market.domain.usecase.PASaveProductInfoUseCase
-import com.passioagogo.market.domain.usecase.PASearchProductInfoUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -26,9 +23,6 @@ import javax.inject.Inject
 @HiltViewModel
 class VM @Inject constructor(
     private val productInfo: PAGetProductInfoUseCase,
-    private val saveInfo: PASaveProductInfoUseCase,
-    private val newProduct: PANewProductUseCase,
-    private val searchProduct: PASearchProductInfoUseCase,
 
 ) : ViewModel(){
     private val _productData = MutableStateFlow(listOf<PAProductBean>())
@@ -128,24 +122,7 @@ class VM @Inject constructor(
         success:() -> Unit
     ){
         viewModelScope.launch{
-            saveInfo(
-                infoProduct = infoProduct
-            ){ response->
-                when(response){
-                    is PADomainState.Success -> {
-                        Log.i(TAG_PG,"viewmodel success: ${response.data}")
-                        response.data.let {
-                            success()
-                        }
-                    }
-                    is PADomainState.Error -> {
 
-                    }
-                    is PADomainState.Loading -> {
-
-                    }
-                }
-            }
         }
     }
 
@@ -154,25 +131,7 @@ class VM @Inject constructor(
         success:() -> Unit
     ){
         viewModelScope.launch{
-            newProduct(
-                infoProduct = infoProduct
-            ){response->
-                when(response){
-                    is PADomainState.Success -> {
-                        Log.i(TAG_PG,"viewmodel new success: ${response.data}")
-                        response.data?.let {
-                            success()
-                        }
-                    }
-                    is PADomainState.Error -> {
 
-                    }
-                    is PADomainState.Loading -> {
-
-                    }
-                }
-
-            }
         }
     }
 
@@ -182,30 +141,7 @@ class VM @Inject constructor(
         limit: Long ?= null,
     ){
         viewModelScope.launch {
-            searchProduct(
-                field = filter,
-                value = value,
-                limit = limit,
-            ){  response ->
-                when(response){
-                    is PADomainState.Success -> {
-                        _loader.value = false
-                        response.data?.let {query ->
-                            _productData.value = query.map {
-                                it.toObject(PAProductBean::class.java).apply { id = it.id }
-                            }
-                        }
-                    }
-                    is PADomainState.Error -> {
-                        _loader.value = false
 
-                    }
-                    is PADomainState.Loading -> {
-                        _loader.value = true
-
-                    }
-                }
-            }
         }
     }
 }
