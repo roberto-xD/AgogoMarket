@@ -4,7 +4,7 @@ import com.passioagogo.market.domain.bean.Categoria
 import com.passioagogo.market.domain.bean.Familia
 import com.passioagogo.market.domain.bean.Producto
 import com.passioagogo.market.domain.bean.Proveedor
-import com.passioagogo.market.domain.usecase.CrearProductoParams
+import com.passioagogo.market.domain.usecase.producto.CrearProductoParams
 
 object TestData {
 

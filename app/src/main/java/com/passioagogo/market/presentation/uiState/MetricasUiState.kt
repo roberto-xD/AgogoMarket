@@ -1,7 +1,7 @@
 package com.passioagogo.market.presentation.uiState
 
-import com.passioagogo.market.domain.usecase.MetricasInventario
-import com.passioagogo.market.domain.usecase.ReporteVentas
+import com.passioagogo.market.domain.usecase.metricas.MetricasInventario
+import com.passioagogo.market.domain.usecase.ventas.ReporteVentas
 
 data class MetricasUiState(
     val metricas: MetricasInventario? = null,

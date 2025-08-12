@@ -2,7 +2,7 @@ package com.passioagogo.market.useCase
 
 import com.google.common.truth.Truth
 import com.passioagogo.market.domain.repository.IProductoRepository
-import com.passioagogo.market.domain.usecase.ObtenerProductosUseCase
+import com.passioagogo.market.domain.usecase.producto.ObtenerProductosUseCase
 import com.passioagogo.market.testing.CoroutineTestRule
 import com.passioagogo.market.testing.TestData
 import com.passioagogo.market.testing.shouldBeError

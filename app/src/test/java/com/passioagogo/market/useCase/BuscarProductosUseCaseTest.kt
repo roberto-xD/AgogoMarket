@@ -3,8 +3,8 @@ package com.passioagogo.market.useCase
 import com.google.common.truth.Truth
 import com.passioagogo.market.domain.bean.Producto
 import com.passioagogo.market.domain.repository.IProductoRepository
-import com.passioagogo.market.domain.usecase.BuscarProductosParams
-import com.passioagogo.market.domain.usecase.BuscarProductosUseCase
+import com.passioagogo.market.domain.usecase.producto.BuscarProductosParams
+import com.passioagogo.market.domain.usecase.producto.BuscarProductosUseCase
 import com.passioagogo.market.testing.CoroutineTestRule
 import com.passioagogo.market.testing.TestData
 import com.passioagogo.market.testing.shouldBeSuccess

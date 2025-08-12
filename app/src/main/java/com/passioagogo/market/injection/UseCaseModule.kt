@@ -1,37 +1,41 @@
 package com.passioagogo.market.injection
 
 import com.passioagogo.market.domain.implementation.CategoriaRepositoryDomainImpl
+import com.passioagogo.market.domain.implementation.FamiliaRepositoryDomainImpl
 import com.passioagogo.market.domain.implementation.HistorialRepositoryImpl
 import com.passioagogo.market.domain.implementation.ImagenRepositoryImpl
 import com.passioagogo.market.domain.implementation.ProductoRepositoryDomainImpl
 import com.passioagogo.market.domain.implementation.ProveedorRepositoryDomainImpl
+import com.passioagogo.market.domain.implementation.SubcategoriaRepositoryDomainImpl
 import com.passioagogo.market.domain.repository.ICategoriaRepository
+import com.passioagogo.market.domain.repository.IFamiliaRepository
 import com.passioagogo.market.domain.repository.IHistorialRepository
 import com.passioagogo.market.domain.repository.IImagenRepository
 import com.passioagogo.market.domain.repository.IProductoRepository
 import com.passioagogo.market.domain.repository.IProveedorRepository
-import com.passioagogo.market.domain.usecase.ActualizarProductoUseCase
-import com.passioagogo.market.domain.usecase.BuscarProductosUseCase
-import com.passioagogo.market.domain.usecase.CrearCategoriaUseCase
-import com.passioagogo.market.domain.usecase.CrearProductoUseCase
-import com.passioagogo.market.domain.usecase.CrearProveedorUseCase
-import com.passioagogo.market.domain.usecase.EliminarProductoUseCase
-import com.passioagogo.market.domain.usecase.EstablecerImagenPrincipalUseCase
-import com.passioagogo.market.domain.usecase.GenerarReporteVentasUseCase
-import com.passioagogo.market.domain.usecase.GestionarStockUseCase
-import com.passioagogo.market.domain.usecase.GuardarImagenProductoUseCase
-import com.passioagogo.market.domain.usecase.ObtenerCategoriasPorFamiliaUseCase
-import com.passioagogo.market.domain.usecase.ObtenerCategoriasUseCase
-import com.passioagogo.market.domain.usecase.ObtenerMetricasInventarioUseCase
-import com.passioagogo.market.domain.usecase.ObtenerProductoDetalladoUseCase
-import com.passioagogo.market.domain.usecase.ObtenerProductoPorIdUseCase
-import com.passioagogo.market.domain.usecase.ObtenerProductosStockBajoUseCase
-import com.passioagogo.market.domain.usecase.ObtenerProductosUseCase
-import com.passioagogo.market.domain.usecase.ObtenerProveedoresUseCase
-import com.passioagogo.market.domain.usecase.RegistrarCompraUseCase
-import com.passioagogo.market.domain.usecase.RegistrarVentaUseCase
-import com.passioagogo.market.domain.usecase.ValidarCodigoBarrasUseCase
-import com.passioagogo.market.domain.usecase.ValidarSkuUseCase
+import com.passioagogo.market.domain.repository.ISubcategoriaRepository
+import com.passioagogo.market.domain.usecase.producto.ActualizarProductoUseCase
+import com.passioagogo.market.domain.usecase.producto.BuscarProductosUseCase
+import com.passioagogo.market.domain.usecase.categorias.CrearCategoriaUseCase
+import com.passioagogo.market.domain.usecase.producto.CrearProductoUseCase
+import com.passioagogo.market.domain.usecase.compras.CrearProveedorUseCase
+import com.passioagogo.market.domain.usecase.producto.EliminarProductoUseCase
+import com.passioagogo.market.domain.usecase.producto.EstablecerImagenPrincipalUseCase
+import com.passioagogo.market.domain.usecase.ventas.GenerarReporteVentasUseCase
+import com.passioagogo.market.domain.usecase.compras.GestionarStockUseCase
+import com.passioagogo.market.domain.usecase.producto.GuardarImagenProductoUseCase
+import com.passioagogo.market.domain.usecase.categorias.ObtenerCategoriasPorFamiliaUseCase
+import com.passioagogo.market.domain.usecase.categorias.ObtenerCategoriasUseCase
+import com.passioagogo.market.domain.usecase.metricas.ObtenerMetricasInventarioUseCase
+import com.passioagogo.market.domain.usecase.producto.ObtenerProductoDetalladoUseCase
+import com.passioagogo.market.domain.usecase.producto.ObtenerProductoPorIdUseCase
+import com.passioagogo.market.domain.usecase.producto.ObtenerProductosStockBajoUseCase
+import com.passioagogo.market.domain.usecase.producto.ObtenerProductosUseCase
+import com.passioagogo.market.domain.usecase.producto.ObtenerProveedoresUseCase
+import com.passioagogo.market.domain.usecase.compras.RegistrarCompraUseCase
+import com.passioagogo.market.domain.usecase.ventas.RegistrarVentaUseCase
+import com.passioagogo.market.domain.usecase.producto.ValidarCodigoBarrasUseCase
+import com.passioagogo.market.domain.usecase.producto.ValidarSkuUseCase
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -188,6 +192,11 @@ object UseCaseModule {
 @InstallIn(SingletonComponent::class)
 abstract class DomainRepositoryModule {
     @Binds
+    abstract fun bindFamiliaRepository(
+        familiaRepositoryDomainImpl: FamiliaRepositoryDomainImpl
+    ) : IFamiliaRepository
+
+    @Binds
     abstract fun bindProductoRepository(
         productoRepositoryDomainImpl: ProductoRepositoryDomainImpl
     ): IProductoRepository
@@ -196,6 +205,11 @@ abstract class DomainRepositoryModule {
     abstract fun bindCategoriaRepository(
         categoriaRepositoryDomainImpl: CategoriaRepositoryDomainImpl
     ): ICategoriaRepository
+
+    @Binds
+    abstract fun bindSubcategoriaRepository(
+        subcategoriaRepositoryDomainImpl: SubcategoriaRepositoryDomainImpl
+    ): ISubcategoriaRepository
 
     @Binds
     abstract fun bindProveedorRepository(

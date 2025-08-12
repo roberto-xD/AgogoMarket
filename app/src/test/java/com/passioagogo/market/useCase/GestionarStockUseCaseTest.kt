@@ -4,9 +4,9 @@ import com.google.common.truth.Truth
 import com.passioagogo.market.domain.repository.IProductoRepository
 import com.passioagogo.market.domain.state.DomainException
 import com.passioagogo.market.domain.state.PADomainState
-import com.passioagogo.market.domain.usecase.GestionarStockUseCase
-import com.passioagogo.market.domain.usecase.MovimientoStockParams
-import com.passioagogo.market.domain.usecase.TipoMovimiento
+import com.passioagogo.market.domain.usecase.compras.GestionarStockUseCase
+import com.passioagogo.market.domain.usecase.compras.MovimientoStockParams
+import com.passioagogo.market.domain.usecase.compras.TipoMovimiento
 import com.passioagogo.market.testing.CoroutineTestRule
 import com.passioagogo.market.testing.TestData
 import com.passioagogo.market.testing.shouldBeError

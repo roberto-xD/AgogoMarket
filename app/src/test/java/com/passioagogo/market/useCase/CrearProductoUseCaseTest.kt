@@ -4,7 +4,7 @@ import com.google.common.truth.Truth
 import com.passioagogo.market.domain.repository.IProductoRepository
 import com.passioagogo.market.domain.state.DomainException
 import com.passioagogo.market.domain.state.PADomainState
-import com.passioagogo.market.domain.usecase.CrearProductoUseCase
+import com.passioagogo.market.domain.usecase.producto.CrearProductoUseCase
 import com.passioagogo.market.testing.CoroutineTestRule
 import com.passioagogo.market.testing.TestData
 import com.passioagogo.market.testing.shouldBeError

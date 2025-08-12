@@ -4,9 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.passioagogo.market.domain.state.onError
 import com.passioagogo.market.domain.state.onSuccess
-import com.passioagogo.market.domain.usecase.GenerarReporteParams
-import com.passioagogo.market.domain.usecase.GenerarReporteVentasUseCase
-import com.passioagogo.market.domain.usecase.ObtenerMetricasInventarioUseCase
+import com.passioagogo.market.domain.usecase.ventas.GenerarReporteParams
+import com.passioagogo.market.domain.usecase.ventas.GenerarReporteVentasUseCase
+import com.passioagogo.market.domain.usecase.metricas.ObtenerMetricasInventarioUseCase
 import com.passioagogo.market.presentation.uiState.MetricasUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow

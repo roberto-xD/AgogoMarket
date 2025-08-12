@@ -31,6 +31,7 @@ import com.passioagogo.market.presentation.view.components.DrawerSheet
 import com.passioagogo.market.presentation.view.components.Splash
 import com.passioagogo.market.presentation.view.components.ProductCard
 import com.passioagogo.market.presentation.view.components.SearchInput
+import com.passioagogo.market.presentation.viewModel.ProductosViewModel
 import com.passioagogo.market.presentation.viewModel.VM
 import com.passioagogo.market.ui.decorators.shimmerEffect
 import kotlinx.coroutines.launch
@@ -39,6 +40,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun DashboardScreen(
     viewModel: VM = hiltViewModel(),
+    productViewModel: ProductosViewModel = hiltViewModel(),
     navigate: (route: String) -> Unit,
 ) {
     val product = viewModel.productData.collectAsState()
@@ -67,6 +69,7 @@ fun DashboardScreen(
     }
 
     LaunchedEffect(Unit) {
+
         viewModel.getLocalProducts()
     }
 
