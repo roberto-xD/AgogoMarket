@@ -312,14 +312,8 @@ class ProductoRepositoryDomainImpl @Inject constructor(
     }
 
     override suspend fun buscarProductos(query: String): Flow<List<Producto>> {
-        // Implementación básica - se puede mejorar con búsqueda FTS
-        return productoDao.obtenerProductosActivos().map { productos ->
-            productos.filter { producto ->
-                producto.nombre.contains(query, ignoreCase = true) ||
-                        producto.descripcion?.contains(query, ignoreCase = true) == true ||
-                        producto.skuInterno.contains(query, ignoreCase = true) ||
-                        producto.codigoBarras?.contains(query, ignoreCase = true) == true
-            }.map { Producto.fromEntity(it) }
+        return productoDao.buscarProductos(query).map { productos ->
+            productos.map { Producto.fromEntity(it) }
         }
     }
 }

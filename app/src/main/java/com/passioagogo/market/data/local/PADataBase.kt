@@ -1,4 +1,5 @@
 package com.passioagogo.market.data.local
+import PADataConstants.NAME_TABLE
 import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
@@ -79,7 +80,7 @@ abstract class InventarioDatabase : RoomDatabase() {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     InventarioDatabase::class.java,
-                    "inventario_database"
+                    NAME_TABLE
                 )
                     .addCallback(DatabaseCallback())
                     .build()

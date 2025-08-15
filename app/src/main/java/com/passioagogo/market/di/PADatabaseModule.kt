@@ -32,13 +32,9 @@ object PADatabaseModule {
     @Singleton
     @Provides
     fun provideInventarioDatabase(
-        @ApplicationContext context: Context
+        @ApplicationContext context: Context,
     ): InventarioDatabase {
-        return Room.databaseBuilder(
-            context = context,
-            klass = InventarioDatabase::class.java,
-            name = NAME_TABLE
-        ).build()
+        return InventarioDatabase.getDatabase(context)
     }
 
 
