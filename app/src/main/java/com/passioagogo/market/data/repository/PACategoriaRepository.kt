@@ -1,4 +1,4 @@
-package com.passioagogo.market.domain.repository
+package com.passioagogo.market.data.repository
 
 import com.passioagogo.market.domain.bean.Categoria
 import com.passioagogo.market.domain.state.PADomainState

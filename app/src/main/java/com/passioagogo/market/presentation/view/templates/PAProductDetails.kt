@@ -37,24 +37,25 @@ import coil.compose.rememberAsyncImagePainter
 import com.passioagogo.market.R
 import com.passioagogo.market.domain.bean.PAPriceBean
 import com.passioagogo.market.domain.bean.PAProductBean
+import com.passioagogo.market.domain.bean.Producto
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ProductDetails(
-    currentProduct: PAProductBean,
+    currentProduct: Producto,
     changeView: () -> Unit
 ) {
     val context = LocalContext.current
     val clipBoardManager = LocalClipboardManager.current
     val scroll = rememberScrollState()
-    val title = currentProduct.title.orEmpty()
-    val urlImage = currentProduct.image.orEmpty()
-    val originalPrice = currentProduct.price?.public.orEmpty()
-    val finalPrice = currentProduct.price?.discount.orEmpty()
-    val description = currentProduct.description.orEmpty()
-    val category = currentProduct.category.orEmpty()
-    val isActive = currentProduct.isActive ?: false
-    val code = currentProduct.sku.orEmpty()
+    val title = currentProduct.nombre
+    val urlImage = ""
+    val originalPrice = currentProduct.precioCompra.toString()
+    val finalPrice = currentProduct.precioVenta.toString()
+    val description = currentProduct.descripcion.orEmpty()
+    val category = ""
+    val isActive = currentProduct.activo
+    val code = currentProduct.skuInterno
 
     Column {
         Text(
@@ -226,9 +227,9 @@ fun ProductDetails(
 @Preview
 private fun Preview1() {
     ProductDetails(
-        currentProduct = PAProductBean(
-            title = "Desensibilizador para sexo oral \"Garganta profunda\"",
-            description = "Spray oral de acción rápida con benzocaína.\n" +
+        currentProduct = Producto(
+            nombre = "Desensibilizador para sexo oral \"Garganta profunda\"",
+            descripcion = "Spray oral de acción rápida con benzocaína.\n" +
                     "\n" +
                     "\uD83D\uDE08Desensibiliza ligeramente la garganta para un juego aún más profundo.\n" +
                     "\n" +
@@ -239,13 +240,8 @@ private fun Preview1() {
                     "La sensación de adormecimiento se desvanece naturalmente con el tiempo.\n" +
                     "\n" +
                     " Cont. Neto 60 ml.",
-            image = "",
-            sku = "10234",
-            category = "BDSM",
-            price = PAPriceBean(
-                public = "$300.00",
-                discount = ""
-            ),
+            precioVenta = 100.0,
+            precioCompra = 50.0
         )
     ) {}
 }

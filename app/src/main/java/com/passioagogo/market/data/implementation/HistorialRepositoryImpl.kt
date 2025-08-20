@@ -1,4 +1,4 @@
-package com.passioagogo.market.domain.implementation
+package com.passioagogo.market.data.implementation
 
 import com.passioagogo.market.data.local.dao.HistorialPrecioDao
 import com.passioagogo.market.data.local.entity.utils.HistorialPrecioEntity

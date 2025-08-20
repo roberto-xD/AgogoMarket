@@ -1,7 +1,7 @@
 package com.passioagogo.market.domain.usecase.categorias
 
 import com.passioagogo.market.domain.bean.Categoria
-import com.passioagogo.market.domain.repository.ICategoriaRepository
+import com.passioagogo.market.data.repository.ICategoriaRepository
 import com.passioagogo.market.domain.usecase.base.NoParamsUseCase
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject

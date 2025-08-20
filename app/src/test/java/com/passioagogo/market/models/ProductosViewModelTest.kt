@@ -11,7 +11,7 @@ import com.passioagogo.market.domain.usecase.categorias.ObtenerCategoriasUseCase
 import com.passioagogo.market.domain.usecase.producto.ObtenerProductosStockBajoUseCase
 import com.passioagogo.market.domain.usecase.producto.ObtenerProductosUseCase
 import com.passioagogo.market.domain.usecase.producto.ObtenerProveedoresUseCase
-import com.passioagogo.market.presentation.viewModel.ProductosViewModel
+import com.passioagogo.market.presentation.viewModel.products.ProductosViewModel
 import com.passioagogo.market.testing.CoroutineTestRule
 import com.passioagogo.market.testing.TestData
 import com.passioagogo.market.testing.test

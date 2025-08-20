@@ -1,4 +1,4 @@
-package com.passioagogo.market.presentation.viewModel
+package com.passioagogo.market.presentation.viewModel.products
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -31,7 +31,6 @@ import javax.inject.Inject
 @HiltViewModel
 class DetalleProductoViewModel @Inject constructor(
     private val obtenerProductoDetalladoUseCase: ObtenerProductoDetalladoUseCase,
-    private val actualizarProductoUseCase: ActualizarProductoUseCase,
     private val gestionarStockUseCase: GestionarStockUseCase,
     private val registrarVentaUseCase: RegistrarVentaUseCase,
     private val registrarCompraUseCase: RegistrarCompraUseCase,

@@ -1,8 +1,8 @@
-package com.passioagogo.market.domain.implementation
+package com.passioagogo.market.data.implementation
 
 import com.passioagogo.market.data.local.dao.CategoriaDao
 import com.passioagogo.market.domain.bean.Categoria
-import com.passioagogo.market.domain.repository.ICategoriaRepository
+import com.passioagogo.market.data.repository.ICategoriaRepository
 import com.passioagogo.market.domain.state.PADomainState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map

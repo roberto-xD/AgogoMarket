@@ -1,7 +1,8 @@
-package com.passioagogo.market.presentation.viewModel
+package com.passioagogo.market.presentation.viewModel.products
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.passioagogo.market.domain.bean.Producto
 import com.passioagogo.market.domain.state.DomainException
 import com.passioagogo.market.domain.state.onError
 import com.passioagogo.market.domain.state.onSuccess
@@ -11,6 +12,7 @@ import com.passioagogo.market.domain.usecase.producto.CrearProductoParams
 import com.passioagogo.market.domain.usecase.producto.CrearProductoUseCase
 import com.passioagogo.market.domain.usecase.producto.EliminarProductoUseCase
 import com.passioagogo.market.domain.usecase.categorias.ObtenerCategoriasUseCase
+import com.passioagogo.market.domain.usecase.producto.ActualizarProductoUseCase
 import com.passioagogo.market.domain.usecase.producto.ObtenerProductosStockBajoUseCase
 import com.passioagogo.market.domain.usecase.producto.ObtenerProductosUseCase
 import com.passioagogo.market.domain.usecase.producto.ObtenerProveedoresUseCase
@@ -29,9 +31,10 @@ class ProductosViewModel @Inject constructor(
     private val obtenerProductosStockBajoUseCase: ObtenerProductosStockBajoUseCase,
     private val buscarProductosUseCase: BuscarProductosUseCase,
     private val crearProductoUseCase: CrearProductoUseCase,
+    private val actualizarProductoUseCase: ActualizarProductoUseCase,
     private val eliminarProductoUseCase: EliminarProductoUseCase,
     private val obtenerCategoriasUseCase: ObtenerCategoriasUseCase,
-    private val obtenerProveedoresUseCase: ObtenerProveedoresUseCase
+    private val obtenerProveedoresUseCase: ObtenerProveedoresUseCase,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(ProductosUiState())
     val uiState: StateFlow<ProductosUiState> = _uiState.asStateFlow()
@@ -130,6 +133,28 @@ class ProductosViewModel @Inject constructor(
                             is DomainException.PrecioInvalido -> "Precio inválido"
                             else -> error.message ?: "Error desconocido"
                         },
+                        isLoading = false
+                    )
+                }
+            }
+        }
+    }
+
+    fun actualizarProducto(datosProducto: Producto) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
+            actualizarProductoUseCase(datosProducto).onSuccess {
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        mensajeExito = "Producto actualizado exitosamente"
+                    )
+                }
+                // Los datos se actualizarán automáticamente por el Flow
+            }.onError { error ->
+                _uiState.update {
+                    it.copy(
+                        errorMessage = error.message ?: "Error desconocido",
                         isLoading = false
                     )
                 }

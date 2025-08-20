@@ -16,7 +16,7 @@ import com.passioagogo.market.domain.usecase.compras.TipoMovimiento
 import com.passioagogo.market.domain.usecase.producto.ValidarCodigoBarrasUseCase
 import com.passioagogo.market.domain.usecase.producto.ValidarSkuParams
 import com.passioagogo.market.domain.usecase.producto.ValidarSkuUseCase
-import com.passioagogo.market.presentation.viewModel.DetalleProductoViewModel
+import com.passioagogo.market.presentation.viewModel.products.DetalleProductoViewModel
 import com.passioagogo.market.testing.CoroutineTestRule
 import com.passioagogo.market.testing.TestData
 import com.passioagogo.market.testing.test

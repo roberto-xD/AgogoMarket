@@ -9,16 +9,16 @@ import com.passioagogo.market.domain.state.PADomainState
 import com.passioagogo.market.domain.usecase.base.UseCase
 
 data class CrearProductoParams(
-    val nombre: String,
-    val descripcion: String?,
-    val skuInterno: String,
-    val codigoBarras: String?,
-    val precioCompra: Double,
-    val precioVenta: Double,
+    val nombre: String = "",
+    val descripcion: String? = null,
+    val skuInterno: String = "",
+    val codigoBarras: String? = null,
+    val precioCompra: Double = 0.0,
+    val precioVenta: Double = 0.0,
     val cantidadInicial: Int = 0,
     val cantidadMinima: Int = 0,
-    val proveedorPrincipalId: Long?,
-    val color: String?,
+    val proveedorPrincipalId: Long? = null,
+    val color: String? = null,
     val categorias: List<Long> = emptyList(),
     val subcategorias: List<Long> = emptyList(),
     val atributos: Map<String, String> = emptyMap()

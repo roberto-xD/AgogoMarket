@@ -103,6 +103,8 @@ dependencies {
     implementation(libs.barcode.scanning)
     implementation (libs.androidx.room.ktx)
 
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+
     testImplementation(libs.bundles.testing)
     testImplementation (libs.androidx.room.testing)
     testImplementation(libs.hilt.android.testing)

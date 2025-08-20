@@ -1,13 +1,13 @@
 package com.passioagogo.market.injection
 
-import com.passioagogo.market.domain.implementation.CategoriaRepositoryDomainImpl
-import com.passioagogo.market.domain.implementation.FamiliaRepositoryDomainImpl
-import com.passioagogo.market.domain.implementation.HistorialRepositoryImpl
-import com.passioagogo.market.domain.implementation.ImagenRepositoryImpl
-import com.passioagogo.market.domain.implementation.ProductoRepositoryDomainImpl
-import com.passioagogo.market.domain.implementation.ProveedorRepositoryDomainImpl
-import com.passioagogo.market.domain.implementation.SubcategoriaRepositoryDomainImpl
-import com.passioagogo.market.domain.repository.ICategoriaRepository
+import com.passioagogo.market.data.implementation.CategoriaRepositoryDomainImpl
+import com.passioagogo.market.data.implementation.FamiliaRepositoryDomainImpl
+import com.passioagogo.market.data.implementation.HistorialRepositoryImpl
+import com.passioagogo.market.data.implementation.ImagenRepositoryImpl
+import com.passioagogo.market.data.implementation.ProductoRepositoryDomainImpl
+import com.passioagogo.market.data.implementation.ProveedorRepositoryDomainImpl
+import com.passioagogo.market.data.implementation.SubcategoriaRepositoryDomainImpl
+import com.passioagogo.market.data.repository.ICategoriaRepository
 import com.passioagogo.market.domain.repository.IFamiliaRepository
 import com.passioagogo.market.domain.repository.IHistorialRepository
 import com.passioagogo.market.domain.repository.IImagenRepository

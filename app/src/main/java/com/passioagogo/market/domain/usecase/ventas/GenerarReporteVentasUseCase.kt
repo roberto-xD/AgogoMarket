@@ -2,7 +2,7 @@ package com.passioagogo.market.domain.usecase.ventas
 
 import com.passioagogo.market.domain.bean.Categoria
 import com.passioagogo.market.domain.bean.Producto
-import com.passioagogo.market.domain.repository.ICategoriaRepository
+import com.passioagogo.market.data.repository.ICategoriaRepository
 import com.passioagogo.market.domain.repository.IProductoRepository
 import com.passioagogo.market.domain.usecase.base.UseCase
 import kotlinx.coroutines.flow.first

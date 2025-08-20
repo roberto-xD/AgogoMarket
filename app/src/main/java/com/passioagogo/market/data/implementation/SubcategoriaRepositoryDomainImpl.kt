@@ -1,4 +1,4 @@
-package com.passioagogo.market.domain.implementation
+package com.passioagogo.market.data.implementation
 
 import com.passioagogo.market.data.local.dao.SubcategoriaDao
 import com.passioagogo.market.domain.bean.Subcategoria
