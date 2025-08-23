@@ -6,6 +6,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import com.passioagogo.market.presentation.view.screens.DashboardScreen
+import com.passioagogo.market.presentation.view.screens.ImportacionScreen
 import com.passioagogo.market.presentation.view.screens.LoginScreen
 import com.passioagogo.market.presentation.view.screens.SearchScreen
 
@@ -35,6 +36,15 @@ fun PANavigation(){
             SearchScreen{
                 navController.navigate(it)
             }
+        }
+        composable(
+            route = Routes.Import.Name
+        ) {
+            ImportacionScreen(
+                onNavigateBack = {
+
+                }
+            )
         }
     }
 }

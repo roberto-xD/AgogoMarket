@@ -4,4 +4,5 @@ sealed class Routes(val Name: String) {
     object Dashboard: Routes("Dashboard")
     object Login: Routes("Login")
     object Search: Routes("Search")
+    object Import: Routes("Import")
 }
