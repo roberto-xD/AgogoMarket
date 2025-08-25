@@ -1,5 +1,6 @@
-package com.passioagogo.market.injection
+package com.passioagogo.market.di
 
+import com.google.gson.Gson
 import com.passioagogo.market.data.implementation.CategoriaRepositoryDomainImpl
 import com.passioagogo.market.data.implementation.FamiliaRepositoryDomainImpl
 import com.passioagogo.market.data.implementation.HistorialRepositoryImpl
@@ -7,6 +8,8 @@ import com.passioagogo.market.data.implementation.ImagenRepositoryImpl
 import com.passioagogo.market.data.implementation.ProductoRepositoryDomainImpl
 import com.passioagogo.market.data.implementation.ProveedorRepositoryDomainImpl
 import com.passioagogo.market.data.implementation.SubcategoriaRepositoryDomainImpl
+import com.passioagogo.market.data.imports.GoogleSheetsImportService
+import com.passioagogo.market.data.imports.GoogleSheetsImportServiceImpl
 import com.passioagogo.market.data.repository.ICategoriaRepository
 import com.passioagogo.market.domain.repository.IFamiliaRepository
 import com.passioagogo.market.domain.repository.IHistorialRepository
@@ -33,6 +36,7 @@ import com.passioagogo.market.domain.usecase.producto.ObtenerProductosStockBajoU
 import com.passioagogo.market.domain.usecase.producto.ObtenerProductosUseCase
 import com.passioagogo.market.domain.usecase.producto.ObtenerProveedoresUseCase
 import com.passioagogo.market.domain.usecase.compras.RegistrarCompraUseCase
+import com.passioagogo.market.domain.usecase.producto.ImportarProductosDesdeGoogleSheetsUseCase
 import com.passioagogo.market.domain.usecase.ventas.RegistrarVentaUseCase
 import com.passioagogo.market.domain.usecase.producto.ValidarCodigoBarrasUseCase
 import com.passioagogo.market.domain.usecase.producto.ValidarSkuUseCase
@@ -42,6 +46,9 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ViewModelComponent
 import dagger.hilt.components.SingletonComponent
+import jakarta.inject.Singleton
+import okhttp3.OkHttpClient
+import java.util.concurrent.TimeUnit
 
 @Module
 @InstallIn(ViewModelComponent::class)
@@ -182,6 +189,23 @@ object UseCaseModule {
     fun provideEstablecerImagenPrincipalUseCase(
         imagenRepository: IImagenRepository
     ): EstablecerImagenPrincipalUseCase = EstablecerImagenPrincipalUseCase(imagenRepository)
+
+    @Provides
+    fun provideImportarProductosDesdeGoogleSheetsUseCase(
+        productoRepository: IProductoRepository,
+        googleSheetsImportServiceImpl : GoogleSheetsImportService,
+        crearProductoUseCase: CrearProductoUseCase,
+    ) : ImportarProductosDesdeGoogleSheetsUseCase = ImportarProductosDesdeGoogleSheetsUseCase(
+        productoRepository = productoRepository,
+        crearProductoUseCase = crearProductoUseCase,
+        googleSheetsService = googleSheetsImportServiceImpl
+    )
+
+    @Provides
+    fun provideGoogleSheetsImportService() : GoogleSheetsImportService = GoogleSheetsImportServiceImpl(
+        httpClient = provideOkHttpClient(),
+        gson = Gson()
+    )
 }
 
 // ===========================================

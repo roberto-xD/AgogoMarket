@@ -1,6 +1,7 @@
 package com.passioagogo.market.presentation.view.screens
 
 import android.util.Log
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -25,6 +26,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.passioagogo.market.domain.PAConstants.TAG_PG
 import com.passioagogo.market.domain.bean.PAProductBean
 import com.passioagogo.market.domain.bean.Producto
+import com.passioagogo.market.presentation.navigation.Routes
 import com.passioagogo.market.presentation.view.components.DetailBottomSheet
 import com.passioagogo.market.presentation.view.components.DrawerSheet
 import com.passioagogo.market.presentation.view.components.Splash
@@ -76,10 +78,11 @@ fun DashboardScreen(
         },
         navigate = navigate,
         search = {
-            searchState.value = searchState.value.not()
+            /*searchState.value = searchState.value.not()
             if(searchState.value.not()){
                 productViewModel.buscarProductos("")
-            }
+            }*/
+            navigate(Routes.Import.Name)
         }
     ) {     padding ->
         Column(
