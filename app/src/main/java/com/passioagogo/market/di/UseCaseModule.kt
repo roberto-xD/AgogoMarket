@@ -17,6 +17,7 @@ import com.passioagogo.market.domain.repository.IImagenRepository
 import com.passioagogo.market.domain.repository.IProductoRepository
 import com.passioagogo.market.domain.repository.IProveedorRepository
 import com.passioagogo.market.domain.repository.ISubcategoriaRepository
+import com.passioagogo.market.domain.usecase.categorias.CrearCategoriaConFamiliaUseCase
 import com.passioagogo.market.domain.usecase.producto.ActualizarProductoUseCase
 import com.passioagogo.market.domain.usecase.producto.BuscarProductosUseCase
 import com.passioagogo.market.domain.usecase.categorias.CrearCategoriaUseCase
@@ -36,10 +37,12 @@ import com.passioagogo.market.domain.usecase.producto.ObtenerProductosStockBajoU
 import com.passioagogo.market.domain.usecase.producto.ObtenerProductosUseCase
 import com.passioagogo.market.domain.usecase.producto.ObtenerProveedoresUseCase
 import com.passioagogo.market.domain.usecase.compras.RegistrarCompraUseCase
+import com.passioagogo.market.domain.usecase.familias.CrearFamiliaUseCase
 import com.passioagogo.market.domain.usecase.producto.ImportarProductosDesdeGoogleSheetsUseCase
 import com.passioagogo.market.domain.usecase.ventas.RegistrarVentaUseCase
 import com.passioagogo.market.domain.usecase.producto.ValidarCodigoBarrasUseCase
 import com.passioagogo.market.domain.usecase.producto.ValidarSkuUseCase
+import com.passioagogo.market.domain.usecase.subcategorias.CrearSubcategoriaConCategoriaUseCase
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -129,9 +132,20 @@ object UseCaseModule {
     ): ObtenerCategoriasPorFamiliaUseCase = ObtenerCategoriasPorFamiliaUseCase(categoriaRepository)
 
     @Provides
-    fun provideCrearCategoriaUseCase(
+    fun provideCrearCategoriaConFamiliaUseCase(
         categoriaRepository: ICategoriaRepository
-    ): CrearCategoriaUseCase = CrearCategoriaUseCase(categoriaRepository)
+    ): CrearCategoriaConFamiliaUseCase = CrearCategoriaConFamiliaUseCase(categoriaRepository)
+
+    @Provides
+    fun provideCrearFamiliaUseCase(
+        familiaRepository: IFamiliaRepository
+    ): CrearFamiliaUseCase = CrearFamiliaUseCase(familiaRepository)
+
+    @Provides
+    fun provideCrearSubcategoriaConCategoriaUseCase(
+        subcategoriaRepository: ISubcategoriaRepository
+    ): CrearSubcategoriaConCategoriaUseCase = CrearSubcategoriaConCategoriaUseCase(subcategoriaRepository)
+
 
     // ===========================================
     // CASOS DE USO - PROVEEDORES
@@ -192,13 +206,25 @@ object UseCaseModule {
 
     @Provides
     fun provideImportarProductosDesdeGoogleSheetsUseCase(
-        productoRepository: IProductoRepository,
         googleSheetsImportServiceImpl : GoogleSheetsImportService,
         crearProductoUseCase: CrearProductoUseCase,
+        crearFamiliaUseCase: CrearFamiliaUseCase,
+        crearCategoriaUseCase: CrearCategoriaConFamiliaUseCase,
+        crearSubcategoriaUseCase: CrearSubcategoriaConCategoriaUseCase,
+        productoRepository: IProductoRepository,
+        familiaRepository: IFamiliaRepository,
+        categoriaRepository: ICategoriaRepository,
+        subcategoriaRepository: ISubcategoriaRepository,
     ) : ImportarProductosDesdeGoogleSheetsUseCase = ImportarProductosDesdeGoogleSheetsUseCase(
-        productoRepository = productoRepository,
+        googleSheetsService = googleSheetsImportServiceImpl,
         crearProductoUseCase = crearProductoUseCase,
-        googleSheetsService = googleSheetsImportServiceImpl
+        crearFamiliaUseCase = crearFamiliaUseCase,
+        crearCategoriaUseCase = crearCategoriaUseCase,
+        crearSubcategoriaUseCase = crearSubcategoriaUseCase,
+        productoRepository = productoRepository,
+        familiaRepository = familiaRepository,
+        categoriaRepository = categoriaRepository,
+        subcategoriaRepository = subcategoriaRepository,
     )
 
     @Provides
@@ -215,10 +241,6 @@ object UseCaseModule {
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class DomainRepositoryModule {
-    @Binds
-    abstract fun bindFamiliaRepository(
-        familiaRepositoryDomainImpl: FamiliaRepositoryDomainImpl
-    ) : IFamiliaRepository
 
     @Binds
     abstract fun bindProductoRepository(
@@ -226,9 +248,14 @@ abstract class DomainRepositoryModule {
     ): IProductoRepository
 
     @Binds
-    abstract fun bindCategoriaRepository(
+    abstract fun bindICategoriaRepository(
         categoriaRepositoryDomainImpl: CategoriaRepositoryDomainImpl
     ): ICategoriaRepository
+
+    @Binds
+    abstract fun bindIFamiliaRepository(
+        familiaRepositoryDomainImpl: FamiliaRepositoryDomainImpl
+    ): IFamiliaRepository
 
     @Binds
     abstract fun bindSubcategoriaRepository(

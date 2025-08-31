@@ -1,8 +1,10 @@
 package com.passioagogo.market.presentation.view.components.items
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -10,6 +12,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBox
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -20,9 +23,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.passioagogo.market.domain.bean.EstructuraValidacion
+import com.passioagogo.market.domain.bean.EstructuraValidacionCompleta
 
 @Composable
-fun EstructuraValidacionCard(validacion: EstructuraValidacion) {
+fun EstructuraValidacionCard(validacion: EstructuraValidacionCompleta) {
     Card {
         Column(
             modifier = Modifier.padding(16.dp)
@@ -52,10 +56,84 @@ fun EstructuraValidacionCard(validacion: EstructuraValidacion) {
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Detalles
-            Text("Total de filas: ${validacion.totalFilas}")
-            Text("Headers encontrados: ${validacion.headersEncontrados.size}")
+            // Información básica
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                InfoItem("Filas", validacion.totalFilas.toString())
+                InfoItem("Headers", validacion.headersEncontrados.size.toString())
+                if (validacion.tieneDatosMaestros) {
+                    InfoItem("Datos maestros", "✅")
+                }
+                if (validacion.tieneRelaciones) {
+                    InfoItem("Relaciones", "✅")
+                }
+            }
 
+            // Detalles de datos maestros si existen
+            if (validacion.tieneDatosMaestros) {
+                Spacer(modifier = Modifier.height(12.dp))
+                Card(
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant
+                    )
+                ) {
+                    Column(
+                        modifier = Modifier.padding(12.dp)
+                    ) {
+                        Text(
+                            text = "📋 Datos Maestros Detectados:",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+
+                        validacion.estructuraFamilias?.let {
+                            Text("• Familias: ${if (it.esValida) "✅" else "❌"}")
+                        }
+
+                        validacion.estructuraCategorias?.let {
+                            Text("• Categorías: ${if (it.esValida) "✅" else "❌"}")
+                        }
+
+                        validacion.estructuraSubcategorias?.let {
+                            Text("• Subcategorías: ${if (it.esValida) "✅" else "❌"}")
+                        }
+                    }
+                }
+            }
+
+            // Relaciones detectadas
+            if (validacion.tieneRelaciones) {
+                Spacer(modifier = Modifier.height(12.dp))
+                Card(
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer
+                    )
+                ) {
+                    Column(
+                        modifier = Modifier.padding(12.dp)
+                    ) {
+                        Text(
+                            text = "🔗 Relaciones Detectadas:",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+
+                        if (validacion.relacionesDetectadas.familias) {
+                            Text("• Productos → Familias")
+                        }
+                        if (validacion.relacionesDetectadas.categorias) {
+                            Text("• Productos → Categorías")
+                        }
+                        if (validacion.relacionesDetectadas.subcategorias) {
+                            Text("• Productos → Subcategorías")
+                        }
+                    }
+                }
+            }
+
+            // Errores si existen
             if (validacion.headersFaltantes.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
@@ -65,18 +143,6 @@ fun EstructuraValidacionCard(validacion: EstructuraValidacion) {
                 )
                 validacion.headersFaltantes.forEach { header ->
                     Text("• $header", color = Color.Red, style = MaterialTheme.typography.bodySmall)
-                }
-            }
-
-            if (validacion.erroresEstructura.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "❌ Errores de estructura:",
-                    color = Color.Red,
-                    fontWeight = FontWeight.Bold
-                )
-                validacion.erroresEstructura.forEach { error ->
-                    Text("• $error", color = Color.Red, style = MaterialTheme.typography.bodySmall)
                 }
             }
         }

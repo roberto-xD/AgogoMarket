@@ -4,8 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.passioagogo.market.data.imports.GoogleSheetsImportService
 import com.passioagogo.market.domain.bean.EstructuraValidacion
+import com.passioagogo.market.domain.bean.EstructuraValidacionCompleta
 import com.passioagogo.market.domain.bean.ProductoImport
-import com.passioagogo.market.domain.bean.ResultadoImportacion
+import com.passioagogo.market.domain.bean.ResultadoImportacionCompleta
+import com.passioagogo.market.domain.bean.ResultadoImportacionProductos
+import com.passioagogo.market.domain.bean.VistaPreviaCompleta
 import com.passioagogo.market.domain.state.onError
 import com.passioagogo.market.domain.state.onSuccess
 import com.passioagogo.market.domain.usecase.producto.ImportarProductosDesdeGoogleSheetsUseCase
@@ -47,7 +50,7 @@ class ImportacionViewModel @Inject constructor(
                     it.copy(
                         validandoUrl = false,
                         urlValida = validacion.esValida,
-                        estructuraValidacion = validacion,
+                        estructuraValidacionCompleta = validacion,
                         mensajeValidacion = if (validacion.esValida) {
                             "✅ Estructura válida - ${validacion.totalFilas} filas encontradas"
                         } else {
@@ -75,7 +78,7 @@ class ImportacionViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(
                         cargandoVistaPrevia = false,
-                        vistaPreviaProductos = productos
+                        vistaPreviaCompleta = productos
                     )
                 }
             }.onError { error ->
@@ -100,7 +103,7 @@ class ImportacionViewModel @Inject constructor(
                 it.copy(
                     importando = true,
                     progresoImportacion = 0,
-                    resultadoImportacion = null
+                    resultadoImportacionCompleta = null
                 )
             }
 
@@ -116,7 +119,7 @@ class ImportacionViewModel @Inject constructor(
                     it.copy(
                         importando = false,
                         progresoImportacion = 100,
-                        resultadoImportacion = resultado,
+                        resultadoImportacionCompleta = resultado,
                         mensajeExito = "✅ Importación completada: ${resultado.exitosos}/${resultado.totalProcesados} productos"
                     )
                 }
@@ -149,9 +152,9 @@ class ImportacionViewModel @Inject constructor(
     fun limpiarResultados() {
         _uiState.update {
             it.copy(
-                vistaPreviaProductos = emptyList(),
-                resultadoImportacion = null,
-                estructuraValidacion = null,
+                vistaPreviaCompleta = null,
+                resultadoImportacionCompleta = null,
+                estructuraValidacionCompleta = null,
                 urlValida = false,
                 mensajeValidacion = null
             )
@@ -163,12 +166,12 @@ data class ImportacionUiState(
     val validandoUrl: Boolean = false,
     val urlValida: Boolean = false,
     val mensajeValidacion: String? = null,
-    val estructuraValidacion: EstructuraValidacion? = null,
+    val estructuraValidacionCompleta: EstructuraValidacionCompleta? = null,
     val cargandoVistaPrevia: Boolean = false,
-    val vistaPreviaProductos: List<ProductoImport> = emptyList(),
+    val vistaPreviaCompleta: VistaPreviaCompleta? = null,
     val importando: Boolean = false,
     val progresoImportacion: Int = 0,
-    val resultadoImportacion: ResultadoImportacion? = null,
+    val resultadoImportacionCompleta: ResultadoImportacionCompleta? = null,
     val configuracionImportacion: ConfiguracionImportacion = ConfiguracionImportacion(),
     val errorMessage: String? = null,
     val mensajeExito: String? = null
@@ -177,5 +180,7 @@ data class ImportacionUiState(
 data class ConfiguracionImportacion(
     val validarDuplicados: Boolean = true,
     val saltearDuplicados: Boolean = true,
-    val actualizarExistentes: Boolean = false
+    val actualizarExistentes: Boolean = false,
+    val importarDatosMaestros: Boolean = true,
+    val crearRelaciones: Boolean = true,
 )

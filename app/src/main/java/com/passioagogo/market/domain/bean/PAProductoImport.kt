@@ -51,13 +51,20 @@ data class EstructuraValidacion(
     val totalFilas: Int
 )
 
-data class ResultadoImportacion(
+data class ResultadoImportacionProductos(
     val totalProcesados: Int,
     val exitosos: Int,
     val fallidos: Int,
     val errores: List<ErrorImportacion>,
     val duplicadosEncontrados: Int,
-    val tiempoTranscurrido: Long
+    val tiempoTranscurrido: Long,
+)
+
+data class ResultadoImportacionItem(
+    val totalProcesados: Int,
+    val exitosos: Int,
+    val fallidos: Int,
+    val errores: List<ErrorImportacion>
 )
 
 data class ErrorImportacion(

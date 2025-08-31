@@ -18,10 +18,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.passioagogo.market.domain.bean.ResultadoImportacion
+import com.passioagogo.market.domain.bean.ResultadoImportacionCompleta
+import com.passioagogo.market.domain.bean.ResultadoImportacionProductos
 
 @Composable
-fun ResultadoImportacionCard(resultado : ResultadoImportacion) {
+fun ResultadoImportacionCard(resultado : ResultadoImportacionCompleta) {
     Card {
         Column(
             modifier = Modifier.padding(16.dp)

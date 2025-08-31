@@ -108,7 +108,7 @@ fun ImportacionScreen(
             }
 
             // Sección 2: Validación de estructura
-            uiState.estructuraValidacion?.let { validacion ->
+            uiState.estructuraValidacionCompleta?.let { validacion ->
                 item {
                     EstructuraValidacionCard(validacion = validacion)
                 }
@@ -128,7 +128,7 @@ fun ImportacionScreen(
             if (uiState.urlValida) {
                 item {
                     VistaPreviaSection(
-                        productos = uiState.vistaPreviaProductos,
+                        productos = uiState.vistaPreviaCompleta?.productos.orEmpty(),
                         cargando = uiState.cargandoVistaPrevia,
                         onCargarVistaPrevia = { viewModel.obtenerVistaPrevia(urlText) }
                     )
@@ -136,7 +136,7 @@ fun ImportacionScreen(
             }
 
             // Sección 5: Botón de importación
-            if (uiState.urlValida && uiState.vistaPreviaProductos.isNotEmpty()) {
+            if (uiState.urlValida && uiState.vistaPreviaCompleta?.productos?.isNullOrEmpty() == true) {
                 item {
                     ImportacionButton(
                         importando = uiState.importando,
@@ -156,7 +156,7 @@ fun ImportacionScreen(
             }
 
             // Sección 6: Resultado de importación
-            uiState.resultadoImportacion?.let { resultado ->
+            uiState.resultadoImportacionCompleta?.let { resultado ->
                 item {
                     ResultadoImportacionCard(resultado = resultado)
                 }
