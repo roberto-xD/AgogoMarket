@@ -4,6 +4,7 @@ import com.passioagogo.market.data.local.dao.CategoriaDao
 import com.passioagogo.market.data.local.dao.ProductoAtributoDao
 import com.passioagogo.market.data.local.dao.ProductoCategoriaDao
 import com.passioagogo.market.data.local.dao.ProductoDao
+import com.passioagogo.market.data.local.dao.ProductoFamiliaDao
 import com.passioagogo.market.data.local.dao.ProductoImagenDao
 import com.passioagogo.market.data.local.dao.ProductoProveedorDao
 import com.passioagogo.market.data.local.dao.ProductoSubcategoriaDao
@@ -22,6 +23,7 @@ import com.passioagogo.market.domain.repository.IProductoRepository
 import com.passioagogo.market.domain.state.DomainException
 import com.passioagogo.market.domain.state.PADomainState
 import com.passioagogo.market.data.local.entity.relation.ProductoCategoriaEntity
+import com.passioagogo.market.data.local.entity.relation.ProductoFamiliaEntity
 import com.passioagogo.market.data.local.entity.relation.ProductoSubcategoriaEntity
 import com.passioagogo.market.data.local.entity.utils.ProductoImagenEntity
 import kotlinx.coroutines.flow.Flow
@@ -32,6 +34,7 @@ import javax.inject.Singleton
 @Singleton
 class ProductoRepositoryDomainImpl @Inject constructor(
     private val productoDao: ProductoDao,
+    private val productoFamiliaDao: ProductoFamiliaDao,
     private val productoCategoriaDao: ProductoCategoriaDao,
     private val productoSubcategoriaDao: ProductoSubcategoriaDao,
     private val productoProveedorDao: ProductoProveedorDao,
@@ -123,8 +126,8 @@ class ProductoRepositoryDomainImpl @Inject constructor(
 
         return ProductoDetallado(
             producto = producto,
-            categorias = categorias,
-            subcategorias = subcategorias,
+            categorias = categorias.map { it.id },
+            subcategorias = subcategorias.map { it.id },
             proveedores = proveedoresConPrecio,
             atributos = atributos,
             imagenes = imagenes
@@ -145,10 +148,16 @@ class ProductoRepositoryDomainImpl @Inject constructor(
             val productoId = productoDao.insertarProducto(productoDetallado.producto.toEntity())
 
             // Guardar relaciones
+            val productoFamilia = ProductoFamiliaEntity(
+                familiaId = productoDetallado.familia?: 0,
+                productoId = productoId
+            )
+            productoFamiliaDao.insertarProductoFamilia(productoFamilia)
+
             val productosCategorias = productoDetallado.categorias.map { categoria ->
                 ProductoCategoriaEntity(
                     productoId = productoId,
-                    categoriaId = categoria.id,
+                    categoriaId = categoria,
                     esPrincipal = false
                 )
             }
@@ -157,7 +166,7 @@ class ProductoRepositoryDomainImpl @Inject constructor(
             val productosSubcategorias = productoDetallado.subcategorias.map { subcategoria ->
                 ProductoSubcategoriaEntity(
                     productoId = productoId,
-                    subcategoriaId = subcategoria.id
+                    subcategoriaId = subcategoria
                 )
             }
             productoSubcategoriaDao.insertarProductoSubcategorias(productosSubcategorias)
@@ -202,13 +211,20 @@ class ProductoRepositoryDomainImpl @Inject constructor(
             productoDao.actualizarProducto(entity)
 
             // Actualizar relaciones (eliminar y recrear)
+            productoFamiliaDao.eliminarFamiliaDeProducto(productoId)
             productoCategoriaDao.eliminarCategoriasDeProducto(productoId)
             productoSubcategoriaDao.eliminarSubcategoriasDeProducto(productoId)
+
+            val productoFamilia = ProductoFamiliaEntity(
+                familiaId = productoDetallado.familia?: 0,
+                productoId = productoId
+            )
+            productoFamiliaDao.insertarProductoFamilia(productoFamilia)
 
             val productosCategorias = productoDetallado.categorias.map { categoria ->
                 ProductoCategoriaEntity(
                     productoId = productoId,
-                    categoriaId = categoria.id,
+                    categoriaId = categoria,
                     esPrincipal = false
                 )
             }
@@ -217,7 +233,7 @@ class ProductoRepositoryDomainImpl @Inject constructor(
             val productosSubcategorias = productoDetallado.subcategorias.map { subcategoria ->
                 ProductoSubcategoriaEntity(
                     productoId = productoId,
-                    subcategoriaId = subcategoria.id
+                    subcategoriaId = subcategoria
                 )
             }
             productoSubcategoriaDao.insertarProductoSubcategorias(productosSubcategorias)

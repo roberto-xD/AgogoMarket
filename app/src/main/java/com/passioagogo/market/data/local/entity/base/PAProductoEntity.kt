@@ -28,7 +28,7 @@ data class ProductoEntity(
     val descripcion: String?,
     val codigoBarras: String?,
     val skuInterno: String,
-    val precioCompra: Double,
+    val precioCompra: Double = 0.0,
     val precioVenta: Double,
     val cantidadActual: Int = 0,
     val cantidadMinima: Int = 0,

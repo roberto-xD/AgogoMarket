@@ -13,6 +13,7 @@ import com.passioagogo.market.data.local.dao.HistorialPrecioDao
 import com.passioagogo.market.data.local.dao.ProductoAtributoDao
 import com.passioagogo.market.data.local.dao.ProductoCategoriaDao
 import com.passioagogo.market.data.local.dao.ProductoDao
+import com.passioagogo.market.data.local.dao.ProductoFamiliaDao
 import com.passioagogo.market.data.local.dao.ProductoImagenDao
 import com.passioagogo.market.data.local.dao.ProductoProveedorDao
 import com.passioagogo.market.data.local.dao.ProductoSubcategoriaDao
@@ -27,6 +28,7 @@ import com.passioagogo.market.data.local.entity.base.SubcategoriaEntity
 import com.passioagogo.market.data.local.entity.dinamics.ProductoAtributoEntity
 import com.passioagogo.market.data.local.entity.dinamics.TipoAtributoEntity
 import com.passioagogo.market.data.local.entity.relation.ProductoCategoriaEntity
+import com.passioagogo.market.data.local.entity.relation.ProductoFamiliaEntity
 import com.passioagogo.market.data.local.entity.relation.ProductoProveedorEntity
 import com.passioagogo.market.data.local.entity.relation.ProductoSubcategoriaEntity
 import com.passioagogo.market.data.local.entity.utils.HistorialPrecioEntity
@@ -43,6 +45,7 @@ import java.util.Date
         SubcategoriaEntity::class,
         ProveedorEntity::class,
         ProductoEntity::class,
+        ProductoFamiliaEntity::class,
         ProductoCategoriaEntity::class,
         ProductoSubcategoriaEntity::class,
         ProductoProveedorEntity::class,
@@ -63,6 +66,7 @@ abstract class InventarioDatabase : RoomDatabase() {
     abstract fun subcategoriaDao(): SubcategoriaDao
     abstract fun proveedorDao(): ProveedorDao
     abstract fun productoDao(): ProductoDao
+    abstract fun productoFamiliaDao(): ProductoFamiliaDao
     abstract fun productoCategoriaDao(): ProductoCategoriaDao
     abstract fun productoSubcategoriaDao(): ProductoSubcategoriaDao
     abstract fun productoProveedorDao(): ProductoProveedorDao

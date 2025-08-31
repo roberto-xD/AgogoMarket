@@ -136,7 +136,7 @@ fun ImportacionScreen(
             }
 
             // Sección 5: Botón de importación
-            if (uiState.urlValida && uiState.vistaPreviaCompleta?.productos?.isNullOrEmpty() == true) {
+            if (uiState.urlValida && uiState.vistaPreviaCompleta?.productos.orEmpty().isNotEmpty()) {
                 item {
                     ImportacionButton(
                         importando = uiState.importando,

@@ -11,6 +11,7 @@ import com.passioagogo.market.data.local.dao.HistorialPrecioDao
 import com.passioagogo.market.data.local.dao.ProductoAtributoDao
 import com.passioagogo.market.data.local.dao.ProductoCategoriaDao
 import com.passioagogo.market.data.local.dao.ProductoDao
+import com.passioagogo.market.data.local.dao.ProductoFamiliaDao
 import com.passioagogo.market.data.local.dao.ProductoImagenDao
 import com.passioagogo.market.data.local.dao.ProductoProveedorDao
 import com.passioagogo.market.data.local.dao.ProductoSubcategoriaDao
@@ -84,6 +85,14 @@ object PADatabaseModule {
         db: InventarioDatabase
     ): ProductoCategoriaDao {
         return db.productoCategoriaDao()
+    }
+
+    @Singleton
+    @Provides
+    fun provideProTOFamDao(
+        db: InventarioDatabase
+    ): ProductoFamiliaDao{
+        return db.productoFamiliaDao()
     }
 
     @Singleton

@@ -315,8 +315,13 @@ class ImportarProductosDesdeGoogleSheetsUseCase @Inject constructor(
                     subcategoriasIds[nombre]
                 }
 
+                val familiaId = productoExtendido.familiasNombres.map { nombre ->
+                    familiasIds[nombre]
+                }.firstOrNull()
+
                 // Crear producto con relaciones
                 val params = productoExtendido.toCrearProductoParamsExtendido(
+                    familiaId = familiaId,
                     categoriaIds = categoriaIds,
                     subcategoriaIds = subcategoriaIds
                 )

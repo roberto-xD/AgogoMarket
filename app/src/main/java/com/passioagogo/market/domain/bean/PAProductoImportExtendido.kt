@@ -14,7 +14,7 @@ data class ProductoImportExtendido(
     }
 
     fun toCrearProductoParamsExtendido(
-        familiaIds: List<Long> = emptyList(),
+        familiaId: Long ?= null,
         categoriaIds: List<Long> = emptyList(),
         subcategoriaIds: List<Long> = emptyList()
     ): CrearProductoParams {
@@ -29,6 +29,7 @@ data class ProductoImportExtendido(
             cantidadMinima = productoBase.cantidadMinima,
             proveedorPrincipalId = productoBase.proveedorPrincipalId,
             color = productoBase.color,
+            familiaId = familiaId,
             categorias = categoriaIds,
             subcategorias = subcategoriaIds,
             atributos = atributos

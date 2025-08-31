@@ -1,6 +1,10 @@
 package com.passioagogo.market.domain.usecase.producto
 
+import com.passioagogo.market.domain.bean.Categoria
+import com.passioagogo.market.domain.bean.Familia
 import com.passioagogo.market.domain.bean.Producto
+import com.passioagogo.market.domain.bean.ProductoDetallado
+import com.passioagogo.market.domain.bean.Subcategoria
 import com.passioagogo.market.domain.repository.IProductoRepository
 import com.passioagogo.market.domain.state.DomainException
 import javax.inject.Inject
@@ -19,6 +23,7 @@ data class CrearProductoParams(
     val cantidadMinima: Int = 0,
     val proveedorPrincipalId: Long? = null,
     val color: String? = null,
+    val familiaId: Long? = null,
     val categorias: List<Long> = emptyList(),
     val subcategorias: List<Long> = emptyList(),
     val atributos: Map<String, String> = emptyMap()
@@ -40,13 +45,13 @@ class CrearProductoUseCase @Inject constructor(
             }
         }
 
-        parameters.codigoBarras?.let { codigo ->
-            if (codigo.isNotBlank()) {
-                productoRepository.obtenerProductoPorCodigoBarras(codigo)?.let {
-                    throw DomainException.CodigoBarrasDuplicado(codigo)
-                }
-            }
-        }
+//        parameters.codigoBarras?.let { codigo ->
+//            if (codigo.isNotBlank()) {
+//                productoRepository.obtenerProductoPorCodigoBarras(codigo)?.let {
+//                    throw DomainException.CodigoBarrasDuplicado(codigo)
+//                }
+//            }
+//        }
 
         val producto = Producto(
             nombre = parameters.nombre,
@@ -61,8 +66,14 @@ class CrearProductoUseCase @Inject constructor(
             proveedorPrincipalId = parameters.proveedorPrincipalId,
             color = parameters.color,
         )
+        val productoDetallado = ProductoDetallado(
+            producto = producto,
+            familia = parameters.familiaId,
+            categorias = parameters.categorias,
+            subcategorias = parameters.subcategorias
+        )
 
-        return when (val result = productoRepository.guardarProducto(producto)) {
+        return when (val result = productoRepository.guardarProductoDetallado(productoDetallado)) {
             is PADomainState.Success -> result.data
             is PADomainState.Error -> throw result.exception
             is PADomainState.Loading -> throw IllegalStateException("Operación en estado loading")
@@ -76,17 +87,17 @@ class CrearProductoUseCase @Inject constructor(
         if (params.skuInterno.isBlank()) {
             throw IllegalArgumentException("El SKU interno no puede estar vacío")
         }
-        if (params.precioCompra < 0) {
-            throw DomainException.PrecioInvalido(params.precioCompra)
-        }
+//        if (params.precioCompra < 0) {
+//            throw DomainException.PrecioInvalido(params.precioCompra)
+//        }
         if (params.precioVenta < 0) {
             throw DomainException.PrecioInvalido(params.precioVenta)
         }
-        if (params.cantidadInicial < 0) {
-            throw DomainException.CantidadInvalida(params.cantidadInicial)
-        }
-        if (params.cantidadMinima < 0) {
-            throw DomainException.CantidadInvalida(params.cantidadMinima)
-        }
+//        if (params.cantidadInicial < 0) {
+//            throw DomainException.CantidadInvalida(params.cantidadInicial)
+//        }
+//        if (params.cantidadMinima < 0) {
+//            throw DomainException.CantidadInvalida(params.cantidadMinima)
+//        }
     }
 }
