@@ -5,6 +5,7 @@ import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
 import com.passioagogo.market.data.local.entity.base.ProductoEntity
+import com.passioagogo.market.domain.bean.Producto
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -34,6 +35,14 @@ interface ProductoDao {
         ORDER BY p.nombre
     """)
     fun obtenerProductosPorCategoria(categoriaId: Long): Flow<List<ProductoEntity>>
+
+    @Query("""
+        SELECT p.* FROM productos p
+        INNER JOIN producto_familia pc ON p.id = pc.productoId
+        WHERE pc.familiaId = :familiaId AND p.activo = 1
+        ORDER BY p.nombre
+    """)
+    fun obtenerProductosPorFamilia(familiaId: Long): Flow<List<ProductoEntity>>
 
     @Insert
     suspend fun insertarProducto(producto: ProductoEntity): Long
