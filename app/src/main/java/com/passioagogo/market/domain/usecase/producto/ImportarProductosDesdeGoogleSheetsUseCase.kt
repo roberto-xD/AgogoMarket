@@ -25,7 +25,7 @@ import com.passioagogo.market.domain.usecase.familias.CrearFamiliaUseCase
 import com.passioagogo.market.domain.usecase.subcategorias.CrearSubcategoriaConCategoriaParams
 import com.passioagogo.market.domain.usecase.subcategorias.CrearSubcategoriaConCategoriaUseCase
 import jakarta.inject.Inject
-import jakarta.inject.Singleton
+import javax.inject.Singleton
 import kotlinx.coroutines.flow.first
 
 data class ImportarProductosParams(

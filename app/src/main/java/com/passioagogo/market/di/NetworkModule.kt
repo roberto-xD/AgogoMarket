@@ -1,9 +1,9 @@
 package com.passioagogo.market.di
 
 import com.google.android.datatransport.runtime.dagger.Provides
-import jakarta.inject.Singleton
 import okhttp3.OkHttpClient
 import java.util.concurrent.TimeUnit
+import javax.inject.Singleton
 
 @Provides
 @Singleton

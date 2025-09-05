@@ -9,7 +9,7 @@ import com.passioagogo.market.domain.model.GoogleAccount
 import com.passioagogo.market.domain.model.GoogleAuthResult
 import dagger.hilt.android.qualifiers.ApplicationContext
 import jakarta.inject.Inject
-import jakarta.inject.Singleton
+import javax.inject.Singleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.FormBody

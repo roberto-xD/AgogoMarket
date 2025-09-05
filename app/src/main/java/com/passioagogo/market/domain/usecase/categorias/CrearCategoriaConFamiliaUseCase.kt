@@ -5,7 +5,7 @@ import com.passioagogo.market.domain.bean.Categoria
 import com.passioagogo.market.domain.state.PADomainState
 import com.passioagogo.market.domain.usecase.base.UseCase
 import jakarta.inject.Inject
-import jakarta.inject.Singleton
+import javax.inject.Singleton
 
 data class CrearCategoriaConFamiliaParams(
     val nombre: String,

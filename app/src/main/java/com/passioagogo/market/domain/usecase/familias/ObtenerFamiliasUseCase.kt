@@ -4,7 +4,7 @@ import com.passioagogo.market.domain.bean.Familia
 import com.passioagogo.market.domain.repository.IFamiliaRepository
 import com.passioagogo.market.domain.usecase.base.NoParamsUseCase
 import jakarta.inject.Inject
-import jakarta.inject.Singleton
+import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
 
 @Singleton

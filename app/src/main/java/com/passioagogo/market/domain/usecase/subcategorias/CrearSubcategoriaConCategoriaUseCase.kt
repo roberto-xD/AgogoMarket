@@ -7,7 +7,7 @@ import com.passioagogo.market.domain.repository.ISubcategoriaRepository
 import com.passioagogo.market.domain.state.PADomainState
 import com.passioagogo.market.domain.usecase.base.UseCase
 import jakarta.inject.Inject
-import jakarta.inject.Singleton
+import javax.inject.Singleton
 
 data class CrearSubcategoriaConCategoriaParams(
     val nombre: String,

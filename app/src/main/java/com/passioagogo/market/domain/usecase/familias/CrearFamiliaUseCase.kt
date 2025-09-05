@@ -5,7 +5,7 @@ import com.passioagogo.market.domain.repository.IFamiliaRepository
 import com.passioagogo.market.domain.state.PADomainState
 import com.passioagogo.market.domain.usecase.base.UseCase
 import jakarta.inject.Inject
-import jakarta.inject.Singleton
+import javax.inject.Singleton
 
 data class CrearFamiliaParams(
     val nombre: String,

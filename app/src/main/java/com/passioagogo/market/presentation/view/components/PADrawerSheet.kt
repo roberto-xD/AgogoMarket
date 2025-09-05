@@ -70,7 +70,7 @@ fun DrawerSheet(
                     )
                     HorizontalDivider()
                     NavigationDrawerItem(
-                        label = { Text(text = "Crear orden") },
+                        label = { Text(text = "Iniciar sesión") },
                         selected = false,
                         icon = {
                             Icon(
@@ -78,7 +78,7 @@ fun DrawerSheet(
                                 contentDescription = null
                             )
                         },
-                        onClick = { navigate.invoke(Routes.Search.Name) }
+                        onClick = { navigate.invoke(Routes.Login.Name) }
                     )
                 }
             }

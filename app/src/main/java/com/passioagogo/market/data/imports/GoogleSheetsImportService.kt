@@ -13,7 +13,7 @@ import com.passioagogo.market.domain.bean.ValidacionEstructura
 import com.passioagogo.market.domain.bean.VistaPreviaCompleta
 import com.passioagogo.market.domain.state.PADomainState
 import jakarta.inject.Inject
-import jakarta.inject.Singleton
+import javax.inject.Singleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
