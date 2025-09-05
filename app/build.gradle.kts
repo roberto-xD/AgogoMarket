@@ -74,6 +74,8 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.firebase.database)
+    implementation(libs.googleid)
+    implementation(libs.material3)
 
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -103,7 +105,7 @@ dependencies {
     implementation(libs.barcode.scanning)
     implementation (libs.androidx.room.ktx)
 
-    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation(libs.okhttp)
 
     testImplementation(libs.bundles.testing)
     testImplementation (libs.androidx.room.testing)
@@ -114,8 +116,25 @@ dependencies {
     testImplementation (libs.turbine)
     testImplementation(libs.mockk)
     testImplementation(libs.truth)
-    testImplementation ("org.junit.jupiter:junit-jupiter-api:5.9.2")
+    testImplementation (libs.junit.jupiter.api)
     testImplementation(kotlin("test"))
+
+    implementation (libs.poi)
+
+    implementation(libs.bundles.firebase)
+    implementation(libs.google.firebase.firestore)
+    implementation(libs.google.firebase.auth)
+
+    implementation(libs.play.services.auth)
+
+    // Google Sheets API
+    implementation(libs.google.api.client)
+    implementation(libs.google.api.client.android)
+    implementation("com.google.apis:google-api-services-sheets:v4-rev20230227-2.0.0")
+    implementation("com.google.apis:google-api-services-drive:v3-rev20220815-2.0.0")
+
+    // OAuth2 para Google
+    implementation(libs.google.auth.library.oauth2.http)
 
 }
 kapt {

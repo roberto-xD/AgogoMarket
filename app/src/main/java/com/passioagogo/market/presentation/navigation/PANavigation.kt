@@ -3,11 +3,10 @@ package com.passioagogo.market.presentation.navigation
 import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import com.passioagogo.market.presentation.view.screens.DashboardScreen
+import com.passioagogo.market.presentation.view.screens.GoogleAuthComponent
 import com.passioagogo.market.presentation.view.screens.ImportacionScreen
-import com.passioagogo.market.presentation.view.screens.LoginScreen
 import com.passioagogo.market.presentation.view.screens.SearchScreen
 
 
@@ -28,7 +27,7 @@ fun PANavigation(){
         composable(
             route = Routes.Login.Name
         ) {
-            LoginScreen()
+            GoogleAuthComponent()
         }
         composable(
             route = Routes.Search.Name
