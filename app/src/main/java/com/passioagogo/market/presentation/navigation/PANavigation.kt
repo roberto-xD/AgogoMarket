@@ -5,7 +5,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.passioagogo.market.presentation.view.screens.DashboardScreen
-import com.passioagogo.market.presentation.view.screens.GoogleAuthComponent
 import com.passioagogo.market.presentation.view.screens.ImportacionScreen
 import com.passioagogo.market.presentation.view.screens.SearchScreen
 
@@ -27,7 +26,7 @@ fun PANavigation(){
         composable(
             route = Routes.Login.Name
         ) {
-            GoogleAuthComponent()
+
         }
         composable(
             route = Routes.Search.Name

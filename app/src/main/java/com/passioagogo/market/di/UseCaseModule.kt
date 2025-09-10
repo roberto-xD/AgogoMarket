@@ -1,11 +1,8 @@
 package com.passioagogo.market.di
 
-import android.content.Context
-import android.content.SharedPreferences
 import com.google.gson.Gson
 import com.passioagogo.market.data.implementation.CategoriaRepositoryDomainImpl
 import com.passioagogo.market.data.implementation.FamiliaRepositoryDomainImpl
-import com.passioagogo.market.data.implementation.GoogleAuthRepositoryImpl
 import com.passioagogo.market.data.implementation.HistorialRepositoryImpl
 import com.passioagogo.market.data.implementation.ImagenRepositoryImpl
 import com.passioagogo.market.data.implementation.ProductoRepositoryDomainImpl
@@ -13,21 +10,13 @@ import com.passioagogo.market.data.implementation.ProveedorRepositoryDomainImpl
 import com.passioagogo.market.data.implementation.SubcategoriaRepositoryDomainImpl
 import com.passioagogo.market.data.imports.GoogleSheetsImportService
 import com.passioagogo.market.data.imports.GoogleSheetsImportServiceImpl
-import com.passioagogo.market.data.local.auth.GoogleAuthLocalDataSource
-import com.passioagogo.market.data.remote.GoogleAuthRemoteDataSource
 import com.passioagogo.market.data.repository.ICategoriaRepository
-import com.passioagogo.market.domain.GoogleAuthRepository
 import com.passioagogo.market.domain.repository.IFamiliaRepository
 import com.passioagogo.market.domain.repository.IHistorialRepository
 import com.passioagogo.market.domain.repository.IImagenRepository
 import com.passioagogo.market.domain.repository.IProductoRepository
 import com.passioagogo.market.domain.repository.IProveedorRepository
 import com.passioagogo.market.domain.repository.ISubcategoriaRepository
-import com.passioagogo.market.domain.usecase.auth.CheckGoogleAuthStatusUseCase
-import com.passioagogo.market.domain.usecase.auth.GetCurrentGoogleAccountUseCase
-import com.passioagogo.market.domain.usecase.auth.RefreshGoogleTokenUseCase
-import com.passioagogo.market.domain.usecase.auth.SignInWithGoogleUseCase
-import com.passioagogo.market.domain.usecase.auth.SignOutFromGoogleUseCase
 import com.passioagogo.market.domain.usecase.categorias.CrearCategoriaConFamiliaUseCase
 import com.passioagogo.market.domain.usecase.categorias.ObtenerCategoriasPorFamiliaUseCase
 import com.passioagogo.market.domain.usecase.categorias.ObtenerCategoriasUseCase
@@ -58,7 +47,6 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ViewModelComponent
-import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 
 @Module
@@ -236,70 +224,11 @@ object UseCaseModule {
     )
 
     @Provides
-    fun provideGoogleSheetsImportService() : GoogleSheetsImportService = GoogleSheetsImportServiceImpl(
-        httpClient = provideOkHttpClient(),
-        gson = Gson()
-    )
-
-    @Provides
-    fun provideGoogleAuthLocalDataSource(
-        sharedPreferences: SharedPreferences
-    ): GoogleAuthLocalDataSource
-    {
-        return GoogleAuthLocalDataSource(sharedPreferences)
-    }
-
-    @Provides
-    fun provideGoogleAuthRemoteDataSource(
-        @ApplicationContext context: Context
-    ): GoogleAuthRemoteDataSource
-    {
-        return GoogleAuthRemoteDataSource(context)
-    }
-
-    @Provides
-    fun provideGoogleAuthRepository(
-        remoteDataSource: GoogleAuthRemoteDataSource,
-        localDataSource: GoogleAuthLocalDataSource,
-        @ApplicationContext context: Context
-    ): GoogleAuthRepository {
-        return GoogleAuthRepositoryImpl(remoteDataSource, localDataSource, context)
-    }
-
-    @Provides
-    fun provideSignOutFromGoogleUseCase(
-        repository: GoogleAuthRepository
-    ): SignOutFromGoogleUseCase {
-        return SignOutFromGoogleUseCase(repository)
-    }
-
-    @Provides
-    fun provideCheckGoogleAuthStatusUseCase(
-        repository: GoogleAuthRepository
-    ): CheckGoogleAuthStatusUseCase {
-        return CheckGoogleAuthStatusUseCase(repository)
-    }
-
-    @Provides
-    fun provideRefreshGoogleTokenUseCase(
-        repository: GoogleAuthRepository
-    ): RefreshGoogleTokenUseCase {
-        return RefreshGoogleTokenUseCase(repository)
-    }
-
-    @Provides
-    fun provideGetCurrentGoogleAccountUseCase(
-        repository: GoogleAuthRepository
-    ): GetCurrentGoogleAccountUseCase {
-        return GetCurrentGoogleAccountUseCase(repository)
-    }
-
-    @Provides
-    fun provideSignInWithGoogleUseCase(
-        repository: GoogleAuthRepository
-    ): SignInWithGoogleUseCase {
-        return SignInWithGoogleUseCase(repository)
-    }
+    fun provideGoogleSheetsImportService() : GoogleSheetsImportService =
+        GoogleSheetsImportServiceImpl(
+            httpClient = provideOkHttpClient(),
+            gson = Gson()
+        )
 }
 
 // ===========================================
