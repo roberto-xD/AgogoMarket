@@ -137,6 +137,8 @@ dependencies {
 
     implementation(libs.play.services.auth)
 
+    implementation("com.github.bumptech.glide:compose:1.0.0-beta01")
+
     // Google Sheets API
     implementation(libs.google.api.client)
     implementation(libs.google.api.client.android)
@@ -145,6 +147,8 @@ dependencies {
 
     // OAuth2 para Google
     implementation(libs.google.auth.library.oauth2.http)
+
+
 
 }
 kapt {
