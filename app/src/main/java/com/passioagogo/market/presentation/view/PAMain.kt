@@ -5,46 +5,63 @@ import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import com.passioagogo.market.presentation.navigation.PANavigation
+import com.passioagogo.market.presentation.navigation.Routes
+import com.passioagogo.market.presentation.viewModel.imagenes.ImageGalleryViewModel
 import com.passioagogo.market.ui.theme.PassioAgogoMarketTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class PAMain : ComponentActivity() {
+
+    private val imageGalleryViewModel: ImageGalleryViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        handleSharedImages(intent)
+
         setContent {
             PassioAgogoMarketTheme {
-                PANavigation()
+                PANavigation(
+                    startDestination = getStartDestination(),
+                    imageGalleryViewModel = imageGalleryViewModel
+                )
             }
         }
     }
 
-    override fun onNewIntent(intent: Intent) {
-        super.onNewIntent(intent)
-        handleSharedImages(intent)
+    fun getStartDestination(): String{
+        val uris = intent.handleSharedImages().orEmpty()
+
+        if(uris.isEmpty()){
+            return Routes.Dashboard.Name
+        }else {
+            imageGalleryViewModel.handleSharedImages(uris)
+            return Routes.ImageGallery.Name
+        }
     }
 
-    fun handleSharedImages(intent: Intent?) {
-        when (intent?.action) {
-            Intent.ACTION_SEND -> {
-                if (intent.type?.startsWith("image/") == true) {
-                    val imageUri = intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM)
-                    imageUri?.let { uri ->
-                        // Navegar a la pantalla de galería y procesar la imagen
-                        // Puedes usar el ViewModel directamente o pasar el URI como parámetro
+    fun Intent.handleSharedImages(): List<Uri>? {
+        return if (this.type?.startsWith("image/") == true){
+            when (intent?.action) {
+                    Intent.ACTION_SEND -> {
+                        val imageUri = intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM)
+                        imageUri?.let { uri ->
+                            return arrayListOf(uri)
+                        }
                     }
-                }
-            }
-            Intent.ACTION_SEND_MULTIPLE -> {
-                if (intent.type?.startsWith("image/") == true) {
+                Intent.ACTION_SEND_MULTIPLE -> {
                     val imageUris = intent.getParcelableArrayListExtra<Uri>(Intent.EXTRA_STREAM)
                     imageUris?.let { uris ->
-                        // Procesar múltiples imágenes
+                        return uris
                     }
                 }
+                else -> {
+                    null
+                }
             }
+        } else {
+            null
         }
     }
 }

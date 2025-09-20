@@ -5,8 +5,8 @@
     <string name="add_new_item">Añadir producto</string>
     <string name="label_sku">SKU</string>
     <string name="label_name">Nombre del producto</string>
-    <string name="label_original_price">Precio de venta(MXN)</string>
-    <string name="label_final_price">Precio final</string>
+    <string name="label_buy_price">Precio de compra</string>
+    <string name="label_sell_price">Precio de venta</string>
     <string name="label_category">Categoría del producto</string>
     <string name="label_description">Descripción del producto</string>
     <string name="label_code">Codigo del producto</string>
@@ -15,4 +15,5 @@
     <string name="label_reposition_quantity">Nivel de reposición</string>
     <string name="google_client_id">cuac</string>
     <string name="google_client_secret">cuac</string>
+    <string name="label_item">Nuevo artículo</string>
 </resources>

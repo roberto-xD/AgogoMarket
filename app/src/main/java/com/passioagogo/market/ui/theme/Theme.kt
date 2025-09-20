@@ -50,8 +50,8 @@ fun PassioAgogoMarketTheme(
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
 
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
+        darkTheme -> getDarkColorScheme()
+        else -> getLightColorScheme()
     }
     val view = LocalView.current
     if (!view.isInEditMode) {
@@ -68,3 +68,77 @@ fun PassioAgogoMarketTheme(
         content = content
     )
 }
+
+@Composable
+private fun getLightColorScheme() = lightColorScheme(
+    primary = InventoryColors.primary,
+    onPrimary = InventoryColors.onPrimary,
+    primaryContainer = InventoryColors.primaryContainer,
+    onPrimaryContainer = InventoryColors.onPrimaryContainer,
+
+    secondary = InventoryColors.secondary,
+    onSecondary = InventoryColors.onSecondary,
+    secondaryContainer = InventoryColors.secondaryContainer,
+    onSecondaryContainer = InventoryColors.onSecondaryContainer,
+
+    tertiary = InventoryColors.tertiary,
+    onTertiary = InventoryColors.onTertiary,
+    tertiaryContainer = InventoryColors.tertiaryContainer,
+    onTertiaryContainer = InventoryColors.onTertiaryContainer,
+
+    background = InventoryColors.background,
+    onBackground = InventoryColors.onBackground,
+    surface = InventoryColors.surface,
+    onSurface = InventoryColors.onSurface,
+    surfaceVariant = InventoryColors.surfaceVariant,
+    onSurfaceVariant = InventoryColors.onSurfaceVariant,
+
+    error = InventoryColors.error,
+    onError = InventoryColors.onError,
+    errorContainer = InventoryColors.errorContainer,
+    onErrorContainer = InventoryColors.onErrorContainer,
+
+    outline = InventoryColors.outline,
+    outlineVariant = InventoryColors.outlineVariant,
+    scrim = InventoryColors.scrim,
+    inverseSurface = InventoryColors.inverseSurface,
+    inverseOnSurface = InventoryColors.inverseOnSurface,
+    inversePrimary = InventoryColors.inversePrimary
+)
+
+@Composable
+private fun getDarkColorScheme() = darkColorScheme(
+    primary = InventoryColors.primary,
+    onPrimary = InventoryColors.onPrimary,
+    primaryContainer = InventoryColors.primaryContainer,
+    onPrimaryContainer = InventoryColors.onPrimaryContainer,
+
+    secondary = InventoryColors.secondary,
+    onSecondary = InventoryColors.onSecondary,
+    secondaryContainer = InventoryColors.secondaryContainer,
+    onSecondaryContainer = InventoryColors.onSecondaryContainer,
+
+    tertiary = InventoryColors.tertiary,
+    onTertiary = InventoryColors.onTertiary,
+    tertiaryContainer = InventoryColors.tertiaryContainer,
+    onTertiaryContainer = InventoryColors.onTertiaryContainer,
+
+    background = InventoryColors.background,
+    onBackground = InventoryColors.onBackground,
+    surface = InventoryColors.surface,
+    onSurface = InventoryColors.onSurface,
+    surfaceVariant = InventoryColors.surfaceVariant,
+    onSurfaceVariant = InventoryColors.onSurfaceVariant,
+
+    error = InventoryColors.error,
+    onError = InventoryColors.onError,
+    errorContainer = InventoryColors.errorContainer,
+    onErrorContainer = InventoryColors.onErrorContainer,
+
+    outline = InventoryColors.outline,
+    outlineVariant = InventoryColors.outlineVariant,
+    scrim = InventoryColors.scrim,
+    inverseSurface = InventoryColors.inverseSurface,
+    inverseOnSurface = InventoryColors.inverseOnSurface,
+    inversePrimary = InventoryColors.inversePrimary
+)

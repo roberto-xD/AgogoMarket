@@ -8,8 +8,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -19,7 +17,6 @@ import androidx.compose.ui.unit.dp
 import com.passioagogo.market.R
 import com.passioagogo.market.domain.bean.Producto
 import com.passioagogo.market.domain.usecase.producto.CrearProductoParams
-import com.passioagogo.market.presentation.view.components.PATextInput
 
 @Composable
 fun ProductEditor(
@@ -27,21 +24,19 @@ fun ProductEditor(
     updateItem: (item: CrearProductoParams?) -> Unit,
 ) {
     val context = LocalContext.current
-    val editedProduct = remember {
-        mutableStateOf(CrearProductoParams())
-    }
+
 
     Column {
-        PATextInput(
-            value = editedProduct.value.nombre,
-            onValueChange = {
-                editedProduct.value = editedProduct.value.copy(nombre = it.orEmpty())
-            },
-            modifier = Modifier
-                .padding(10.dp)
-                .fillMaxWidth(),
-            placeHolder = stringResource(id = R.string.label_name),
-        )
+//        PATextInput(
+//            value = editedProduct.value.nombre,
+//            onValueChange = {
+//                editedProduct.value = editedProduct.value.copy(nombre = it.orEmpty())
+//            },
+//            modifier = Modifier
+//                .padding(10.dp)
+//                .fillMaxWidth(),
+//            placeHolder = stringResource(id = R.string.label_name),
+//        )
         /*Row(
             modifier = Modifier
                 .padding(10.dp)
@@ -82,26 +77,26 @@ fun ProductEditor(
                 .fillMaxWidth(),
             placeHolder = stringResource(id = R.string.label_category)
         )*/
-        PATextInput(
-            value = editedProduct.value.skuInterno,
-            onValueChange = {
-                editedProduct.value = editedProduct.value.copy(skuInterno = it.orEmpty())
-            },
-            modifier = Modifier
-                .padding(10.dp)
-                .fillMaxWidth(),
-            placeHolder = stringResource(id = R.string.label_code)
-        )
-        PATextInput(
-            value = editedProduct.value.descripcion,
-            onValueChange = {
-                editedProduct.value = editedProduct.value.copy(descripcion = it)
-            },
-            modifier = Modifier
-                .padding(10.dp)
-                .fillMaxWidth(),
-            placeHolder = stringResource(id = R.string.label_description),
-        )
+//        PATextInput(
+//            value = editedProduct.value.skuInterno,
+//            onValueChange = {
+//                editedProduct.value = editedProduct.value.copy(skuInterno = it.orEmpty())
+//            },
+//            modifier = Modifier
+//                .padding(10.dp)
+//                .fillMaxWidth(),
+//            placeHolder = stringResource(id = R.string.label_code)
+//        )
+//        PATextInput(
+//            value = editedProduct.value.descripcion,
+//            onValueChange = {
+//                editedProduct.value = editedProduct.value.copy(descripcion = it)
+//            },
+//            modifier = Modifier
+//                .padding(10.dp)
+//                .fillMaxWidth(),
+//            placeHolder = stringResource(id = R.string.label_description),
+//        )
         /*Image(
             painter = rememberAsyncImagePainter(model = "https://www.distribuidoradesexshop.com" + currentProduct.image),
             contentDescription = null,
@@ -118,7 +113,7 @@ fun ProductEditor(
         ) {
             Button(
                 onClick = {
-                    updateItem(editedProduct.value)
+//                    updateItem(editedProduct.value)
                     Toast.makeText(context, "Actualizando", Toast.LENGTH_SHORT).show()
                 }
             ) {

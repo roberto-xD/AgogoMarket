@@ -24,7 +24,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import com.passioagogo.market.presentation.view.components.items.ImageItem
 import com.passioagogo.market.presentation.view.components.items.ImagePreviewDialog
 import com.passioagogo.market.presentation.viewModel.imagenes.ImageGalleryViewModel
@@ -32,10 +31,11 @@ import com.passioagogo.market.presentation.viewModel.imagenes.ImageGalleryViewMo
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ImageGalleryScreen(
+    viewModel: ImageGalleryViewModel,
     onBackClick: () -> Unit,
-    viewModel: ImageGalleryViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val uriReceived by viewModel.sharedImages.collectAsState()
 
     Scaffold(
         topBar = {

@@ -1,92 +1,105 @@
 package com.passioagogo.market.presentation.view.components
 
 import androidx.annotation.DrawableRes
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import com.passioagogo.market.R
+import com.passioagogo.market.presentation.view.components.items.CompactOutlinedTextField
 
 @Composable
 internal fun PATextInput(
-    value : String? = null,
+    mutableInput : MutableState<String>,
     modifier : Modifier = Modifier,
     placeHolder : String ?= null,
-    supportingText : String ?= null,
     @DrawableRes trailingIcon : Int ? = null,
     onTrailingIconClick: (() -> Unit) ?= null,
     keyboardType : KeyboardType = KeyboardType.Text,
-    minLines : Int = 1,
-    onValueChange: (String?)->Unit
 ){
-    val inputValue = remember {
-        mutableStateOf(value)
-    }
-    OutlinedTextField(
+    CompactOutlinedTextField(
         modifier = modifier,
-        shape = RoundedCornerShape(10.dp),
-        value = inputValue.value.orEmpty(),
+        value = mutableInput.value,
         onValueChange = {
-            inputValue.value = it
-            onValueChange(inputValue.value)
+            mutableInput.value = it
         },
-        label = {
-            Text(
-                text = placeHolder.orEmpty()
-            )
-        },
-        placeholder = {
-            Text(
-                text = placeHolder.orEmpty()
-            )
-        },
-        supportingText = {
-            supportingText?.let {
-                Text(
-                    text = it
-                )
-            }
-        },
-        trailingIcon = {
-            trailingIcon?.let {
-                Icon(
-                    modifier = Modifier
-                        .size(30.dp)
-                        .clickable {
-                            onTrailingIconClick?.invoke()
-                        },
-                    painter = painterResource(it),
-                    contentDescription = null
-                )
-            }
-        },
-        colors = OutlinedTextFieldDefaults.colors(
-            // disabledTextColor =
-        ),
-        keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-        minLines = minLines,
+        label = placeHolder,
+        placeholder = placeHolder,
+        trailingIcon = trailingIcon,
+        onTrailingIconClick = onTrailingIconClick,
+        keyboardType = keyboardType,
+        maxLength = 15,
     )
+//    OutlinedTextField(
+//        modifier = modifier
+//            .heightIn(min = 40.dp)
+//            .padding(0.dp),
+//        shape = RoundedCornerShape(10.dp),
+//        value = mutableInput.value,
+//        onValueChange = {
+//            mutableInput.value = it
+//        },
+//        label = {
+//            placeHolder?.let {
+//                Text(
+//                    modifier = Modifier
+//                        .height(20.dp),
+//                    text = it,
+//                    fontSize = 12.sp
+//                )
+//            }
+//        },
+//        placeholder = {
+//            placeHolder?.let {
+//                Text(
+//                    modifier = Modifier
+//                        .height(20.dp),
+//                    text = it,
+//                    fontSize = 12.sp
+//                )
+//            }
+//        },
+//        supportingText = {
+//            supportingText?.let {
+//                Text(
+//                    modifier = Modifier
+//                        .height(16.dp),
+//                    text = it
+//                )
+//            }
+//        },
+//        trailingIcon = {
+//            trailingIcon?.let {
+//                Icon(
+//                    modifier = Modifier
+//                        .size(25.dp)
+//                        .clickable {
+//                            onTrailingIconClick?.invoke()
+//                        },
+//                    painter = painterResource(it),
+//                    contentDescription = null
+//                )
+//            }
+//        },
+//        colors = OutlinedTextFieldDefaults.colors(
+//            // disabledTextColor =
+//        ),
+//        keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+//        minLines = minLines
+//
+//    )
 }
 
 @Composable
-@Preview
+@Preview(showSystemUi = true)
 private fun Preview(
 
 ){
+    val cuac = remember { mutableStateOf("")}
     PATextInput(
-        value = "",
+        mutableInput =  cuac,
         placeHolder = "este es un place holder",
-    ){}
+    )
 }

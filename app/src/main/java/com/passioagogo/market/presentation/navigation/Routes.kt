@@ -5,4 +5,6 @@ sealed class Routes(val Name: String) {
     object Login: Routes("Login")
     object Search: Routes("Search")
     object Import: Routes("Import")
+    object ImageGallery: Routes("ImageGallery")
+    object ItemDetail: Routes("ItemDetail")
 }

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Colores primarios para modo oscuro -->
+    <color name="primary">#5B8FC7</color>
+    <color name="primary_light">#87B5E8</color>
+    <color name="primary_dark">#2E5984</color>
+    <color name="on_primary">#000000</color>
+    <color name="primary_container">#1E3A5F</color>
+    <color name="on_primary_container">#D1E4FF</color>
+
+    <!-- Colores secundarios para modo oscuro -->
+    <color name="secondary">#7BCFC0</color>
+    <color name="secondary_light">#A8E6DB</color>
+    <color name="secondary_dark">#4A9B8E</color>
+    <color name="on_secondary">#000000</color>
+    <color name="secondary_container">#2D5F56</color>
+    <color name="on_secondary_container">#B2F2EA</color>
+
+    <!-- Colores terciarios para modo oscuro -->
+    <color name="tertiary">#BEBCFF</color>
+    <color name="on_tertiary">#000000</color>
+    <color name="tertiary_container">#2D2B5F</color>
+    <color name="on_tertiary_container">#E0E7FF</color>
+
+    <!-- Colores de superficie para modo oscuro -->
+    <color name="background">#121212</color>
+    <color name="on_background">#E1E3E6</color>
+    <color name="surface">#1E1E1E</color>
+    <color name="on_surface">#E1E3E6</color>
+    <color name="surface_variant">#2C2C2C</color>
+    <color name="on_surface_variant">#B3B8BD</color>
+
+    <!-- Colores de estado para modo oscuro -->
+    <color name="error">#FFB4AB</color>
+    <color name="on_error">#000000</color>
+    <color name="error_container">#601410</color>
+    <color name="on_error_container">#FFB4AB</color>
+
+    <!-- Colores de contorno para modo oscuro -->
+    <color name="outline">#3C4043</color>
+    <color name="outline_variant">#2C2C2C</color>
+
+    <!-- Colores adicionales para modo oscuro -->
+    <color name="scrim">#80000000</color>
+    <color name="inverse_surface">#E1E3E6</color>
+    <color name="inverse_on_surface">#1A1D1F</color>
+    <color name="inverse_primary">#2E5984</color>
+
+    <!-- Los colores de estado y acentos se mantienen iguales -->
+    <color name="success">#10B981</color>
+    <color name="warning">#F59E0B</color>
+    <color name="info">#3B82F6</color>
+</resources>

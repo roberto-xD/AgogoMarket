@@ -31,11 +31,18 @@ class ImageGalleryViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(ImageGalleryUiState())
     val uiState: StateFlow<ImageGalleryUiState> = _uiState.asStateFlow()
 
+    private val _sharedImages = MutableStateFlow<List<Uri>>(emptyList())
+    val sharedImages: StateFlow<List<Uri>> = _sharedImages.asStateFlow()
+
     init {
         loadImages()
     }
 
     fun handleSharedImages(uris: List<Uri>) {
+        _sharedImages.value = uris
+    }
+
+    fun saveSharedImages(uris: List<Uri>) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
 

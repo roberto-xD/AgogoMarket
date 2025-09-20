@@ -8,4 +8,73 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="gray">#e7e7e7</color>
+
+    <!-- Colores primarios - Azul profesional pero cálido -->
+    <color name="primary">#2E5984</color>
+    <color name="primary_light">#5B8FC7</color>
+    <color name="primary_dark">#1E3A5F</color>
+    <color name="on_primary">#FFFFFF</color>
+    <color name="primary_container">#D1E4FF</color>
+    <color name="on_primary_container">#001D36</color>
+
+    <!-- Colores secundarios - Verde menta para elementos de acción -->
+    <color name="secondary">#4A9B8E</color>
+    <color name="secondary_light">#7BCFC0</color>
+    <color name="secondary_dark">#2D5F56</color>
+    <color name="on_secondary">#FFFFFF</color>
+    <color name="secondary_container">#B2F2EA</color>
+    <color name="on_secondary_container">#00201B</color>
+
+    <!-- Colores terciarios -->
+    <color name="tertiary">#6366F1</color>
+    <color name="on_tertiary">#FFFFFF</color>
+    <color name="tertiary_container">#E0E7FF</color>
+    <color name="on_tertiary_container">#1E1B42</color>
+
+    <!-- Colores de superficie -->
+    <color name="background">#F8F9FA</color>
+    <color name="on_background">#1A1D1F</color>
+    <color name="surface">#FFFFFF</color>
+    <color name="on_surface">#1A1D1F</color>
+    <color name="surface_variant">#F1F3F5</color>
+    <color name="on_surface_variant">#5F6368</color>
+
+    <!-- Colores de estado -->
+    <color name="error">#EF4444</color>
+    <color name="on_error">#FFFFFF</color>
+    <color name="error_container">#FFEDEA</color>
+    <color name="on_error_container">#410E0B</color>
+
+    <!-- Colores de contorno -->
+    <color name="outline">#DDE1E6</color>
+    <color name="outline_variant">#F1F3F5</color>
+
+    <!-- Colores adicionales -->
+    <color name="scrim">#80000000</color>
+    <color name="inverse_surface">#2D3135</color>
+    <color name="inverse_on_surface">#F1F3F5</color>
+    <color name="inverse_primary">#5B8FC7</color>
+
+    <!-- Colores de estado personalizados -->
+    <color name="success">#10B981</color>
+    <color name="warning">#F59E0B</color>
+    <color name="info">#3B82F6</color>
+
+    <!-- Colores de acento para categorías -->
+    <color name="accent_blue">#6366F1</color>
+    <color name="accent_purple">#8B5CF6</color>
+    <color name="accent_pink">#EC4899</color>
+    <color name="accent_orange">#F97316</color>
+
+    <!-- Grises neutros -->
+    <color name="gray_50">#F9FAFB</color>
+    <color name="gray_100">#F3F4F6</color>
+    <color name="gray_200">#E5E7EB</color>
+    <color name="gray_300">#D1D5DB</color>
+    <color name="gray_400">#9CA3AF</color>
+    <color name="gray_500">#6B7280</color>
+    <color name="gray_600">#4B5563</color>
+    <color name="gray_700">#374151</color>
+    <color name="gray_800">#1F2937</color>
+    <color name="gray_900">#111827</color>
 </resources>

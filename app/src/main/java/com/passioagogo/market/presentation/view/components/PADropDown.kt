@@ -1,6 +1,5 @@
 package com.passioagogo.market.presentation.view.components
 
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -14,7 +13,6 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -106,9 +104,9 @@ internal fun PADropDown(
                     )
                 }
             },
-            colors = OutlinedTextFieldDefaults.colors(
-                // disabledTextColor =
-            ),
+//            colors = OutlinedTextFieldDefaults.colors(
+//                // disabledTextColor =
+//            ),
             enabled = false,
             trailingIcon = {
                 Icon(

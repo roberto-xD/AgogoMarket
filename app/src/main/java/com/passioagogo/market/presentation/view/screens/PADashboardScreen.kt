@@ -1,7 +1,6 @@
 package com.passioagogo.market.presentation.view.screens
 
 import android.util.Log
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -24,16 +23,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.passioagogo.market.domain.PAConstants.TAG_PG
-import com.passioagogo.market.domain.bean.PAProductBean
 import com.passioagogo.market.domain.bean.Producto
 import com.passioagogo.market.presentation.navigation.Routes
 import com.passioagogo.market.presentation.view.components.DetailBottomSheet
 import com.passioagogo.market.presentation.view.components.DrawerSheet
-import com.passioagogo.market.presentation.view.components.Splash
 import com.passioagogo.market.presentation.view.components.ProductCard
 import com.passioagogo.market.presentation.view.components.SearchInput
+import com.passioagogo.market.presentation.view.components.Splash
 import com.passioagogo.market.presentation.viewModel.products.ProductosViewModel
-import com.passioagogo.market.presentation.viewModel.VM
 import com.passioagogo.market.ui.decorators.shimmerEffect
 import kotlinx.coroutines.launch
 
@@ -82,7 +79,7 @@ fun DashboardScreen(
             if(searchState.value.not()){
                 productViewModel.buscarProductos("")
             }*/
-            navigate(Routes.Import.Name)
+            navigate(Routes.ItemDetail.Name)
         }
     ) {     padding ->
         Column(

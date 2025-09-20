@@ -35,8 +35,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 import com.passioagogo.market.R
-import com.passioagogo.market.domain.bean.PAPriceBean
-import com.passioagogo.market.domain.bean.PAProductBean
 import com.passioagogo.market.domain.bean.Producto
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -134,7 +132,7 @@ fun ProductDetails(
                     text = finalPrice,
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
-                    color = colorResource(id = R.color.purple_200),
+                    color = colorResource(id = R.color.primary),
                     modifier = Modifier.weight(1f),
                     textAlign = TextAlign.Center
                 )

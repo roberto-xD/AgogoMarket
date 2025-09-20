@@ -3,12 +3,8 @@ package com.passioagogo.market.presentation.view.templates
 import android.widget.Toast
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
@@ -22,44 +18,43 @@ import androidx.compose.ui.unit.dp
 import com.passioagogo.market.R
 import com.passioagogo.market.domain.bean.PAProductBean
 import com.passioagogo.market.domain.bean.update
-import com.passioagogo.market.domain.bean.updatePrice
 import com.passioagogo.market.presentation.view.components.PAContainer
-import com.passioagogo.market.presentation.view.components.PADropDown
 import com.passioagogo.market.presentation.view.components.PATextInput
 
 @Composable
-fun PANewProduct(
+fun PAEditInfoProduct(
     editedProduct: MutableState<PAProductBean> ,
 ){
     val context = LocalContext.current
-    Column(
-        modifier = Modifier
-            .verticalScroll(
-                rememberScrollState()
-            )
-            .padding(5.dp)
-            .fillMaxSize()
-    ) {
+
+    val tittle = remember { mutableStateOf("")}
+    val sku = remember { mutableStateOf("")}
+    val units = remember { mutableStateOf("")}
+    val minStock = remember { mutableStateOf("")}
+    val description = remember { mutableStateOf("")}
+    val buyPrice = remember { mutableStateOf("")}
+    val sellPrice = remember { mutableStateOf("")}
+
+    editedProduct.value = editedProduct.value.update(
+        title = tittle.value,
+        sku = sku.value,
+        description = description.value,
+        actual_stock = units.value,
+        reposition_quantity = minStock.value,
+    )
+    Column{
         PAContainer(
             modifier = Modifier,
         ) {
             PATextInput(
-                value = editedProduct.value.title.orEmpty(),
-                onValueChange = {
-                    editedProduct.value.update(title = it)
-                },
+                mutableInput = tittle,
                 modifier = Modifier
-                    .padding(10.dp)
                     .fillMaxWidth(),
                 placeHolder = stringResource(id = R.string.label_name),
             )
             PATextInput(
-                value = editedProduct.value.sku,
-                onValueChange = {
-                    editedProduct.value.update(sku = it)
-                },
+                mutableInput = sku,
                 modifier = Modifier
-                    .padding(10.dp)
                     .fillMaxWidth(),
                 placeHolder = stringResource(id = R.string.label_sku),
                 trailingIcon = R.drawable.barcode_scann,
@@ -69,77 +64,58 @@ fun PANewProduct(
                         .show()
                 }
             )
-            PADropDown(
-                modifier = Modifier
-                    .padding(10.dp),
-                placeHolder = "Unidad",
-                list = listOf("caja","pzas","L","ml")
-            ) {
-                editedProduct.value.update(units = it)
-                Toast
-                    .makeText(context, "dato: $it", Toast.LENGTH_SHORT)
-                    .show()
-            }
-            Spacer(modifier = Modifier.size(10.dp))
+//            PADropDown(
+//                modifier = Modifier
+//                    .padding(top = 10.dp, bottom = 10.dp),
+//                placeHolder = "Unidad",
+//                list = listOf("caja","pzas","L","ml")
+//            ) {
+//                editedProduct.value.update(units = it)
+//                Toast
+//                    .makeText(context, "dato: $it", Toast.LENGTH_SHORT)
+//                    .show()
+//            }
         }
+        Spacer(modifier = Modifier.size(10.dp))
         PAContainer(
             modifier = Modifier,
             containerTittle = "Información de ventas"
         ) {
             PATextInput(
-                value = editedProduct.value.price?.public,
-                onValueChange = {
-                    editedProduct.value.updatePrice(public = it)
-                },
+                mutableInput = sellPrice,
                 modifier = Modifier
-                    .padding(10.dp)
                     .fillMaxWidth(),
-                placeHolder = stringResource(id = R.string.label_original_price),
+                placeHolder = stringResource(id = R.string.label_sell_price),
             )
             PATextInput(
-                value = editedProduct.value.description,
-                onValueChange = {
-                    editedProduct.value.update(description = it)
-                },
+                mutableInput = description,
                 modifier = Modifier
-                    .padding(10.dp)
                     .fillMaxWidth(),
                 placeHolder = stringResource(id = R.string.label_description),
             )
         }
+        Spacer(modifier = Modifier.size(10.dp))
         PAContainer(
             modifier = Modifier,
             containerTittle = "Seguimiento de inventario de este articulo"
         ) {
             PATextInput(
-                value = editedProduct.value.actual_stock,
-                onValueChange = {
-                    editedProduct.value.update(actual_stock = it)
-                },
+                mutableInput = units,
                 modifier = Modifier
-                    .padding(10.dp)
                     .fillMaxWidth(),
                 placeHolder = stringResource(id = R.string.label_initial_stock),
                 keyboardType = KeyboardType.Number
             )
             PATextInput(
-                value = editedProduct.value.price?.supplier,
-                onValueChange = {
-                    editedProduct.value.updatePrice(supplier = it)
-                },
+                mutableInput = buyPrice,
                 modifier = Modifier
-                    .padding(10.dp)
                     .fillMaxWidth(),
-                placeHolder = stringResource(id = R.string.label_initial_price),
+                placeHolder = stringResource(id = R.string.label_buy_price),
                 keyboardType = KeyboardType.Number
             )
             PATextInput(
-                value = editedProduct.value.reposition_quantity,
-                onValueChange = {
-                    editedProduct.value.update(reposition_quantity = it)
-                },
+                mutableInput = minStock,
                 modifier = Modifier
-                    .padding(10.dp)
                     .fillMaxWidth(),
                 placeHolder = stringResource(id = R.string.label_reposition_quantity),
                 keyboardType = KeyboardType.Number
@@ -156,7 +132,7 @@ private fun Preview(
     val editedProduct = remember {
         mutableStateOf(PAProductBean())
     }
-    PANewProduct(
+    PAEditInfoProduct(
         editedProduct = editedProduct
     )
 }

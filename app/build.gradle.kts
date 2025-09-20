@@ -86,6 +86,9 @@ dependencies {
     implementation(libs.firebase.database)
     implementation(libs.googleid)
     implementation(libs.material3)
+    implementation(libs.androidx.runtime)
+    implementation(libs.androidx.foundation.layout)
+    implementation(libs.androidx.foundation)
 
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -148,7 +151,7 @@ dependencies {
     // OAuth2 para Google
     implementation(libs.google.auth.library.oauth2.http)
 
-
+    implementation("com.google.accompanist:accompanist-permissions:0.32.0")
 
 }
 kapt {
