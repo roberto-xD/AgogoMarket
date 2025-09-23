@@ -44,6 +44,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.passioagogo.market.R
+import com.passioagogo.market.ui.theme.abelRegular
+import com.passioagogo.market.ui.theme.onSurfaceLight
+import com.passioagogo.market.ui.theme.outlineLight
+import com.passioagogo.market.ui.theme.primaryLight
+import com.passioagogo.market.ui.theme.surfaceVariantLight
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
@@ -66,9 +71,9 @@ fun CompactOutlinedTextField(
 
     val outlineColor by animateColorAsState(
         targetValue = when {
-            isFocused -> MaterialTheme.colorScheme.primary
-            value.isNotEmpty() -> MaterialTheme.colorScheme.onSurfaceVariant
-            else -> MaterialTheme.colorScheme.outline
+            isFocused -> primaryLight
+            value.isNotEmpty() -> surfaceVariantLight
+            else -> outlineLight
         },
         animationSpec = tween(durationMillis = 200)
     )
@@ -101,8 +106,9 @@ fun CompactOutlinedTextField(
                         Text(
                             text = it,
                             style = MaterialTheme.typography.labelSmall.copy(
-                                color = if (isFocused) MaterialTheme.colorScheme.primary
-                                else MaterialTheme.colorScheme.onSurfaceVariant
+                                fontFamily = abelRegular,
+                                color = if (isFocused) primaryLight
+                                else onSurfaceLight
                             ),
                             modifier = Modifier.fillMaxWidth()
                         )
@@ -140,8 +146,9 @@ fun CompactOutlinedTextField(
                                     .fillMaxWidth(),
                                 text = placeholder ?: "",
                                 style = MaterialTheme.typography.bodyLarge.copy(
+                                    fontFamily = abelRegular,
                                     fontSize = 14.sp,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    color = outlineLight
                                 )
                             )
                         }
@@ -159,11 +166,12 @@ fun CompactOutlinedTextField(
                             .focusRequester(focusRequester)
                             .onFocusChanged { isFocused = it.isFocused },
                         textStyle = MaterialTheme.typography.bodyLarge.copy(
+                            fontFamily = abelRegular,
                             fontSize = 14.sp,
-                            color = MaterialTheme.colorScheme.onSurface
+                            color = onSurfaceLight
                         ),
                         singleLine = true,
-                        cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                        cursorBrush = SolidColor(primaryLight),
                         decorationBox = { innerTextField ->
                             innerTextField()
                         },

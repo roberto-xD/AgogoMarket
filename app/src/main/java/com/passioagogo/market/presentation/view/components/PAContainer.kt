@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -17,8 +18,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.passioagogo.market.ui.theme.bungeeRegular
+import com.passioagogo.market.ui.theme.onPrimaryLight
+import com.passioagogo.market.ui.theme.primaryContainerLight
+import com.passioagogo.market.ui.theme.primaryLight
+import com.passioagogo.market.ui.theme.secondaryContainerLight
+import com.passioagogo.market.ui.theme.secondaryLight
+import com.passioagogo.market.ui.theme.surfaceLight
 
 @Composable
 fun PAContainer(
@@ -31,7 +39,7 @@ fun PAContainer(
     }
     Box(
         modifier = modifier
-            .background(color = Color(0xFFFFFFFF))
+            .background(color = surfaceLight)
             .clip(shape = RoundedCornerShape(4.dp))
             .shadow(elevation = 2.dp, shape = RoundedCornerShape(4.dp))
     ){
@@ -48,6 +56,9 @@ fun PAContainer(
                         modifier = Modifier
                             .weight(1f)
                             .align(Alignment.CenterVertically),
+                        color = primaryLight,
+                        fontSize = 20.sp,
+                        fontFamily = bungeeRegular,
                         text = it
                     )
                     Switch(
@@ -56,14 +67,21 @@ fun PAContainer(
                         checked = checked.value,
                         onCheckedChange = {
                             checked.value = it
-                        }
+                        },
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = onPrimaryLight,
+                            checkedTrackColor = primaryContainerLight,
+                            uncheckedThumbColor = secondaryLight,
+                            uncheckedTrackColor = secondaryContainerLight,
+                        )
                     )
                 }
             }
             if(checked.value){
                 Column(
                     modifier = Modifier
-                        .padding(start = 10.dp, end = 10.dp, bottom = 10.dp)
+                        .padding(start = 10.dp, end = 10.dp, bottom = 10.dp),
+                    verticalArrangement = Arrangement.spacedBy(5.dp)
                 ) {
                     content.invoke()
                 }

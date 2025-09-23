@@ -1,32 +1,36 @@
 package com.passioagogo.market.presentation.view.templates
 
-import android.widget.Toast
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.passioagogo.market.R
 import com.passioagogo.market.domain.bean.PAProductBean
-import com.passioagogo.market.domain.bean.update
+import com.passioagogo.market.presentation.view.components.ImageView
+import com.passioagogo.market.presentation.view.components.PABasicButton
 import com.passioagogo.market.presentation.view.components.PAContainer
 import com.passioagogo.market.presentation.view.components.PATextInput
 
 @Composable
 fun PAEditInfoProduct(
-    editedProduct: MutableState<PAProductBean> ,
+    modifier: Modifier = Modifier,
+    editedProduct: MutableState<PAProductBean>,
+    onImageClick: () -> Unit,
+    onScanClick: () -> Unit,
 ){
-    val context = LocalContext.current
-
     val tittle = remember { mutableStateOf("")}
     val sku = remember { mutableStateOf("")}
     val units = remember { mutableStateOf("")}
@@ -34,47 +38,49 @@ fun PAEditInfoProduct(
     val description = remember { mutableStateOf("")}
     val buyPrice = remember { mutableStateOf("")}
     val sellPrice = remember { mutableStateOf("")}
+    val imagePath = remember { mutableStateOf("") }
 
-    editedProduct.value = editedProduct.value.update(
-        title = tittle.value,
-        sku = sku.value,
-        description = description.value,
-        actual_stock = units.value,
-        reposition_quantity = minStock.value,
-    )
-    Column{
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+    ){
         PAContainer(
-            modifier = Modifier,
+            modifier = modifier,
         ) {
-            PATextInput(
-                mutableInput = tittle,
-                modifier = Modifier
-                    .fillMaxWidth(),
-                placeHolder = stringResource(id = R.string.label_name),
-            )
-            PATextInput(
-                mutableInput = sku,
-                modifier = Modifier
-                    .fillMaxWidth(),
-                placeHolder = stringResource(id = R.string.label_sku),
-                trailingIcon = R.drawable.barcode_scann,
-                onTrailingIconClick = {
-                    Toast
-                        .makeText(context, "abrir escaner", Toast.LENGTH_SHORT)
-                        .show()
+            Row {
+                Column(
+                    modifier = modifier
+                        .padding(top = 10.dp)
+                        .weight(2f),
+                ) {
+                    PATextInput(
+                        mutableInput = tittle,
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        placeHolder = stringResource(id = R.string.label_name),
+                    )
+                    PATextInput(
+                        mutableInput = sku,
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        placeHolder = stringResource(id = R.string.label_sku),
+                        trailingIcon = R.drawable.barcode_scann,
+                        onTrailingIconClick = onScanClick
+                    )
                 }
-            )
-//            PADropDown(
-//                modifier = Modifier
-//                    .padding(top = 10.dp, bottom = 10.dp),
-//                placeHolder = "Unidad",
-//                list = listOf("caja","pzas","L","ml")
-//            ) {
-//                editedProduct.value.update(units = it)
-//                Toast
-//                    .makeText(context, "dato: $it", Toast.LENGTH_SHORT)
-//                    .show()
-//            }
+                Column(
+                        modifier = modifier
+                            .align(Alignment.CenterVertically)
+                            .padding(start = 10.dp, top = 15.dp, bottom = 5.dp)
+                            .weight(1f),
+                ){
+                    ImageView(
+                        modifier = modifier,
+                        imagePath = imagePath.value,
+                        onImageClick = onImageClick
+                    )
+                }
+            }
         }
         Spacer(modifier = Modifier.size(10.dp))
         PAContainer(
@@ -97,7 +103,7 @@ fun PAEditInfoProduct(
         Spacer(modifier = Modifier.size(10.dp))
         PAContainer(
             modifier = Modifier,
-            containerTittle = "Seguimiento de inventario de este articulo"
+            containerTittle = "Seguimiento del artículo"
         ) {
             PATextInput(
                 mutableInput = units,
@@ -121,6 +127,12 @@ fun PAEditInfoProduct(
                 keyboardType = KeyboardType.Number
             )
         }
+        PABasicButton(
+            label1 = "Guardar",
+            onClick1 = {
+
+            }
+        )
     }
 }
 
@@ -133,6 +145,8 @@ private fun Preview(
         mutableStateOf(PAProductBean())
     }
     PAEditInfoProduct(
-        editedProduct = editedProduct
+        editedProduct = editedProduct,
+        onScanClick = {},
+        onImageClick = {}
     )
 }

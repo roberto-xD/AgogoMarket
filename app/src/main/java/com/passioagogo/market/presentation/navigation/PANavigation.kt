@@ -15,7 +15,7 @@ import com.passioagogo.market.presentation.viewModel.imagenes.ImageGalleryViewMo
 @Composable
 fun PANavigation(
     startDestination: String,
-    imageGalleryViewModel: ImageGalleryViewModel,
+    imageGalleryViewModel: ImageGalleryViewModel?= null,
 ){
     val navController = rememberNavController()
     NavHost(
@@ -63,7 +63,7 @@ fun PANavigation(
             route = Routes.ImageGallery.Name
         ){
             ImageGalleryScreen(
-                viewModel = imageGalleryViewModel,
+                viewModel = imageGalleryViewModel!!,
                 onBackClick = {
                     navController.popBackStack()
                 }

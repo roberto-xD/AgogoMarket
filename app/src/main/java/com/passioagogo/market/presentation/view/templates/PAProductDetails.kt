@@ -26,7 +26,6 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -36,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 import com.passioagogo.market.R
 import com.passioagogo.market.domain.bean.Producto
+import com.passioagogo.market.ui.theme.primaryLight
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -132,7 +132,7 @@ fun ProductDetails(
                     text = finalPrice,
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
-                    color = colorResource(id = R.color.primary),
+                    color = primaryLight,
                     modifier = Modifier.weight(1f),
                     textAlign = TextAlign.Center
                 )

@@ -10,12 +10,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
@@ -23,6 +21,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 import com.passioagogo.market.R
+import com.passioagogo.market.ui.theme.backgroundLight
 
 @Composable
 fun ProductCard(
@@ -39,7 +38,7 @@ fun ProductCard(
         modifier = Modifier
             .padding(3.dp)
             .background(
-                color = colorResource(id = R.color.white),
+                color = backgroundLight,
                 shape = RoundedCornerShape(15.dp)
             )
     ) {
@@ -47,7 +46,7 @@ fun ProductCard(
             Column(
                 modifier = Modifier
                     .background(
-                        color = colorResource(id = R.color.gray),
+                        color = backgroundLight,
                         shape = RoundedCornerShape(15.dp)
                     )
             ) {
@@ -90,7 +89,7 @@ fun ProductCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(
-                    color = colorResource(id = R.color.white),
+                    color = backgroundLight,
                     RoundedCornerShape(15.dp)
                 )
                 .padding(5.dp)
@@ -100,7 +99,7 @@ fun ProductCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(
-                    color = colorResource(id = R.color.gray),
+                    color = backgroundLight,
                     shape = RoundedCornerShape(15.dp)
                 )
         ) {
@@ -132,27 +131,19 @@ fun ProductCard(
                 if (finalPrice.isNotEmpty()) {
                     Text(
                         text = finalPrice,
-                        color = colorResource(id = R.color.primary),
+                        color = backgroundLight,
                         textAlign = TextAlign.Center,
                         modifier = Modifier
                             .weight(1f)
                     )
                 }
             }
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                contentAlignment = Alignment.Center
-            ) {
-                Button(
-                    modifier = Modifier.padding(5.dp),
-                    onClick = {
-                        onDetailClick(id)
-                    }
-                ) {
-                    Text(text = "Ver detalle")
+            PABasicButton(
+                label1 = "Ver detalle",
+                onClick1 = {
+                    onDetailClick(id)
                 }
-            }
+            )
         }
     }
 }

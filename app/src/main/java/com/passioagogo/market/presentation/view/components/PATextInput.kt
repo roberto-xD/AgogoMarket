@@ -1,6 +1,7 @@
 package com.passioagogo.market.presentation.view.components
 
 import androidx.annotation.DrawableRes
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
@@ -8,6 +9,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import com.passioagogo.market.presentation.view.components.items.CompactOutlinedTextField
 
 @Composable
@@ -20,7 +22,8 @@ internal fun PATextInput(
     keyboardType : KeyboardType = KeyboardType.Text,
 ){
     CompactOutlinedTextField(
-        modifier = modifier,
+        modifier = modifier
+            .padding(top = 3.dp),
         value = mutableInput.value,
         onValueChange = {
             mutableInput.value = it
