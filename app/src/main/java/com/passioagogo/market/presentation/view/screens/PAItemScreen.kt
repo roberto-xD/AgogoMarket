@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.passioagogo.market.R
 import com.passioagogo.market.domain.bean.PAProductBean
+import com.passioagogo.market.domain.bean.update
 import com.passioagogo.market.presentation.view.components.PABottomSheetContainer
 import com.passioagogo.market.presentation.view.components.PAImageItem
 import com.passioagogo.market.presentation.view.templates.PAEditInfoProduct
@@ -71,7 +72,18 @@ fun ItemScreen(
 
     LaunchedEffect(imagePaths) {
         if(imagePaths.isNotEmpty()){
+            editedProduct.apply {
+                value = value.update(
+                    image = imagePaths[0]
+                )
+            }
             showBottomSheet.value = true
+        }else{
+            editedProduct.apply {
+                value = value.update(
+                    image = null
+                )
+            }
         }
     }
 
@@ -109,6 +121,9 @@ fun ItemScreen(
                     } else {
                         showBottomSheet.value = true
                     }
+                },
+                onSaveClick = {
+
                 },
                 onScanClick = {
                     Toast

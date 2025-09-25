@@ -70,16 +70,14 @@ fun DashboardScreen(
 
     DrawerSheet(
         addItem = {
-            showBottomSheet.value = true
-            currentProduct.value = Producto()
+            navigate(Routes.ItemDetail.Name)
         },
         navigate = navigate,
         search = {
-            /*searchState.value = searchState.value.not()
+            searchState.value = searchState.value.not()
             if(searchState.value.not()){
                 productViewModel.buscarProductos("")
-            }*/
-            navigate(Routes.ItemDetail.Name)
+            }
         }
     ) {     padding ->
         Column(

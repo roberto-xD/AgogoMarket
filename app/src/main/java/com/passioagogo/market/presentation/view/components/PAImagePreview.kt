@@ -2,6 +2,7 @@ package com.passioagogo.market.presentation.view.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -33,11 +34,15 @@ import java.io.File
 @Composable
 fun ImageView(
     modifier: Modifier = Modifier,
-    imagePath: String,
+    imagePath: String?,
     onImageClick: () -> Unit = {},
 ){
     Box(
         modifier = Modifier
+            .clickable(
+                enabled = true,
+                onClick = onImageClick
+            )
             .fillMaxWidth()
             .border(
                 width = 1.dp,
@@ -45,7 +50,7 @@ fun ImageView(
                 shape = MaterialTheme.shapes.small
             )
     ){
-        if (imagePath.isEmpty()){
+        if (imagePath.isNullOrEmpty()){
             Column(
                 modifier = modifier
                     .fillMaxWidth()

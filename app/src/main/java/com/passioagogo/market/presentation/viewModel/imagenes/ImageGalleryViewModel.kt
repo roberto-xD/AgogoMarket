@@ -35,10 +35,6 @@ class ImageGalleryViewModel @Inject constructor(
     private val _actualFilePaths = MutableStateFlow<List<String>>(emptyList())
     val actualFilePaths: StateFlow<List<String>> = _actualFilePaths.asStateFlow()
 
-    init {
-        loadImages()
-    }
-
     fun saveSharedImages(uris: List<Uri>) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
@@ -83,15 +79,6 @@ class ImageGalleryViewModel @Inject constructor(
             )
         }
     }
-
-    fun showImagePreview(imagePath: String) {
-        _uiState.update { it.copy(selectedImageForPreview = imagePath) }
-    }
-
-    fun hideImagePreview() {
-        _uiState.update { it.copy(selectedImageForPreview = null) }
-    }
-
     fun clearError() {
         _uiState.update { it.copy(errorMessage = null) }
     }

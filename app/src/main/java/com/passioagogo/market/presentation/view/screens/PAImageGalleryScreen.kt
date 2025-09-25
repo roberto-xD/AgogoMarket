@@ -28,6 +28,10 @@ import com.passioagogo.market.presentation.view.components.PAImageItem
 import com.passioagogo.market.presentation.view.components.items.ImagePreviewDialog
 import com.passioagogo.market.presentation.viewModel.imagenes.ImageGalleryViewModel
 
+//todo
+// modificar para que sea una galeria de las imagenes de los productos
+// al dar click mostrar el nombre, descripcion y el precio del producto
+// también habilitar el compartir para enviar a whatsapp
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ImageGalleryScreen(
@@ -79,7 +83,7 @@ fun ImageGalleryScreen(
                                 val imagePath = uiState.images[index]
                                 PAImageItem(
                                     imagePath = imagePath,
-                                    onImageClick = { viewModel.showImagePreview(imagePath) },
+                                    onImageClick = {  },
                                     onDeleteClick = { viewModel.deleteImage(imagePath) },
                                 )
                             }
@@ -102,10 +106,9 @@ fun ImageGalleryScreen(
     uiState.selectedImageForPreview?.let { imagePath ->
         ImagePreviewDialog(
             imagePath = imagePath,
-            onDismiss = { viewModel.hideImagePreview() },
+            onDismiss = {  },
             onDelete = {
                 viewModel.deleteImage(imagePath)
-                viewModel.hideImagePreview()
             }
         )
     }

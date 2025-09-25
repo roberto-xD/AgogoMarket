@@ -29,6 +29,7 @@ import com.passioagogo.market.presentation.view.components.PATextInput
 fun PAEditInfoProduct(
     modifier: Modifier = Modifier,
     editedProduct: MutableState<PAProductBean>,
+    onSaveClick: () -> Unit,
     onImageClick: () -> Unit,
     onScanClick: () -> Unit,
 ){
@@ -39,7 +40,6 @@ fun PAEditInfoProduct(
     val description = remember { mutableStateOf("")}
     val buyPrice = remember { mutableStateOf("")}
     val sellPrice = remember { mutableStateOf("")}
-    val imagePath = remember { mutableStateOf("") }
 
     Column(
         modifier = modifier
@@ -77,7 +77,7 @@ fun PAEditInfoProduct(
                 ){
                     ImageView(
                         modifier = modifier,
-                        imagePath = imagePath.value,
+                        imagePath = editedProduct.value.image,
                         onImageClick = onImageClick
                     )
                 }
@@ -130,9 +130,7 @@ fun PAEditInfoProduct(
         }
         PABasicButton(
             label1 = "Guardar",
-            onClick1 = {
-
-            }
+            onClick1 = onSaveClick
         )
     }
 }
@@ -147,6 +145,7 @@ private fun Preview(
     }
     PAEditInfoProduct(
         editedProduct = editedProduct,
+        onSaveClick = {},
         onScanClick = {},
         onImageClick = {}
     )

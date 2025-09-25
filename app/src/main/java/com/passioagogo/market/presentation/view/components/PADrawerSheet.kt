@@ -3,8 +3,8 @@ package com.passioagogo.market.presentation.view.components
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.DrawerValue
@@ -29,18 +29,24 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun DrawerSheet(
+    isOpend: Boolean = false,
     addItem: () -> Unit,
     search: () -> Unit,
     navigate: (route: String) -> Unit,
     content: @Composable (PaddingValues) -> Unit
 ) {
-    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val drawerState = rememberDrawerState(
+        initialValue = if(isOpend) DrawerValue.Open else DrawerValue.Closed
+    )
     val scope = rememberCoroutineScope()
 
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
-            ModalDrawerSheet {
+            ModalDrawerSheet(
+                modifier = Modifier
+                    .fillMaxWidth(0.5f)
+            ) {
                 Column(
                     modifier = Modifier
                         .padding(6.dp)
@@ -51,7 +57,7 @@ fun DrawerSheet(
                             id = R.drawable.branding_passion_27
                         ),
                         modifier = Modifier
-                            .size(200.dp)
+                            .fillMaxWidth(0.8F)
                             .padding(top = 16.dp)
                             .align(Alignment.CenterHorizontally),
                         contentDescription = null
@@ -68,6 +74,33 @@ fun DrawerSheet(
                         },
                         onClick = { navigate.invoke(Routes.Dashboard.Name) }
                     )
+
+                    HorizontalDivider()
+                    NavigationDrawerItem(
+                        label = { Text(text = "Nuevo Producto") },
+                        selected = false,
+                        icon = {
+                            Icon(
+                                painter = painterResource(id = R.drawable.edit_24),
+                                contentDescription = null
+                            )
+                        },
+                        onClick = { navigate.invoke(Routes.Dashboard.Name) }
+                    )
+
+                    HorizontalDivider()
+                    NavigationDrawerItem(
+                        label = { Text(text = "Importar") },
+                        selected = false,
+                        icon = {
+                            Icon(
+                                painter = painterResource(id = R.drawable.document_24),
+                                contentDescription = null
+                            )
+                        },
+                        onClick = { navigate.invoke(Routes.Dashboard.Name) }
+                    )
+
                     HorizontalDivider()
                     NavigationDrawerItem(
                         label = { Text(text = "Iniciar sesión") },
@@ -111,6 +144,7 @@ fun DrawerSheet(
 @Preview
 private fun Preview() {
     DrawerSheet(
+        isOpend = true,
         addItem = {},
         navigate = {},
         content = {},
