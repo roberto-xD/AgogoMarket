@@ -36,7 +36,7 @@ class PAMain : ComponentActivity() {
         if(uris.isEmpty()){
             return Routes.Dashboard.Name
         }else {
-            imageGalleryViewModel.handleSharedImages(uris)
+
             return Routes.ImageGallery.Name
         }
     }

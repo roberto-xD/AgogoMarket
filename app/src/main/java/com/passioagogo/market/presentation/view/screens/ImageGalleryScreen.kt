@@ -24,7 +24,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.passioagogo.market.presentation.view.components.items.ImageItem
+import com.passioagogo.market.presentation.view.components.PAImageItem
 import com.passioagogo.market.presentation.view.components.items.ImagePreviewDialog
 import com.passioagogo.market.presentation.viewModel.imagenes.ImageGalleryViewModel
 
@@ -35,7 +35,6 @@ fun ImageGalleryScreen(
     onBackClick: () -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val uriReceived by viewModel.sharedImages.collectAsState()
 
     Scaffold(
         topBar = {
@@ -78,10 +77,10 @@ fun ImageGalleryScreen(
                             count = uiState.images.size,
                             itemContent = { index ->
                                 val imagePath = uiState.images[index]
-                                ImageItem(
+                                PAImageItem(
                                     imagePath = imagePath,
                                     onImageClick = { viewModel.showImagePreview(imagePath) },
-                                    onDeleteClick = { viewModel.deleteImage(imagePath) }
+                                    onDeleteClick = { viewModel.deleteImage(imagePath) },
                                 )
                             }
                         )

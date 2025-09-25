@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
+import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -43,9 +44,10 @@ class ImageFileManager (private val context: Context) {
 
             processedBitmap.recycle()
             if (processedBitmap != bitmap) bitmap.recycle()
-
+            Log.i("tag","${file.absolutePath}")
             Result.success(file.absolutePath)
         } catch (e: Exception) {
+            Log.i("tag","error al guardar imagen")
             Result.failure(e)
         }
     }

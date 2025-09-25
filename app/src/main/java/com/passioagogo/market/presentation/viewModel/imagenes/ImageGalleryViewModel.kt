@@ -31,15 +31,11 @@ class ImageGalleryViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(ImageGalleryUiState())
     val uiState: StateFlow<ImageGalleryUiState> = _uiState.asStateFlow()
 
-    private val _sharedImages = MutableStateFlow<List<Uri>>(emptyList())
-    val sharedImages: StateFlow<List<Uri>> = _sharedImages.asStateFlow()
+    private val _actualFilePaths = MutableStateFlow<List<String>>(emptyList())
+    val actualFilePaths: StateFlow<List<String>> = _actualFilePaths.asStateFlow()
 
     init {
         loadImages()
-    }
-
-    fun handleSharedImages(uris: List<Uri>) {
-        _sharedImages.value = uris
     }
 
     fun saveSharedImages(uris: List<Uri>) {
@@ -51,18 +47,15 @@ class ImageGalleryViewModel @Inject constructor(
             }
 
             val failures = results.filter { it.isFailure }
-            if (failures.isNotEmpty()) {
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        errorMessage = "Error al guardar ${failures.size} imagen(es)"
-                    )
-                }
-            } else {
-                _uiState.update { it.copy(isLoading = false) }
-            }
+            _actualFilePaths.value = results.filter { it.isSuccess }.map { result -> result.fold(onSuccess = { it }, onFailure = { "" }) }
 
-            loadImages()
+            _uiState.update {
+                it.copy(
+                    images = actualFilePaths.value,
+                    isLoading = false,
+                    errorMessage = "Error al guardar ${failures.size} imagen(es)"
+                )
+            }
         }
     }
 
@@ -70,7 +63,14 @@ class ImageGalleryViewModel @Inject constructor(
         viewModelScope.launch {
             deleteImageUseCase.execute(imagePath).fold(
                 onSuccess = {
-                    loadImages()
+                    _actualFilePaths.value = _actualFilePaths.value.filter { it != imagePath }
+                    _uiState.update {
+                        it.copy(
+                            images = actualFilePaths.value,
+                            isLoading = false,
+                            errorMessage = "Error al borrar imagen"
+                        )
+                    }
                 },
                 onFailure = { exception ->
                     _uiState.update {

@@ -6,7 +6,7 @@ import javax.inject.Inject
 
 class SaveSharedImageUseCase @Inject constructor(
     private val imageFileManager: ImageFileManager,
-//    private val imageRepository: ImageRepository // Asumiendo que ya existe
+//    private val imageRepository: ImageRepository
 ) {
     suspend fun execute(uri: Uri, productoId: Long? = null): Result<String> {
         return imageFileManager.saveImageFromUri(uri).fold(

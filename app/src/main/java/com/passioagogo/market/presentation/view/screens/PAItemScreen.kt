@@ -1,10 +1,15 @@
 package com.passioagogo.market.presentation.view.screens
 
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -17,22 +22,25 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.passioagogo.market.R
 import com.passioagogo.market.domain.bean.PAProductBean
-import com.passioagogo.market.domain.bean.Producto
 import com.passioagogo.market.presentation.view.components.PABottomSheetContainer
+import com.passioagogo.market.presentation.view.components.PAImageItem
 import com.passioagogo.market.presentation.view.templates.PAEditInfoProduct
-import com.passioagogo.market.presentation.view.templates.ProductDetails
+import com.passioagogo.market.presentation.viewModel.imagenes.ImageGalleryViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ItemScreen(
+    imageViewModel: ImageGalleryViewModel = hiltViewModel(),
     onBackClick: () -> Unit,
 ){
     val editedProduct = remember {
@@ -40,6 +48,26 @@ fun ItemScreen(
     }
     val context = LocalContext.current
     val showBottomSheet = remember { mutableStateOf(false) }
+
+    val imagePaths = imageViewModel.uiState.collectAsState().value.images
+
+    val filePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenMultipleDocuments()
+    ) { uris ->
+        if (uris.isNotEmpty()) {
+            imageViewModel.saveSharedImages(uris)
+            showBottomSheet.value = true
+        }
+    }
+
+    fun openPicker(){
+        try {
+            filePickerLauncher.launch(arrayOf("image/jpeg", "image/png", "image/webp"))
+        } catch (e2: Exception){
+
+        }
+    }
+
 
     Scaffold(
         modifier = Modifier
@@ -70,10 +98,11 @@ fun ItemScreen(
             PAEditInfoProduct(
                 editedProduct = editedProduct,
                 onImageClick = {
-                    showBottomSheet.value = true
-                    Toast
-                        .makeText(context, "abrir imagen", Toast.LENGTH_SHORT)
-                        .show()
+                    if(imagePaths.isEmpty()){
+                        openPicker()
+                    } else {
+                        showBottomSheet.value = true
+                    }
                 },
                 onScanClick = {
                     Toast
@@ -85,12 +114,34 @@ fun ItemScreen(
         PABottomSheetContainer(
             showBottomSheet = showBottomSheet
         ) {
-            ProductDetails(
-                currentProduct = Producto(),
-                changeView = {
-
+            LazyVerticalGrid(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(10.dp),
+                columns = GridCells.Fixed(3),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(
+                    count = imagePaths.size,
+                ){ item ->
+                    PAImageItem(
+                        imagePath = imagePaths[item],
+                        onDeleteClick = {
+                            imageViewModel.deleteImage(imagePaths[item])
+                        }
+                    )
                 }
-            )
+                item{
+                    PAImageItem(
+                        onImageClick = {
+                            openPicker()
+                        }
+                    )
+                }
+            }
         }
     }
+
+
 }
