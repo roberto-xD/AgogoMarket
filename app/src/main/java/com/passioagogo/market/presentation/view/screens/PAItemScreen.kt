@@ -22,6 +22,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -48,15 +49,15 @@ fun ItemScreen(
     }
     val context = LocalContext.current
     val showBottomSheet = remember { mutableStateOf(false) }
-
-    val imagePaths = imageViewModel.uiState.collectAsState().value.images
+    val uiState = imageViewModel.uiState.collectAsState()
+    val imagePaths = uiState.value.images
 
     val filePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenMultipleDocuments()
     ) { uris ->
         if (uris.isNotEmpty()) {
             imageViewModel.saveSharedImages(uris)
-            showBottomSheet.value = true
+
         }
     }
 
@@ -68,6 +69,11 @@ fun ItemScreen(
         }
     }
 
+    LaunchedEffect(imagePaths) {
+        if(imagePaths.isNotEmpty()){
+            showBottomSheet.value = true
+        }
+    }
 
     Scaffold(
         modifier = Modifier

@@ -5,7 +5,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.passioagogo.market.presentation.view.screens.DashboardScreen
-import com.passioagogo.market.presentation.view.screens.ImageGalleryScreen
 import com.passioagogo.market.presentation.view.screens.ImportacionScreen
 import com.passioagogo.market.presentation.view.screens.ItemScreen
 import com.passioagogo.market.presentation.view.screens.SearchScreen
@@ -15,7 +14,7 @@ import com.passioagogo.market.presentation.viewModel.imagenes.ImageGalleryViewMo
 @Composable
 fun PANavigation(
     startDestination: String,
-    imageGalleryViewModel: ImageGalleryViewModel?= null,
+    imageGalleryViewModel: ImageGalleryViewModel,
 ){
     val navController = rememberNavController()
     NavHost(
@@ -33,6 +32,7 @@ fun PANavigation(
             route = Routes.ItemDetail.Name
         ){
             ItemScreen(
+                imageViewModel = imageGalleryViewModel,
                 onBackClick = {
 
                 }
@@ -56,16 +56,6 @@ fun PANavigation(
             ImportacionScreen(
                 onNavigateBack = {
 
-                }
-            )
-        }
-        composable (
-            route = Routes.ImageGallery.Name
-        ){
-            ImageGalleryScreen(
-                viewModel = imageGalleryViewModel!!,
-                onBackClick = {
-                    navController.popBackStack()
                 }
             )
         }

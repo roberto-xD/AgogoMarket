@@ -1,6 +1,7 @@
 package com.passioagogo.market.presentation.viewModel.imagenes
 
 import android.net.Uri
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.passioagogo.market.domain.usecase.imagenes.DeleteImageUseCase
@@ -47,8 +48,10 @@ class ImageGalleryViewModel @Inject constructor(
             }
 
             val failures = results.filter { it.isFailure }
-            _actualFilePaths.value = results.filter { it.isSuccess }.map { result -> result.fold(onSuccess = { it }, onFailure = { "" }) }
+            val success = results.filter { it.isSuccess }.map { result -> result.fold(onSuccess = { it }, onFailure = { "" }) }
 
+            _actualFilePaths.value = _actualFilePaths.value + success
+            Log.i("tag","actual paths: ${actualFilePaths.value}")
             _uiState.update {
                 it.copy(
                     images = actualFilePaths.value,

@@ -1,5 +1,6 @@
 package com.passioagogo.market.presentation.view.templates
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -50,7 +51,7 @@ fun PAEditInfoProduct(
             Row {
                 Column(
                     modifier = modifier
-                        .padding(top = 10.dp)
+                        .padding(top = 20.dp)
                         .weight(2f),
                 ) {
                     PATextInput(
@@ -68,10 +69,10 @@ fun PAEditInfoProduct(
                         onTrailingIconClick = onScanClick
                     )
                 }
-                Column(
+                Box(
                         modifier = modifier
                             .align(Alignment.CenterVertically)
-                            .padding(start = 10.dp, top = 15.dp, bottom = 5.dp)
+                            .padding(start = 10.dp, top = 5.dp)
                             .weight(1f),
                 ){
                     ImageView(
