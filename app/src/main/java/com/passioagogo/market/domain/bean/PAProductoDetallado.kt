@@ -1,7 +1,7 @@
 package com.passioagogo.market.domain.bean
 
 data class ProductoDetallado(
-    val producto: Producto,
+    val producto: Producto = Producto(),
     val familia: Long ?= 0L,
     val categorias: List<Long> = emptyList(),
     val subcategorias: List<Long> = emptyList(),

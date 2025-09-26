@@ -85,7 +85,7 @@ fun DrawerSheet(
                                 contentDescription = null
                             )
                         },
-                        onClick = { navigate.invoke(Routes.Dashboard.Name) }
+                        onClick = { navigate.invoke(Routes.ItemDetail.Name) }
                     )
 
                     HorizontalDivider()
@@ -94,14 +94,27 @@ fun DrawerSheet(
                         selected = false,
                         icon = {
                             Icon(
+                                painter = painterResource(id = R.drawable.folder_upload_24),
+                                contentDescription = null
+                            )
+                        },
+                        onClick = { navigate.invoke(Routes.Import.Name) }
+                    )
+
+                    HorizontalDivider()
+                    NavigationDrawerItem(
+                        label = { Text(text = "Galeria") },
+                        selected = false,
+                        icon = {
+                            Icon(
                                 painter = painterResource(id = R.drawable.document_24),
                                 contentDescription = null
                             )
                         },
-                        onClick = { navigate.invoke(Routes.Dashboard.Name) }
+                        onClick = { navigate.invoke(Routes.Import.Name) }
                     )
 
-                    HorizontalDivider()
+                    /*HorizontalDivider()
                     NavigationDrawerItem(
                         label = { Text(text = "Iniciar sesión") },
                         selected = false,
@@ -112,7 +125,7 @@ fun DrawerSheet(
                             )
                         },
                         onClick = { navigate.invoke(Routes.Login.Name) }
-                    )
+                    )*/
                 }
             }
         }

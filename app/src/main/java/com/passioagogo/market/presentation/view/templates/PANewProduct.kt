@@ -19,20 +19,22 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.passioagogo.market.R
-import com.passioagogo.market.domain.bean.PAProductBean
+import com.passioagogo.market.domain.bean.ProductoDetallado
 import com.passioagogo.market.presentation.view.components.ImageView
 import com.passioagogo.market.presentation.view.components.PABasicButton
 import com.passioagogo.market.presentation.view.components.PAContainer
 import com.passioagogo.market.presentation.view.components.PATextInput
+import com.passioagogo.market.presentation.view.models.PAEditInfoModel
 
 @Composable
 fun PAEditInfoProduct(
     modifier: Modifier = Modifier,
-    editedProduct: MutableState<PAProductBean>,
-    onSaveClick: () -> Unit,
+    rutaImagen: MutableState<List<String>?> = remember { mutableStateOf(null) },
+    onSaveClick: (current: PAEditInfoModel) -> Unit,
     onImageClick: () -> Unit,
     onScanClick: () -> Unit,
 ){
+
     val tittle = remember { mutableStateOf("")}
     val sku = remember { mutableStateOf("")}
     val units = remember { mutableStateOf("")}
@@ -77,7 +79,7 @@ fun PAEditInfoProduct(
                 ){
                     ImageView(
                         modifier = modifier,
-                        imagePath = editedProduct.value.image,
+                        imagePath = rutaImagen.value?.firstOrNull(),
                         onImageClick = onImageClick
                     )
                 }
@@ -130,7 +132,15 @@ fun PAEditInfoProduct(
         }
         PABasicButton(
             label1 = "Guardar",
-            onClick1 = onSaveClick
+            onClick1 = {
+                onSaveClick(
+                    PAEditInfoModel(
+        //                    nombre = tittle.value,
+        //                    descripcion = description.value,
+        //                    skuInterno = sku.value,
+                    )
+                )
+            }
         )
     }
 }
@@ -141,10 +151,9 @@ private fun Preview(
 
 ){
     val editedProduct = remember {
-        mutableStateOf(PAProductBean())
+        mutableStateOf(ProductoDetallado())
     }
     PAEditInfoProduct(
-        editedProduct = editedProduct,
         onSaveClick = {},
         onScanClick = {},
         onImageClick = {}

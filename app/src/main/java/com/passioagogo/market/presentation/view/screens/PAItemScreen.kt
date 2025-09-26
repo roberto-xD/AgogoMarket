@@ -32,26 +32,28 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.passioagogo.market.R
-import com.passioagogo.market.domain.bean.PAProductBean
-import com.passioagogo.market.domain.bean.update
 import com.passioagogo.market.presentation.view.components.PABottomSheetContainer
 import com.passioagogo.market.presentation.view.components.PAImageItem
 import com.passioagogo.market.presentation.view.templates.PAEditInfoProduct
 import com.passioagogo.market.presentation.viewModel.imagenes.ImageGalleryViewModel
+import com.passioagogo.market.presentation.viewModel.products.DetalleProductoViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ItemScreen(
     imageViewModel: ImageGalleryViewModel = hiltViewModel(),
+    detalleViewModel: DetalleProductoViewModel = hiltViewModel(),
     onBackClick: () -> Unit,
 ){
-    val editedProduct = remember {
-        mutableStateOf(PAProductBean())
-    }
+    val uiProductState = detalleViewModel.uiState.collectAsState()
+    val producto = uiProductState.value.productoDetallado?.producto
+
     val context = LocalContext.current
     val showBottomSheet = remember { mutableStateOf(false) }
-    val uiState = imageViewModel.uiState.collectAsState()
-    val imagePaths = uiState.value.images
+
+    val uiImageState = imageViewModel.uiState.collectAsState()
+    val imagePaths = uiImageState.value.images
+    val imagenPrincipal = remember { mutableStateOf<String?>(null)}
 
     val filePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenMultipleDocuments()
@@ -72,18 +74,10 @@ fun ItemScreen(
 
     LaunchedEffect(imagePaths) {
         if(imagePaths.isNotEmpty()){
-            editedProduct.apply {
-                value = value.update(
-                    image = imagePaths[0]
-                )
-            }
+            imagenPrincipal.value = imagePaths[0]
             showBottomSheet.value = true
         }else{
-            editedProduct.apply {
-                value = value.update(
-                    image = null
-                )
-            }
+            imagenPrincipal.value = null
         }
     }
 
@@ -114,7 +108,7 @@ fun ItemScreen(
                 .fillMaxSize()
         ) {
             PAEditInfoProduct(
-                editedProduct = editedProduct,
+                rutaImagen = imagenPrincipal,
                 onImageClick = {
                     if(imagePaths.isEmpty()){
                         openPicker()

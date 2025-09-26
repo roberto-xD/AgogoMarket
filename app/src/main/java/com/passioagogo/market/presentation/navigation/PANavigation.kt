@@ -68,9 +68,7 @@ fun PANavigation(
             route = Routes.Import.Name
         ) {
             ImportacionScreen(
-                onNavigateBack = {
-
-                }
+                onNavigateBack = ::onBack
             )
         }
     }
