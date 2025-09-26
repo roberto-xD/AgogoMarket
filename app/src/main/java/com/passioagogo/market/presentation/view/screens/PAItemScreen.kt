@@ -53,7 +53,7 @@ fun ItemScreen(
 
     val uiImageState = imageViewModel.uiState.collectAsState()
     val imagePaths = uiImageState.value.images
-    val imagenPrincipal = remember { mutableStateOf<String?>(null)}
+    val imagenPrincipal = remember { mutableStateOf<List<String>?>(null)}
 
     val filePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenMultipleDocuments()
@@ -74,7 +74,7 @@ fun ItemScreen(
 
     LaunchedEffect(imagePaths) {
         if(imagePaths.isNotEmpty()){
-            imagenPrincipal.value = imagePaths[0]
+            imagenPrincipal.value = imagePaths
             showBottomSheet.value = true
         }else{
             imagenPrincipal.value = null
