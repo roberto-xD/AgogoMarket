@@ -24,13 +24,13 @@ import com.passioagogo.market.presentation.view.components.ImageView
 import com.passioagogo.market.presentation.view.components.PABasicButton
 import com.passioagogo.market.presentation.view.components.PAContainer
 import com.passioagogo.market.presentation.view.components.PATextInput
-import com.passioagogo.market.presentation.view.models.PAEditInfoModel
+import com.passioagogo.market.presentation.view.models.PAInfoModel
 
 @Composable
-fun PAEditInfoProduct(
+fun PAInfoProduct(
     modifier: Modifier = Modifier,
     rutaImagen: MutableState<List<String>?> = remember { mutableStateOf(null) },
-    onSaveClick: (current: PAEditInfoModel) -> Unit,
+    onSaveClick: (current: PAInfoModel) -> Unit,
     onImageClick: () -> Unit,
     onScanClick: () -> Unit,
 ){
@@ -66,7 +66,7 @@ fun PAEditInfoProduct(
                         mutableInput = sku,
                         modifier = Modifier
                             .fillMaxWidth(),
-                        placeHolder = stringResource(id = R.string.label_sku),
+                        placeHolder = stringResource(id = R.string.label_codigo_de_barras),
                         trailingIcon = R.drawable.barcode_scann,
                         onTrailingIconClick = onScanClick
                     )
@@ -101,6 +101,8 @@ fun PAEditInfoProduct(
                 modifier = Modifier
                     .fillMaxWidth(),
                 placeHolder = stringResource(id = R.string.label_description),
+                maxLines = 5,
+                maxLength = 50,
             )
         }
         Spacer(modifier = Modifier.size(10.dp))
@@ -134,10 +136,10 @@ fun PAEditInfoProduct(
             label1 = "Guardar",
             onClick1 = {
                 onSaveClick(
-                    PAEditInfoModel(
-        //                    nombre = tittle.value,
-        //                    descripcion = description.value,
-        //                    skuInterno = sku.value,
+                    PAInfoModel(
+                            nombre = tittle.value,
+                            descripcion = description.value,
+                            codigoBarras = sku.value,
                     )
                 )
             }
@@ -153,7 +155,7 @@ private fun Preview(
     val editedProduct = remember {
         mutableStateOf(ProductoDetallado())
     }
-    PAEditInfoProduct(
+    PAInfoProduct(
         onSaveClick = {},
         onScanClick = {},
         onImageClick = {}

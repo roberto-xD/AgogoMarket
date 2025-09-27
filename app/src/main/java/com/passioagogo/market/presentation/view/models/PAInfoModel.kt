@@ -1,6 +1,8 @@
 package com.passioagogo.market.presentation.view.models
 
-data class PAEditInfoModel(
+import com.passioagogo.market.domain.bean.AtributoProducto
+
+data class PAInfoModel(
     val id: Long = 0,
     val nombre: String = "",
     val descripcion: String? = null,
@@ -12,8 +14,12 @@ data class PAEditInfoModel(
     val cantidadActual: Int = 0,
     val cantidadMinima: Int = 0,
     val cantidadMaximaComprada: Int = 0,
-    val proveedorPrincipalId: String? = null,
     val fechaUltimaVenta: Long? = null,
     val fechaUltimaCompra: Long? = null,
     val activo: Boolean = true,
+    val familia: String ?= null,
+    val categorias: List<String> = emptyList(),
+    val subcategorias: List<String> = emptyList(),
+    val proveedores: List<String> = emptyList(),
+    val atributos: List<AtributoProducto> = emptyList()
 )

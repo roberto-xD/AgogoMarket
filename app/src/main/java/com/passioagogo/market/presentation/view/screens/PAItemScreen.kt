@@ -34,7 +34,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.passioagogo.market.R
 import com.passioagogo.market.presentation.view.components.PABottomSheetContainer
 import com.passioagogo.market.presentation.view.components.PAImageItem
-import com.passioagogo.market.presentation.view.templates.PAEditInfoProduct
+import com.passioagogo.market.presentation.view.templates.PAInfoProduct
 import com.passioagogo.market.presentation.viewModel.imagenes.ImageGalleryViewModel
 import com.passioagogo.market.presentation.viewModel.products.DetalleProductoViewModel
 
@@ -107,7 +107,7 @@ fun ItemScreen(
                 .padding(5.dp)
                 .fillMaxSize()
         ) {
-            PAEditInfoProduct(
+            PAInfoProduct(
                 rutaImagen = imagenPrincipal,
                 onImageClick = {
                     if(imagePaths.isEmpty()){

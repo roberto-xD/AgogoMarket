@@ -170,7 +170,6 @@ fun CompactOutlinedTextField(
                             fontSize = 14.sp,
                             color = onSurfaceLight
                         ),
-                        singleLine = true,
                         cursorBrush = SolidColor(primaryLight),
                         decorationBox = { innerTextField ->
                             innerTextField()

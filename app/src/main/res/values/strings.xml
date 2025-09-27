@@ -16,4 +16,6 @@
     <string name="google_client_id">cuac</string>
     <string name="google_client_secret">cuac</string>
     <string name="label_item">Nuevo artículo</string>
+    <string name="label_codigo_de_barras">Código de barras</string>
+
 </resources>

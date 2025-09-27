@@ -20,6 +20,8 @@ internal fun PATextInput(
     @DrawableRes trailingIcon : Int ? = null,
     onTrailingIconClick: (() -> Unit) ?= null,
     keyboardType : KeyboardType = KeyboardType.Text,
+    maxLines: Int = 1,
+    maxLength: Int = 15,
 ){
     CompactOutlinedTextField(
         modifier = modifier
@@ -33,7 +35,8 @@ internal fun PATextInput(
         trailingIcon = trailingIcon,
         onTrailingIconClick = onTrailingIconClick,
         keyboardType = keyboardType,
-        maxLength = 15,
+        maxLength = maxLength,
+        maxLines = maxLines,
     )
 }
 
