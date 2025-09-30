@@ -19,10 +19,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -42,7 +40,7 @@ fun PAImageItem(
     onImageClick: (() -> Unit) ?= null,
     onDeleteClick: (() -> Unit) ?= null,
 ) {
-    var showDeleteDialog by remember { mutableStateOf(false) }
+    val showDeleteDialog = remember { mutableStateOf(false) }
 
     Card(
         modifier = modifier
@@ -83,7 +81,7 @@ fun PAImageItem(
             // Botón de eliminar
             onDeleteClick?.let {
                 IconButton(
-                    onClick = { showDeleteDialog = true },
+                    onClick = { showDeleteDialog.value = true },
                     modifier = Modifier
                         .align(Alignment.TopEnd)
                         .padding(4.dp)
@@ -104,16 +102,16 @@ fun PAImageItem(
         }
     }
 
-    if (showDeleteDialog) {
+    if (showDeleteDialog.value) {
         AlertDialog(
-            onDismissRequest = { showDeleteDialog = false },
+            onDismissRequest = { showDeleteDialog.value = false },
             title = { Text("Confirmar eliminación") },
             text = { Text("¿Estás seguro de que quieres eliminar esta imagen?") },
             confirmButton = {
                 TextButton(
                     onClick = {
                         onDeleteClick?.invoke()
-                        showDeleteDialog = false
+                        showDeleteDialog.value = false
                     }
                 ) {
                     Text("Eliminar")
@@ -121,7 +119,7 @@ fun PAImageItem(
             },
             dismissButton = {
                 TextButton(
-                    onClick = { showDeleteDialog = false }
+                    onClick = { showDeleteDialog.value = false }
                 ) {
                     Text("Cancelar")
                 }

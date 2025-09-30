@@ -1,5 +1,6 @@
 package com.passioagogo.market.presentation.view.templates
 
+import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -9,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -19,17 +19,20 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.passioagogo.market.R
-import com.passioagogo.market.domain.bean.ProductoDetallado
 import com.passioagogo.market.presentation.view.components.ImageView
 import com.passioagogo.market.presentation.view.components.PABasicButton
 import com.passioagogo.market.presentation.view.components.PAContainer
+import com.passioagogo.market.presentation.view.components.PACustomAlertDialog
+import com.passioagogo.market.presentation.view.components.PADropDown
 import com.passioagogo.market.presentation.view.components.PATextInput
 import com.passioagogo.market.presentation.view.models.PAInfoModel
 
 @Composable
 fun PAInfoProduct(
     modifier: Modifier = Modifier,
-    rutaImagen: MutableState<List<String>?> = remember { mutableStateOf(null) },
+    rutasImagenList: MutableList<String>? = remember { mutableListOf<String>() },
+    categoriasList: MutableList<String>? = remember { mutableListOf<String>() },
+    subcategoriasList: MutableList<String>? = remember { mutableListOf<String>() },
     onSaveClick: (current: PAInfoModel) -> Unit,
     onImageClick: () -> Unit,
     onScanClick: () -> Unit,
@@ -37,11 +40,19 @@ fun PAInfoProduct(
 
     val tittle = remember { mutableStateOf("")}
     val sku = remember { mutableStateOf("")}
-    val units = remember { mutableStateOf("")}
+    val codigoBarras = remember { mutableStateOf("")}
+    val actualStock = remember { mutableStateOf("")}
     val minStock = remember { mutableStateOf("")}
     val description = remember { mutableStateOf("")}
     val buyPrice = remember { mutableStateOf("")}
     val sellPrice = remember { mutableStateOf("")}
+    val family = remember { mutableStateOf("")}
+    val category = remember { mutableStateOf("")}
+    val subcategory = remember { mutableStateOf("")}
+    val provider = remember { mutableStateOf("")}
+
+    val showNewCategoryDialog = remember { mutableStateOf(false) }
+    val showNewSubcategoryDialog = remember { mutableStateOf(false) }
 
     Column(
         modifier = modifier
@@ -66,6 +77,12 @@ fun PAInfoProduct(
                         mutableInput = sku,
                         modifier = Modifier
                             .fillMaxWidth(),
+                        placeHolder = stringResource(id = R.string.label_sku),
+                    )
+                    PATextInput(
+                        mutableInput = codigoBarras,
+                        modifier = Modifier
+                            .fillMaxWidth(),
                         placeHolder = stringResource(id = R.string.label_codigo_de_barras),
                         trailingIcon = R.drawable.barcode_scann,
                         onTrailingIconClick = onScanClick
@@ -79,7 +96,7 @@ fun PAInfoProduct(
                 ){
                     ImageView(
                         modifier = modifier,
-                        imagePath = rutaImagen.value?.firstOrNull(),
+                        imagePath = rutasImagenList?.firstOrNull(),
                         onImageClick = onImageClick
                     )
                 }
@@ -95,6 +112,7 @@ fun PAInfoProduct(
                 modifier = Modifier
                     .fillMaxWidth(),
                 placeHolder = stringResource(id = R.string.label_sell_price),
+                keyboardType = KeyboardType.Number
             )
             PATextInput(
                 mutableInput = description,
@@ -111,17 +129,10 @@ fun PAInfoProduct(
             containerTittle = "Seguimiento del artículo"
         ) {
             PATextInput(
-                mutableInput = units,
+                mutableInput = actualStock,
                 modifier = Modifier
                     .fillMaxWidth(),
-                placeHolder = stringResource(id = R.string.label_initial_stock),
-                keyboardType = KeyboardType.Number
-            )
-            PATextInput(
-                mutableInput = buyPrice,
-                modifier = Modifier
-                    .fillMaxWidth(),
-                placeHolder = stringResource(id = R.string.label_buy_price),
+                placeHolder = stringResource(id = R.string.label_actual_stock),
                 keyboardType = KeyboardType.Number
             )
             PATextInput(
@@ -131,6 +142,57 @@ fun PAInfoProduct(
                 placeHolder = stringResource(id = R.string.label_reposition_quantity),
                 keyboardType = KeyboardType.Number
             )
+            PATextInput(
+                mutableInput = buyPrice,
+                modifier = Modifier
+                    .fillMaxWidth(),
+                placeHolder = stringResource(id = R.string.label_buy_price),
+                keyboardType = KeyboardType.Number
+            )
+        }
+        Spacer(modifier = Modifier.size(10.dp))
+        PAContainer(
+            modifier = modifier,
+            containerTittle = "Atributos"
+        ){
+            PATextInput(
+                mutableInput = family,
+                modifier = Modifier
+                    .fillMaxWidth(),
+                placeHolder = stringResource(id = R.string.label_family),
+            )
+            PADropDown(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                placeHolder = stringResource(id = R.string.label_categories),
+                items = categoriasList,
+                item = category,
+                onAddNewClick = {
+                    showNewCategoryDialog.value = true
+                    Log.i("tag","onAddNewClick")
+                }
+            ){
+                Log.i("tag","dropdown: $it")
+            }
+            PADropDown(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                placeHolder = stringResource(id = R.string.label_subcategories),
+                items = subcategoriasList,
+                item = subcategory,
+                onAddNewClick = {
+                    showNewSubcategoryDialog.value = true
+                    Log.i("tag","onAddNewClick")
+                }
+            ){
+                Log.i("tag","dropdown: $it")
+            }
+            PATextInput(
+                mutableInput = provider,
+                modifier = Modifier
+                    .fillMaxWidth(),
+                placeHolder = stringResource(id = R.string.label_provider),
+            )
         }
         PABasicButton(
             label1 = "Guardar",
@@ -139,11 +201,34 @@ fun PAInfoProduct(
                     PAInfoModel(
                             nombre = tittle.value,
                             descripcion = description.value,
-                            codigoBarras = sku.value,
+                            imagenes = rutasImagenList ?: emptyList(),
+                            codigoBarras = codigoBarras.value,
+                            skuInterno = sku.value,
+                            precioCompra = buyPrice.value.toDouble(),
+                            precioVenta = sellPrice.value.toDouble(),
+                            cantidadActual = actualStock.value.toInt(),
+                            cantidadMinima = minStock.value.toInt(),
+                            familia = family.value,
+                            categoria = category.value,
                     )
                 )
             }
         )
+    }
+
+    PACustomAlertDialog(
+        tittle = "Añadir nueva categoría",
+        showDialog = showNewCategoryDialog
+    ){
+        categoriasList?.add(it)
+        category.value = it
+    }
+    PACustomAlertDialog(
+        tittle = "Añadir nueva subcategoría",
+        showDialog = showNewSubcategoryDialog
+    ){
+        subcategoriasList?.add(it)
+        subcategory.value = it
     }
 }
 
@@ -152,11 +237,10 @@ fun PAInfoProduct(
 private fun Preview(
 
 ){
-    val editedProduct = remember {
-        mutableStateOf(ProductoDetallado())
-    }
     PAInfoProduct(
-        onSaveClick = {},
+        onSaveClick = {
+
+        },
         onScanClick = {},
         onImageClick = {}
     )

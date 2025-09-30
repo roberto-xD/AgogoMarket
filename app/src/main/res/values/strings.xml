@@ -10,12 +10,17 @@
     <string name="label_category">Categoría del producto</string>
     <string name="label_description">Descripción del producto</string>
     <string name="label_code">Codigo del producto</string>
-    <string name="label_initial_stock">Existencias de apertura</string>
+    <string name="label_minimal_stock">Cantidad mínima</string>
+    <string name="label_actual_stock">Existencias actuales</string>
     <string name="label_initial_price">Tarifa por unidad de productos iniciales</string>
     <string name="label_reposition_quantity">Nivel de reposición</string>
     <string name="google_client_id">cuac</string>
     <string name="google_client_secret">cuac</string>
     <string name="label_item">Nuevo artículo</string>
     <string name="label_codigo_de_barras">Código de barras</string>
+    <string name="label_family">Familia</string>
+    <string name="label_categories">Categoria</string>
+    <string name="label_subcategories">Subcategoria</string>
+    <string name="label_provider">Proveedor</string>
 
 </resources>

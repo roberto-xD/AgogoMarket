@@ -18,8 +18,8 @@ data class PAInfoModel(
     val fechaUltimaCompra: Long? = null,
     val activo: Boolean = true,
     val familia: String ?= null,
-    val categorias: List<String> = emptyList(),
-    val subcategorias: List<String> = emptyList(),
-    val proveedores: List<String> = emptyList(),
+    val categoria: String? = null,
+    val subcategorias: String? = null,
+    val proveedor: String? = null,
     val atributos: List<AtributoProducto> = emptyList()
 )

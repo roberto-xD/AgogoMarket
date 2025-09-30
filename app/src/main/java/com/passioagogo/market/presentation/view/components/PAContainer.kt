@@ -31,11 +31,12 @@ import com.passioagogo.market.ui.theme.surfaceLight
 @Composable
 fun PAContainer(
     modifier: Modifier = Modifier,
+    isOpen: Boolean = true,
     containerTittle: String ?= null,
     content: @Composable () -> Unit,
 ){
     val checked = remember {
-        mutableStateOf(true)
+        mutableStateOf(isOpen)
     }
     Box(
         modifier = modifier

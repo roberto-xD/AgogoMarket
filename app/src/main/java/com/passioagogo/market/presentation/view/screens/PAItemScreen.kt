@@ -1,5 +1,6 @@
 package com.passioagogo.market.presentation.view.screens
 
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -24,6 +25,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -53,7 +55,7 @@ fun ItemScreen(
 
     val uiImageState = imageViewModel.uiState.collectAsState()
     val imagePaths = uiImageState.value.images
-    val imagenPrincipal = remember { mutableStateOf<List<String>?>(null)}
+    val imagenPrincipal = remember { mutableStateListOf<String>() }
 
     val filePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenMultipleDocuments()
@@ -74,10 +76,10 @@ fun ItemScreen(
 
     LaunchedEffect(imagePaths) {
         if(imagePaths.isNotEmpty()){
-            imagenPrincipal.value = imagePaths
+            imagenPrincipal.addAll(imagePaths)
             showBottomSheet.value = true
         }else{
-            imagenPrincipal.value = null
+            imagenPrincipal.removeAll(imagenPrincipal)
         }
     }
 
@@ -108,7 +110,7 @@ fun ItemScreen(
                 .fillMaxSize()
         ) {
             PAInfoProduct(
-                rutaImagen = imagenPrincipal,
+                rutasImagenList = imagenPrincipal,
                 onImageClick = {
                     if(imagePaths.isEmpty()){
                         openPicker()
@@ -117,7 +119,7 @@ fun ItemScreen(
                     }
                 },
                 onSaveClick = {
-
+                    Log.i("tag","onSaveClick: $it")
                 },
                 onScanClick = {
                     Toast

@@ -48,14 +48,14 @@ import com.passioagogo.market.ui.theme.abelRegular
 import com.passioagogo.market.ui.theme.onSurfaceLight
 import com.passioagogo.market.ui.theme.outlineLight
 import com.passioagogo.market.ui.theme.primaryLight
-import com.passioagogo.market.ui.theme.surfaceVariantLight
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun CompactOutlinedTextField(
     modifier: Modifier = Modifier,
     value: String,
-    onValueChange: (String) -> Unit,
+    enabled: Boolean = true,
+    onValueChange: ((String) -> Unit) ?= null,
     label: String ?= null,
     placeholder: String ?= null,
     @DrawableRes trailingIcon : Int ? = null,
@@ -72,7 +72,7 @@ fun CompactOutlinedTextField(
     val outlineColor by animateColorAsState(
         targetValue = when {
             isFocused -> primaryLight
-            value.isNotEmpty() -> surfaceVariantLight
+            value.isNotEmpty() -> outlineLight
             else -> outlineLight
         },
         animationSpec = tween(durationMillis = 200)
@@ -158,7 +158,7 @@ fun CompactOutlinedTextField(
                         value = value,
                         onValueChange = {
                             if (it.length <= maxLength){
-                                onValueChange(it)
+                                onValueChange?.invoke(it)
                             }
                         },
                         modifier = Modifier
@@ -174,6 +174,7 @@ fun CompactOutlinedTextField(
                         decorationBox = { innerTextField ->
                             innerTextField()
                         },
+                        enabled = enabled,
                         minLines = minLines,
                         maxLines = maxLines,
                         keyboardOptions = KeyboardOptions(keyboardType = keyboardType)

@@ -5,16 +5,13 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -23,33 +20,36 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
 import com.passioagogo.market.R
+import com.passioagogo.market.presentation.view.components.items.CompactOutlinedTextField
 
 @Composable
 internal fun PADropDown(
     modifier : Modifier = Modifier,
     placeHolder : String ?= null,
-    list: List<String>,
-    onValueChange: (String)->Unit,
+    item: MutableState<String> = remember { mutableStateOf("") },
+    items: MutableList<String> ?= null,
+    onAddNewClick: (()->Unit) ?= null,
+    onSelectValue: ((String) -> Unit) ?= null,
 ){
     val isExpanded = remember{
         mutableStateOf(false)
-    }
-    val items = remember {
-        mutableStateOf( list )
-    }
-    val item = remember {
-        mutableStateOf("")
     }
     val outlinedTextFieldSize = remember { mutableStateOf(Size.Zero) }
     Column(
         modifier = modifier
     ) {
-        Box {
+        Box(
+            modifier = Modifier
+                .clickable(
+                    enabled = true,
+                    onClick = {
+                        isExpanded.value = true
+                    }
+                )
+        ) {
             DropdownMenu(
                 modifier = Modifier
                     .width(with(LocalDensity.current) { outlinedTextFieldSize.value.width.toDp() }),
@@ -58,7 +58,7 @@ internal fun PADropDown(
                     isExpanded.value = false
                 }
             ) {
-                items.value.forEach {   label ->
+                items?.forEach {   label ->
                     DropdownMenuItem(
                         text = {
                             Text(
@@ -68,52 +68,41 @@ internal fun PADropDown(
                         onClick = {
                             isExpanded.value = false
                             item.value = label
+                            onSelectValue?.invoke(item.value)
+                        }
+                    )
+                }
+                onAddNewClick?.let {
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                text = "Añadir nuevo +"
+                            )
+                        },
+                        onClick = {
+                            isExpanded.value = false
+                            it.invoke()
                         }
                     )
                 }
             }
         }
 
-        OutlinedTextField(
+        CompactOutlinedTextField(
             modifier = Modifier
                 .fillMaxWidth()
                 .onGloballyPositioned { coordinates ->
                     outlinedTextFieldSize.value = coordinates.size.toSize()
                 }
                 .wrapContentHeight(align = Alignment.CenterVertically)
-                .clickable(enabled = true) {
-                    isExpanded.value = isExpanded.value.not()
-                }
             ,
-            shape = RoundedCornerShape(10.dp),
             value = item.value,
-            onValueChange = {
-                onValueChange.invoke(it)
-            },
-            label = {
-                placeHolder?.let {
-                    Text(
-                        text = it
-                    )
-                }
-            },
-            placeholder = {
-                placeHolder?.let {
-                    Text(
-                        text = it
-                    )
-                }
-            },
-//            colors = OutlinedTextFieldDefaults.colors(
-//                // disabledTextColor =
-//            ),
+            label = placeHolder,
+            placeholder = placeHolder,
             enabled = false,
-            trailingIcon = {
-                Icon(
-                    modifier = Modifier.size(30.dp),
-                    painter = painterResource(id = R.drawable.chevron_down),
-                    contentDescription = null
-                )
+            trailingIcon = R.drawable.chevron_down,
+            onTrailingIconClick = {
+                isExpanded.value = true
             }
         )
     }
@@ -125,7 +114,7 @@ private fun Preview(){
     val context = LocalContext.current
     PADropDown(
         placeHolder = "Unidad",
-        list = listOf("a","b","c","d")
+        items = mutableListOf("a","b","c","d")
     ){
         Toast
             .makeText(context, "dato: $it", Toast.LENGTH_SHORT)
