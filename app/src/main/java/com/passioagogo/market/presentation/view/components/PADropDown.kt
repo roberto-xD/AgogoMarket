@@ -23,7 +23,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.toSize
 import com.passioagogo.market.R
-import com.passioagogo.market.presentation.view.components.items.CompactOutlinedTextField
 
 @Composable
 internal fun PADropDown(
@@ -76,7 +75,7 @@ internal fun PADropDown(
                     DropdownMenuItem(
                         text = {
                             Text(
-                                text = "Añadir nuevo +"
+                                text = "+ Añadir nuevo"
                             )
                         },
                         onClick = {
@@ -88,7 +87,7 @@ internal fun PADropDown(
             }
         }
 
-        CompactOutlinedTextField(
+        PAOutlinedTextField(
             modifier = Modifier
                 .fillMaxWidth()
                 .onGloballyPositioned { coordinates ->

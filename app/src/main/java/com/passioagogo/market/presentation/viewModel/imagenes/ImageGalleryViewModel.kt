@@ -35,6 +35,7 @@ class ImageGalleryViewModel @Inject constructor(
     private val _actualFilePaths = MutableStateFlow<List<String>>(emptyList())
     val actualFilePaths: StateFlow<List<String>> = _actualFilePaths.asStateFlow()
 
+    val sheetState = MutableStateFlow(false)
     fun saveSharedImages(uris: List<Uri>) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }

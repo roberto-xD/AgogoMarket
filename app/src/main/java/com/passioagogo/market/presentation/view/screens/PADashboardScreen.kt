@@ -1,6 +1,7 @@
 package com.passioagogo.market.presentation.view.screens
 
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -10,46 +11,37 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.passioagogo.market.domain.PAConstants.TAG_PG
-import com.passioagogo.market.domain.bean.Producto
 import com.passioagogo.market.presentation.navigation.Routes
-import com.passioagogo.market.presentation.view.components.DetailBottomSheet
-import com.passioagogo.market.presentation.view.components.DrawerSheet
+import com.passioagogo.market.presentation.view.components.PADrawerSheet
 import com.passioagogo.market.presentation.view.components.ProductCard
 import com.passioagogo.market.presentation.view.components.SearchInput
 import com.passioagogo.market.presentation.view.components.Splash
+import com.passioagogo.market.presentation.viewModel.products.DetalleProductoViewModel
 import com.passioagogo.market.presentation.viewModel.products.ProductosViewModel
 import com.passioagogo.market.ui.decorators.shimmerEffect
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardScreen(
+    detalleViewModel: DetalleProductoViewModel,
     productViewModel: ProductosViewModel = hiltViewModel(),
+    navigateToProductScreen: () -> Unit,
     navigate: (route: String) -> Unit,
 ) {
+    val context = LocalContext.current
     val product = productViewModel.uiState.collectAsState()
-    val isEditor = remember { mutableStateOf(false) }
-    val currentProduct = remember {
-        mutableStateOf(Producto())
-    }
-    val scope = rememberCoroutineScope()
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val showBottomSheet = remember {
-        mutableStateOf(false)
-    }
+
     val columstate = rememberLazyGridState()
     val isAtBottom = columstate.canScrollForward.not()
 
@@ -68,7 +60,7 @@ fun DashboardScreen(
         productViewModel.buscarProductos("")
     }
 
-    DrawerSheet(
+    PADrawerSheet(
         addItem = {
             navigate(Routes.ItemDetail.Name)
         },
@@ -101,15 +93,15 @@ fun DashboardScreen(
                     ) {
                         product.value.productos.get(it).let { product ->
                             ProductCard(
-                                id = product.id.toString(),
+                                id = product.id,
                                 tittle = product.nombre,
-                                urlImage = "",
+                                imagePath = "",
                                 onStock = product.activo,
-                                finalPrice = product.precioVenta.toString(),
-                                originalPrice = product.precioCompra.toString()
-                            ) {
-                                currentProduct.value = product
-                                showBottomSheet.value = true
+                                sellPrice = product.precioVenta.toString(),
+                            ) { id ->
+                                detalleViewModel.cargarProducto(id)
+                                navigateToProductScreen()
+                                Toast.makeText(context, "id: $id", Toast.LENGTH_SHORT).show()
                             }
                         }
                     }
@@ -129,27 +121,19 @@ fun DashboardScreen(
             }
         }
 
-        if (showBottomSheet.value) {
-            ModalBottomSheet(
-                onDismissRequest = { showBottomSheet.value = false },
-                sheetState = sheetState
-            ) {
-                DetailBottomSheet(
-                    enableEdit = isEditor.value,
-                    currentProduct = currentProduct.value
-                ) { updateList ->
-                    if (updateList) {
-                        isEditor.value = false
-                        productViewModel.buscarProductos("")
-                    }
-                    scope.launch { sheetState.hide() }.invokeOnCompletion {
-                        if (!sheetState.isVisible) {
-                            showBottomSheet.value = false
-                        }
-                    }
-                }
-            }
-        }
+//        PABottomSheetContainer(
+//            showBottomSheet = showBottomSheet
+//        ){
+//            DetailBottomSheet(
+//                enableEdit = isEditor.value,
+//                currentProduct = currentProduct.value
+//            ) { updateList ->
+//                if (updateList) {
+//                    isEditor.value = false
+//                    productViewModel.buscarProductos("")
+//                }
+//            }
+//        }
     }
 
 }

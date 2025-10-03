@@ -2,49 +2,50 @@ package com.passioagogo.market.presentation.view.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import coil.compose.rememberAsyncImagePainter
 import com.passioagogo.market.R
 import com.passioagogo.market.ui.theme.backgroundLight
 
 @Composable
 fun ProductCard(
-    id: String,
+    id: Long,
     tittle: String,
-    urlImage: String,
-    finalPrice: String,
-    originalPrice: String? = null,
+    imagePath: String,
+    sellPrice: String,
     onStock: Boolean = true,
-    discount: String? = null,
-    onDetailClick: (id: String) -> Unit,
+    onDetailClick: (id: Long) -> Unit,
 ) {
     Column(
         modifier = Modifier
-            .padding(3.dp)
+            .padding(10.dp)
             .background(
                 color = backgroundLight,
+                shape = RoundedCornerShape(15.dp)
+            )
+            .border(
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.primary,
                 shape = RoundedCornerShape(15.dp)
             )
     ) {
         if (onStock) {
             Column(
                 modifier = Modifier
+                    .padding(3.dp)
                     .background(
                         color = backgroundLight,
                         shape = RoundedCornerShape(15.dp)
@@ -65,39 +66,16 @@ fun ProductCard(
                         modifier = Modifier.size(15.dp)
                     )
                 }
-                discount?.let {
-                    if (it.isNotEmpty()) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(10.dp),
-                            contentAlignment = Alignment.CenterEnd
-                        ) {
-                            Text(
-                                text = "Descuento ${it}%",
-                                modifier = Modifier.padding(end = 5.dp),
-                            )
-                        }
-                    }
-                }
             }
         }
 
-        Image(
-            painter = rememberAsyncImagePainter(model = "https://www.distribuidoradesexshop.com" + urlImage),
-            contentDescription = null,
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(
-                    color = backgroundLight,
-                    RoundedCornerShape(15.dp)
-                )
-                .padding(5.dp)
-                .height(200.dp)
+        PAImageItem(
+            imagePath = imagePath,
         )
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .padding(10.dp)
                 .background(
                     color = backgroundLight,
                     shape = RoundedCornerShape(15.dp)
@@ -108,35 +86,21 @@ fun ProductCard(
                 modifier = Modifier
                     .padding(5.dp)
                     .fillMaxWidth(),
-                maxLines = 3,
-                minLines = 3
+                fontFamily = MaterialTheme.typography.titleMedium.fontFamily,
+                fontSize = MaterialTheme.typography.titleSmall.fontSize,
+                textAlign = TextAlign.Center,
+                maxLines = 2,
+                minLines = 2
             )
-            Row(
-                modifier = Modifier
-                    .padding(5.dp)
-                    .fillMaxWidth()
-            ) {
-                originalPrice?.let {
-                    if (it.isNotEmpty() && it.equals(finalPrice).not()) {
-                        Text(
-                            text = it,
-                            textDecoration = TextDecoration.LineThrough,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier
-                                .padding(end = 5.dp)
-                                .weight(1f),
-                        )
-                    }
-                }
-                if (finalPrice.isNotEmpty()) {
-                    Text(
-                        text = finalPrice,
-                        color = backgroundLight,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier
-                            .weight(1f)
-                    )
-                }
+            if (sellPrice.isNotEmpty()) {
+                Text(
+                    text = sellPrice,
+                    textAlign = TextAlign.Center,
+                    fontFamily = MaterialTheme.typography.bodyMedium.fontFamily,
+                    fontSize = MaterialTheme.typography.bodyMedium.fontSize,
+                    modifier = Modifier.
+                        fillMaxWidth()
+                )
             }
             PABasicButton(
                 label1 = "Ver detalle",
@@ -152,13 +116,11 @@ fun ProductCard(
 @Preview
 private fun ProductPre() {
     ProductCard(
-        id = "cuac",
-        discount = "45",
+        id = 1L,
         onStock = true,
         tittle = "Rose tongue licking & suction",
-        urlImage = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQKqtZRN86wSXbhdhZteqKTyfOAASDirHwrldktjgnn9rCqWLIXCY9nQwbB79DrGhCtiL0&usqp=CAU",
-        finalPrice = "1423.35",
-        originalPrice = "2000"
+        imagePath = "",
+        sellPrice = "$1423.35",
     ) {
 
     }

@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -23,14 +24,14 @@ import com.passioagogo.market.R
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PAToolbar(
-    @DrawableRes navigationIcon: Int = R.drawable.list_24,
-    onNavigationClick: () -> Unit,
-    @DrawableRes actionIcon: Int = R.drawable.layer_plus_24,
-    actionText: String? = null,
-    onActionIconClick: () -> Unit,
-    @DrawableRes tittleIcon: Int = R.drawable.branding_passion_20,
-    tittle: String ?= null,
-    onTittleClick: () -> Unit
+    @DrawableRes leftIcon: Int = R.drawable.menu,
+    onLeftClick: () -> Unit,
+    @DrawableRes rightIcon: Int = R.drawable.edit_square,
+    rightText: String? = null,
+    onRightClick: (() -> Unit) ?= null,
+    @DrawableRes centerIcon: Int = R.drawable.branding_passion_20,
+    centerText: String ?= null,
+    onCenterClick: (() -> Unit) ?= null,
 ) {
     TopAppBar(
         title = {
@@ -39,24 +40,25 @@ fun PAToolbar(
                     .fillMaxWidth()
                     .fillMaxHeight()
             ){
-                tittle?.let {
+                centerText?.let {
                     Text(
                         modifier = Modifier
                             .align(Alignment.CenterStart)
                             .clickable {
-                                onTittleClick()
+                                onCenterClick?.invoke()
                             },
-                        text = it
+                        text = it,
+                        fontFamily = MaterialTheme.typography.titleLarge.fontFamily,
                     )
                 } ?: run {
                     Icon(
                         modifier = Modifier
                             .align(Alignment.Center)
                             .clickable {
-                                onTittleClick()
+                                onCenterClick?.invoke()
                             },
                         painter = painterResource(
-                            id = tittleIcon
+                            id = centerIcon
                         ),
                         contentDescription = null,
                     )
@@ -69,45 +71,48 @@ fun PAToolbar(
                     .fillMaxHeight()
             ){
                 Icon(
-                    painter = painterResource(id = navigationIcon),
+                    painter = painterResource(id = leftIcon),
                     contentDescription = null,
                     modifier = Modifier
                         .size(40.dp)
                         .padding(6.dp)
                         .align(Alignment.Center)
                         .clickable {
-                            onNavigationClick()
+                            onLeftClick()
                         }
                 )
             }
         },
         actions = {
-            Box(
-                modifier = Modifier
-                    .fillMaxHeight()
-            ){
-                actionText?.let {
-                    Text(
-                        modifier = Modifier
-                            .align(Alignment.Center)
-                            .padding(3.dp)
-                            .clickable {
-                                onActionIconClick()
-                            },
-                        text = it
-                    )
-                } ?: run {
-                    Icon(
-                        painter = painterResource(id = actionIcon),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(40.dp)
-                            .align(Alignment.Center)
-                            .padding(6.dp)
-                            .clickable {
-                                onActionIconClick()
-                            }
-                    )
+            onRightClick?.let {
+                Box(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                ){
+                    rightText?.let {
+                        Text(
+                            modifier = Modifier
+                                .align(Alignment.Center)
+                                .padding(3.dp)
+                                .clickable {
+                                    onRightClick.invoke()
+                                },
+                            text = it,
+                            fontFamily = MaterialTheme.typography.bodySmall.fontFamily ,
+                        )
+                    } ?: run {
+                        Icon(
+                            painter = painterResource(id = rightIcon),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(40.dp)
+                                .align(Alignment.Center)
+                                .padding(6.dp)
+                                .clickable {
+                                    onRightClick.invoke()
+                                }
+                        )
+                    }
                 }
             }
         },
@@ -121,10 +126,10 @@ fun PAToolbar(
 @Preview
 private fun Preview(){
     PAToolbar(
-        tittle = "Titulo diferente",
-        actionText = "Guardar",
-        onNavigationClick = {},
-        onActionIconClick = {},
-        onTittleClick = {}
+        centerText = "Titulo diferente",
+        rightText = null,
+        onLeftClick = {},
+        onRightClick = {},
+        onCenterClick = {}
     )
 }

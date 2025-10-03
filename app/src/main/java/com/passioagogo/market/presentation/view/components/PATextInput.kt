@@ -10,7 +10,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.passioagogo.market.presentation.view.components.items.CompactOutlinedTextField
 
 @Composable
 internal fun PATextInput(
@@ -21,10 +20,11 @@ internal fun PATextInput(
     onTrailingIconClick: (() -> Unit) ?= null,
     enabled: Boolean = true,
     keyboardType : KeyboardType = KeyboardType.Text,
+    minLines: Int = 1,
     maxLines: Int = 1,
     maxLength: Int = 15,
 ){
-    CompactOutlinedTextField(
+    PAOutlinedTextField(
         modifier = modifier
             .padding(top = 3.dp),
         value = mutableInput.value,
@@ -37,6 +37,7 @@ internal fun PATextInput(
         trailingIcon = trailingIcon,
         onTrailingIconClick = onTrailingIconClick,
         keyboardType = keyboardType,
+        minLines = minLines,
         maxLength = maxLength,
         maxLines = maxLines,
     )

@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.DrawerValue
@@ -28,7 +29,7 @@ import com.passioagogo.market.presentation.navigation.Routes
 import kotlinx.coroutines.launch
 
 @Composable
-fun DrawerSheet(
+fun PADrawerSheet(
     isOpend: Boolean = false,
     addItem: () -> Unit,
     search: () -> Unit,
@@ -68,7 +69,9 @@ fun DrawerSheet(
                         selected = false,
                         icon = {
                             Icon(
-                                painter = painterResource(id = R.drawable.shop_24),
+                                painter = painterResource(id = R.drawable.empty_dashboard),
+                                modifier = Modifier
+                                    .size(24.dp),
                                 contentDescription = null
                             )
                         },
@@ -81,11 +84,13 @@ fun DrawerSheet(
                         selected = false,
                         icon = {
                             Icon(
-                                painter = painterResource(id = R.drawable.edit_24),
+                                painter = painterResource(id = R.drawable.edit_square),
+                                modifier = Modifier
+                                    .size(24.dp),
                                 contentDescription = null
                             )
                         },
-                        onClick = { navigate.invoke(Routes.ItemDetail.Name) }
+                        onClick = addItem
                     )
 
                     HorizontalDivider()
@@ -94,7 +99,9 @@ fun DrawerSheet(
                         selected = false,
                         icon = {
                             Icon(
-                                painter = painterResource(id = R.drawable.folder_upload_24),
+                                painter = painterResource(id = R.drawable.upload_file),
+                                modifier = Modifier
+                                    .size(24.dp),
                                 contentDescription = null
                             )
                         },
@@ -107,7 +114,9 @@ fun DrawerSheet(
                         selected = false,
                         icon = {
                             Icon(
-                                painter = painterResource(id = R.drawable.document_24),
+                                painter = painterResource(id = R.drawable.gallery_thumbnail),
+                                modifier = Modifier
+                                    .size(24.dp),
                                 contentDescription = null
                             )
                         },
@@ -133,7 +142,7 @@ fun DrawerSheet(
         Scaffold(
             topBar = {
                 PAToolbar(
-                    onNavigationClick = {
+                    onLeftClick = {
                         scope.launch {
                             if (drawerState.isClosed) {
                                 drawerState.open()
@@ -142,8 +151,8 @@ fun DrawerSheet(
                             }
                         }
                     },
-                    onActionIconClick = addItem,
-                    onTittleClick = search
+                    onRightClick = addItem,
+                    onCenterClick = search
                 )
             },
             content = { paddingValues ->
@@ -156,7 +165,7 @@ fun DrawerSheet(
 @Composable
 @Preview
 private fun Preview() {
-    DrawerSheet(
+    PADrawerSheet(
         isOpend = true,
         addItem = {},
         navigate = {},

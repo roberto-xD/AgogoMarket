@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -30,27 +32,14 @@ import com.passioagogo.market.presentation.view.models.PAInfoModel
 @Composable
 fun PAInfoProduct(
     modifier: Modifier = Modifier,
-    rutasImagenList: MutableList<String>? = remember { mutableListOf<String>() },
-    categoriasList: MutableList<String>? = remember { mutableListOf<String>() },
-    subcategoriasList: MutableList<String>? = remember { mutableListOf<String>() },
-    onSaveClick: (current: PAInfoModel) -> Unit,
+    initialData: MutableState<PAInfoModel>,
+    onSaveClick: () -> Unit,
     onImageClick: () -> Unit,
     onScanClick: () -> Unit,
 ){
-
-    val tittle = remember { mutableStateOf("")}
-    val sku = remember { mutableStateOf("")}
-    val codigoBarras = remember { mutableStateOf("")}
-    val actualStock = remember { mutableStateOf("")}
-    val minStock = remember { mutableStateOf("")}
-    val description = remember { mutableStateOf("")}
-    val buyPrice = remember { mutableStateOf("")}
-    val sellPrice = remember { mutableStateOf("")}
-    val family = remember { mutableStateOf("")}
-    val category = remember { mutableStateOf("")}
-    val subcategory = remember { mutableStateOf("")}
-    val provider = remember { mutableStateOf("")}
-
+    LaunchedEffect(Unit) {
+        Log.i("tag_pg","familias: ${initialData.value.familyList}")
+    }
     val showNewCategoryDialog = remember { mutableStateOf(false) }
     val showNewSubcategoryDialog = remember { mutableStateOf(false) }
 
@@ -68,23 +57,23 @@ fun PAInfoProduct(
                         .weight(2f),
                 ) {
                     PATextInput(
-                        mutableInput = tittle,
+                        mutableInput = initialData.value.tittle,
                         modifier = Modifier
                             .fillMaxWidth(),
                         placeHolder = stringResource(id = R.string.label_name),
                     )
                     PATextInput(
-                        mutableInput = sku,
+                        mutableInput = initialData.value.sku,
                         modifier = Modifier
                             .fillMaxWidth(),
                         placeHolder = stringResource(id = R.string.label_sku),
                     )
                     PATextInput(
-                        mutableInput = codigoBarras,
+                        mutableInput = initialData.value.codigoBarra,
                         modifier = Modifier
                             .fillMaxWidth(),
                         placeHolder = stringResource(id = R.string.label_codigo_de_barras),
-                        trailingIcon = R.drawable.barcode_scann,
+                        trailingIcon = R.drawable.barcode_reader,
                         onTrailingIconClick = onScanClick
                     )
                 }
@@ -96,7 +85,7 @@ fun PAInfoProduct(
                 ){
                     ImageView(
                         modifier = modifier,
-                        imagePath = rutasImagenList?.firstOrNull(),
+                        imagePath = initialData.value.pathImageList.firstOrNull(),
                         onImageClick = onImageClick
                     )
                 }
@@ -108,17 +97,18 @@ fun PAInfoProduct(
             containerTittle = "Información de ventas"
         ) {
             PATextInput(
-                mutableInput = sellPrice,
+                mutableInput = initialData.value.sellPrice,
                 modifier = Modifier
                     .fillMaxWidth(),
                 placeHolder = stringResource(id = R.string.label_sell_price),
                 keyboardType = KeyboardType.Number
             )
             PATextInput(
-                mutableInput = description,
+                mutableInput = initialData.value.description,
                 modifier = Modifier
                     .fillMaxWidth(),
                 placeHolder = stringResource(id = R.string.label_description),
+                minLines = 3,
                 maxLines = 5,
                 maxLength = 50,
             )
@@ -129,21 +119,21 @@ fun PAInfoProduct(
             containerTittle = "Seguimiento del artículo"
         ) {
             PATextInput(
-                mutableInput = actualStock,
+                mutableInput = initialData.value.currentStock,
                 modifier = Modifier
                     .fillMaxWidth(),
                 placeHolder = stringResource(id = R.string.label_actual_stock),
                 keyboardType = KeyboardType.Number
             )
             PATextInput(
-                mutableInput = minStock,
+                mutableInput = initialData.value.minStock,
                 modifier = Modifier
                     .fillMaxWidth(),
                 placeHolder = stringResource(id = R.string.label_reposition_quantity),
                 keyboardType = KeyboardType.Number
             )
             PATextInput(
-                mutableInput = buyPrice,
+                mutableInput = initialData.value.buyPrice,
                 modifier = Modifier
                     .fillMaxWidth(),
                 placeHolder = stringResource(id = R.string.label_buy_price),
@@ -155,18 +145,21 @@ fun PAInfoProduct(
             modifier = modifier,
             containerTittle = "Atributos"
         ){
-            PATextInput(
-                mutableInput = family,
+            PADropDown(
+                item = initialData.value.family,
+                items = initialData.value.familyList,
                 modifier = Modifier
                     .fillMaxWidth(),
                 placeHolder = stringResource(id = R.string.label_family),
-            )
+            ){
+                Log.i("tag","dropdown: $it")
+            }
             PADropDown(
                 modifier = Modifier
                     .fillMaxWidth(),
                 placeHolder = stringResource(id = R.string.label_categories),
-                items = categoriasList,
-                item = category,
+                items = initialData.value.categoryList,
+                item = initialData.value.category,
                 onAddNewClick = {
                     showNewCategoryDialog.value = true
                     Log.i("tag","onAddNewClick")
@@ -178,8 +171,8 @@ fun PAInfoProduct(
                 modifier = Modifier
                     .fillMaxWidth(),
                 placeHolder = stringResource(id = R.string.label_subcategories),
-                items = subcategoriasList,
-                item = subcategory,
+                items = initialData.value.subcategoryList,
+                item = initialData.value.subcategory,
                 onAddNewClick = {
                     showNewSubcategoryDialog.value = true
                     Log.i("tag","onAddNewClick")
@@ -187,31 +180,25 @@ fun PAInfoProduct(
             ){
                 Log.i("tag","dropdown: $it")
             }
-            PATextInput(
-                mutableInput = provider,
-                modifier = Modifier
-                    .fillMaxWidth(),
-                placeHolder = stringResource(id = R.string.label_provider),
-            )
         }
         PABasicButton(
             label1 = "Guardar",
             onClick1 = {
-                onSaveClick(
-                    PAInfoModel(
-                            nombre = tittle.value,
-                            descripcion = description.value,
-                            imagenes = rutasImagenList ?: emptyList(),
-                            codigoBarras = codigoBarras.value,
-                            skuInterno = sku.value,
-                            precioCompra = buyPrice.value.toDouble(),
-                            precioVenta = sellPrice.value.toDouble(),
-                            cantidadActual = actualStock.value.toInt(),
-                            cantidadMinima = minStock.value.toInt(),
-                            familia = family.value,
-                            categoria = category.value,
-                    )
-                )
+//                onSaveClick(
+//                    PAInfoModel(
+//                            nombre = tittle.value,
+//                            descripcion = description.value,
+//                            imagenes = rutasImagenList ?: emptyList(),
+//                            codigoBarras = codigoBarra.value,
+//                            skuInterno = sku.value,
+//                            precioCompra = buyPrice.value,
+//                            precioVenta = sellPrice.value,
+//                            cantidadActual = actualStock.value,
+//                            cantidadMinima = minStock.value,
+//                            familia = family.value,
+//                            categoria = category.value,
+//                    )
+//                )
             }
         )
     }
@@ -220,15 +207,15 @@ fun PAInfoProduct(
         tittle = "Añadir nueva categoría",
         showDialog = showNewCategoryDialog
     ){
-        categoriasList?.add(it)
-        category.value = it
+        initialData.value.categoryList.add(it)
+        initialData.value.category.value = it
     }
     PACustomAlertDialog(
         tittle = "Añadir nueva subcategoría",
         showDialog = showNewSubcategoryDialog
     ){
-        subcategoriasList?.add(it)
-        subcategory.value = it
+        initialData.value.subcategoryList.add(it)
+        initialData.value.subcategory.value = it
     }
 }
 
@@ -238,6 +225,7 @@ private fun Preview(
 
 ){
     PAInfoProduct(
+        initialData = mutableStateOf(PAInfoModel()),
         onSaveClick = {
 
         },

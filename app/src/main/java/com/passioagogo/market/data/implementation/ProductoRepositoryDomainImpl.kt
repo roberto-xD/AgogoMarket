@@ -10,6 +10,10 @@ import com.passioagogo.market.data.local.dao.ProductoProveedorDao
 import com.passioagogo.market.data.local.dao.ProductoSubcategoriaDao
 import com.passioagogo.market.data.local.dao.ProveedorDao
 import com.passioagogo.market.data.local.dao.SubcategoriaDao
+import com.passioagogo.market.data.local.entity.relation.ProductoCategoriaEntity
+import com.passioagogo.market.data.local.entity.relation.ProductoFamiliaEntity
+import com.passioagogo.market.data.local.entity.relation.ProductoSubcategoriaEntity
+import com.passioagogo.market.data.local.entity.utils.ProductoImagenEntity
 import com.passioagogo.market.domain.bean.AtributoProducto
 import com.passioagogo.market.domain.bean.Categoria
 import com.passioagogo.market.domain.bean.ImagenProducto
@@ -22,10 +26,7 @@ import com.passioagogo.market.domain.bean.TipoDatoAtributo
 import com.passioagogo.market.domain.repository.IProductoRepository
 import com.passioagogo.market.domain.state.DomainException
 import com.passioagogo.market.domain.state.PADomainState
-import com.passioagogo.market.data.local.entity.relation.ProductoCategoriaEntity
-import com.passioagogo.market.data.local.entity.relation.ProductoFamiliaEntity
-import com.passioagogo.market.data.local.entity.relation.ProductoSubcategoriaEntity
-import com.passioagogo.market.data.local.entity.utils.ProductoImagenEntity
+import com.passioagogo.market.ui.decorators.orZero
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -267,11 +268,11 @@ class ProductoRepositoryDomainImpl @Inject constructor(
             val producto = productoDao.obtenerProductoPorId(id)
                 ?: throw DomainException.ProductoNoEncontrado("ID: $id")
 
-            val nuevaCantidad = producto.cantidadActual - cantidad
+            val nuevaCantidad = producto.cantidadActual.orZero() - cantidad
             if (nuevaCantidad < 0) {
                 throw DomainException.StockInsuficiente(
                     producto.nombre,
-                    producto.cantidadActual,
+                    producto.cantidadActual.orZero(),
                     cantidad
                 )
             }
@@ -288,11 +289,11 @@ class ProductoRepositoryDomainImpl @Inject constructor(
             val producto = productoDao.obtenerProductoPorId(id)
                 ?: throw DomainException.ProductoNoEncontrado("ID: $id")
 
-            val nuevaCantidad = producto.cantidadActual + cantidad
+            val nuevaCantidad = producto.cantidadActual.orZero() + cantidad
             productoDao.actualizarStock(id, nuevaCantidad)
 
             // Actualizar cantidad máxima comprada si es necesario
-            if (nuevaCantidad > producto.cantidadMaximaComprada) {
+            if (nuevaCantidad > producto.cantidadMaximaComprada.orZero()) {
                 val productoActualizado = producto.copy(cantidadMaximaComprada = nuevaCantidad)
                 productoDao.actualizarProducto(productoActualizado)
             }

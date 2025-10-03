@@ -10,6 +10,7 @@ import androidx.activity.viewModels
 import com.passioagogo.market.presentation.navigation.PANavigation
 import com.passioagogo.market.presentation.navigation.Routes
 import com.passioagogo.market.presentation.viewModel.imagenes.ImageGalleryViewModel
+import com.passioagogo.market.presentation.viewModel.products.DetalleProductoViewModel
 import com.passioagogo.market.ui.theme.PassioAgogoMarketTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -17,6 +18,7 @@ import dagger.hilt.android.AndroidEntryPoint
 class PAMain : ComponentActivity() {
 
     private val imageGalleryViewModel: ImageGalleryViewModel by viewModels()
+    private val detalleViewModel: DetalleProductoViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -25,10 +27,18 @@ class PAMain : ComponentActivity() {
             PassioAgogoMarketTheme {
                 PANavigation(
                     startDestination = getStartDestination(),
-                    imageGalleryViewModel = imageGalleryViewModel
+                    imageViewModel = imageGalleryViewModel,
+                    detalleViewModel = detalleViewModel,
                 )
             }
         }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        val uris = intent.handleSharedImages().orEmpty()
+        imageGalleryViewModel.saveSharedImages(uris)
     }
 
     fun getStartDestination(): String{

@@ -1,11 +1,12 @@
 package com.passioagogo.market.domain.bean
 
 import com.passioagogo.market.data.local.entity.base.ProductoEntity
+import com.passioagogo.market.ui.decorators.orZero
 
 data class Producto(
     val id: Long = 0,
     val nombre: String = "",
-    val descripcion: String? = null,
+    val descripcion: String?= null,
     val codigoBarras: String?= null,
     val skuInterno: String = "",
     val precioCompra: Double = 0.0,
@@ -45,11 +46,11 @@ data class Producto(
                 descripcion = entity.descripcion,
                 codigoBarras = entity.codigoBarras,
                 skuInterno = entity.skuInterno,
-                precioCompra = entity.precioCompra,
-                precioVenta = entity.precioVenta,
-                cantidadActual = entity.cantidadActual,
-                cantidadMinima = entity.cantidadMinima,
-                cantidadMaximaComprada = entity.cantidadMaximaComprada,
+                precioCompra = entity.precioCompra.orZero(),
+                precioVenta = entity.precioVenta.orZero(),
+                cantidadActual = entity.cantidadActual.orZero(),
+                cantidadMinima = entity.cantidadMinima.orZero(),
+                cantidadMaximaComprada = entity.cantidadMaximaComprada.orZero(),
                 proveedorPrincipalId = entity.proveedorPrincipalId,
                 color = entity.color,
                 fechaUltimaVenta = entity.fechaUltimaVenta,

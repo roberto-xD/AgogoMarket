@@ -13,11 +13,11 @@ import com.passioagogo.market.domain.bean.ValidacionEstructura
 import com.passioagogo.market.domain.bean.VistaPreviaCompleta
 import com.passioagogo.market.domain.state.PADomainState
 import jakarta.inject.Inject
-import javax.inject.Singleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import javax.inject.Singleton
 
 interface GoogleSheetsImportService {
     suspend fun importarDatos(spreadsheetUrl: String): PADomainState<DatosImportCompletos>
@@ -238,7 +238,7 @@ override suspend fun importarDatos(spreadsheetUrl: String): PADomainState<DatosI
             familiasMap[nombre] = FamiliaImport(
                 id = mapa["familia_id"]?.toLongOrNull() ?: 0L,
                 nombre = nombre,
-                descripcion = mapa["familia_descripcion"]?.trim(),
+                descripcion = mapa["familia_descripcion"]?.trim() ?: "",
                 activo = true
             )
         }

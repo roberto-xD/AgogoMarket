@@ -22,6 +22,8 @@
         android:name=".PAApplication">
         <activity
             android:name=".presentation.view.PAMain"
+            android:launchMode="singleTask"
+            android:taskAffinity=""
             android:exported="true"
             android:label="@string/title_activity_pamain"
             android:theme="@style/Theme.PassioAgogoMarket">

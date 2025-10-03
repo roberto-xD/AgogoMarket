@@ -1,4 +1,4 @@
-package com.passioagogo.market.presentation.view.components.items
+package com.passioagogo.market.presentation.view.components
 
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.AnimatedContent
@@ -51,7 +51,7 @@ import com.passioagogo.market.ui.theme.primaryLight
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
-fun CompactOutlinedTextField(
+fun PAOutlinedTextField(
     modifier: Modifier = Modifier,
     value: String,
     enabled: Boolean = true,
@@ -158,7 +158,10 @@ fun CompactOutlinedTextField(
                         value = value,
                         onValueChange = {
                             if (it.length <= maxLength){
-                                onValueChange?.invoke(it)
+                                when(keyboardType){
+                                    KeyboardType.Number -> if (it.all { char -> char.isDigit() }) onValueChange?.invoke(it)
+                                    else -> onValueChange?.invoke(it)
+                                }
                             }
                         },
                         modifier = Modifier
@@ -204,7 +207,7 @@ fun CompactOutlinedTextField(
 @Preview
 private fun Cuac (){
     val value = remember { mutableStateOf("") }
-    CompactOutlinedTextField(
+    PAOutlinedTextField(
         value = value.value,
         onValueChange = {
             value.value = it

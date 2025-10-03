@@ -18,4 +18,6 @@ data class ProductoDetallado(
 
     val ultimoCambioPrecio: HistorialPrecio?
         get() = historialPrecios.maxByOrNull { it.fechaCambio }
+
+
 }

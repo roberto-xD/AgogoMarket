@@ -9,7 +9,7 @@ import javax.inject.Singleton
 
 data class CrearFamiliaParams(
     val nombre: String,
-    val descripcion: String?
+    val descripcion: String
 )
 
 @Singleton

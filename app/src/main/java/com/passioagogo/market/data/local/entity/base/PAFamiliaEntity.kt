@@ -8,7 +8,7 @@ data class FamiliaEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
     val nombre: String, // juguetes_adultos, consumibles, lenceria
-    val descripcion: String?,
+    val descripcion: String,
     val activo: Boolean = true,
     val fechaCreacion: Long = System.currentTimeMillis()
 )
