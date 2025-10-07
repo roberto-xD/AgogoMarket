@@ -42,12 +42,6 @@ internal fun PADropDown(
     ) {
         Box(
             modifier = Modifier
-                .clickable(
-                    enabled = true,
-                    onClick = {
-                        isExpanded.value = true
-                    }
-                )
         ) {
             DropdownMenu(
                 modifier = Modifier
@@ -87,23 +81,33 @@ internal fun PADropDown(
             }
         }
 
-        PAOutlinedTextField(
+        Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .onGloballyPositioned { coordinates ->
-                    outlinedTextFieldSize.value = coordinates.size.toSize()
+                .clickable(
+                    enabled = true,
+                    onClick = {
+                        isExpanded.value = true
+                    }
+                )
+        ){
+            PAOutlinedTextField(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .onGloballyPositioned { coordinates ->
+                        outlinedTextFieldSize.value = coordinates.size.toSize()
+                    }
+                    .wrapContentHeight(align = Alignment.CenterVertically)
+                ,
+                value = item.value,
+                label = placeHolder,
+                placeholder = placeHolder,
+                enabled = false,
+                trailingIcon = R.drawable.chevron_down,
+                onTrailingIconClick = {
+                    isExpanded.value = true
                 }
-                .wrapContentHeight(align = Alignment.CenterVertically)
-            ,
-            value = item.value,
-            label = placeHolder,
-            placeholder = placeHolder,
-            enabled = false,
-            trailingIcon = R.drawable.chevron_down,
-            onTrailingIconClick = {
-                isExpanded.value = true
-            }
-        )
+            )
+        }
     }
 }
 

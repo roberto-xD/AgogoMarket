@@ -61,7 +61,7 @@ fun PANavigation(
             ItemScreen(
                 detalleViewModel = detalleViewModel,
                 imageViewModel = imageViewModel,
-                onBackClick = ::onBack
+                navigateToBack = ::onBack
             )
         }
         composable(

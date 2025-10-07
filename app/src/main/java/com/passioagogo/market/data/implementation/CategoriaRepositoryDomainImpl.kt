@@ -1,8 +1,8 @@
 package com.passioagogo.market.data.implementation
 
 import com.passioagogo.market.data.local.dao.CategoriaDao
-import com.passioagogo.market.domain.bean.Categoria
 import com.passioagogo.market.data.repository.ICategoriaRepository
+import com.passioagogo.market.domain.bean.Categoria
 import com.passioagogo.market.domain.state.PADomainState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -20,7 +20,7 @@ class CategoriaRepositoryDomainImpl @Inject constructor(
         }
     }
 
-    override suspend fun obtenerCategoriasPorFamilia(familiaId: Long): Flow<List<Categoria>> {
+    override suspend fun obtenerCategoriasPorFamilia(familiaId: String): Flow<List<Categoria>> {
         return categoriaDao.obtenerCategoriasPorFamilia(familiaId).map { entities ->
             entities.map { Categoria.fromEntity(it) }
         }

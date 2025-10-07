@@ -6,13 +6,14 @@ import com.passioagogo.market.domain.bean.Producto
 import com.passioagogo.market.domain.state.DomainException
 import com.passioagogo.market.domain.state.onError
 import com.passioagogo.market.domain.state.onSuccess
+import com.passioagogo.market.domain.usecase.categorias.ObtenerCategoriasPorFamiliaUseCase
+import com.passioagogo.market.domain.usecase.categorias.ObtenerCategoriasUseCase
+import com.passioagogo.market.domain.usecase.producto.ActualizarProductoUseCase
 import com.passioagogo.market.domain.usecase.producto.BuscarProductosParams
 import com.passioagogo.market.domain.usecase.producto.BuscarProductosUseCase
 import com.passioagogo.market.domain.usecase.producto.CrearProductoParams
 import com.passioagogo.market.domain.usecase.producto.CrearProductoUseCase
 import com.passioagogo.market.domain.usecase.producto.EliminarProductoUseCase
-import com.passioagogo.market.domain.usecase.categorias.ObtenerCategoriasUseCase
-import com.passioagogo.market.domain.usecase.producto.ActualizarProductoUseCase
 import com.passioagogo.market.domain.usecase.producto.ObtenerProductosStockBajoUseCase
 import com.passioagogo.market.domain.usecase.producto.ObtenerProductosUseCase
 import com.passioagogo.market.domain.usecase.producto.ObtenerProveedoresUseCase
@@ -35,6 +36,7 @@ class ProductosViewModel @Inject constructor(
     private val eliminarProductoUseCase: EliminarProductoUseCase,
     private val obtenerCategoriasUseCase: ObtenerCategoriasUseCase,
     private val obtenerProveedoresUseCase: ObtenerProveedoresUseCase,
+    private val obtenerCategoriasPorFamiliaUseCase: ObtenerCategoriasPorFamiliaUseCase,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(ProductosUiState())
     val uiState: StateFlow<ProductosUiState> = _uiState.asStateFlow()
@@ -189,4 +191,15 @@ class ProductosViewModel @Inject constructor(
         _uiState.update { it.copy(categoriaSeleccionada = categoriaId) }
         // Implementar filtrado local o recargar datos
     }
+
+    fun obtenerCategoriasPorFamilia(familiaId: String) {
+        viewModelScope.launch {
+            obtenerCategoriasPorFamiliaUseCase.invoke(familiaId).onSuccess { categoriasFlow ->
+                categoriasFlow.collect { categorias ->
+                    _uiState.update { it.copy(categorias = categorias) }
+                }
+            }
+        }
+    }
+
 }

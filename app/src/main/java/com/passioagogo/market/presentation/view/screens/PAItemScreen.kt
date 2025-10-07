@@ -18,21 +18,25 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.passioagogo.market.R
+import com.passioagogo.market.presentation.view.components.BarcodeScannerScreen
 import com.passioagogo.market.presentation.view.components.PABottomSheetContainer
 import com.passioagogo.market.presentation.view.components.PAImageItem
 import com.passioagogo.market.presentation.view.components.PAToolbar
-import com.passioagogo.market.presentation.view.models.PAInfoModel
 import com.passioagogo.market.presentation.view.templates.PAInfoProduct
+import com.passioagogo.market.presentation.viewModel.BackPressHandler
+import com.passioagogo.market.presentation.viewModel.ItemViewModel
 import com.passioagogo.market.presentation.viewModel.imagenes.ImageGalleryViewModel
 import com.passioagogo.market.presentation.viewModel.products.DetalleProductoViewModel
 import com.passioagogo.market.presentation.viewModel.products.FamiliasViewModel
@@ -43,28 +47,30 @@ import com.passioagogo.market.presentation.viewModel.products.ProductosViewModel
 fun ItemScreen(
     imageViewModel: ImageGalleryViewModel,
     detalleViewModel: DetalleProductoViewModel,
+    itemViewModel: ItemViewModel = hiltViewModel(),
     familiasViewModel: FamiliasViewModel = hiltViewModel(),
     productosViewModel: ProductosViewModel = hiltViewModel(),
-    onBackClick: () -> Unit,
+    navigateToBack: () -> Unit,
 ){
     val context = LocalContext.current
-    val showBottomSheet = remember { mutableStateOf(false) }
+    val showBottomSheet = imageViewModel.showBottomSheet
 
     val uiImageState = imageViewModel.uiState.collectAsState()
     val imagePaths = uiImageState.value.images
 
     val familiaState = familiasViewModel.familias.collectAsState()
     val familias = familiaState.value.map { it.descripcion }.toMutableList()
-    Log.i("tag","familias: $familias")
 
     val productosState = productosViewModel.uiState.collectAsState()
     val categorias = productosState.value.categorias.map { it.nombre }.toMutableList()
     val proveedores = productosState.value.proveedores.map { it.nombre }.toMutableList()
 
     val uiProductState = detalleViewModel.uiState.collectAsState()
-    val producto = uiProductState.value.productoDetallado?.producto
+    val producto = uiProductState.value.productoDetallado
 
-    val currentProduct = remember { mutableStateOf(PAInfoModel()) }
+    val currentProduct = itemViewModel.uiState
+    val showScanner = remember { mutableStateOf(false) }
+    val count = remember { mutableStateOf(0) }
 
 
     val filePickerLauncher = rememberLauncherForActivityResult(
@@ -83,35 +89,49 @@ fun ItemScreen(
         }
     }
 
-    LaunchedEffect(producto != null) {
-        currentProduct.value.tittle.value = producto?.nombre ?: ""
+    val scope = rememberCoroutineScope()
+    val backPressHandler = remember { BackPressHandler(delayMillis = 2000L) }
+
+    fun backClick(){
+        backPressHandler.onBackPressed(
+            scope = scope,
+            onFirstPress = {
+                Toast.makeText(context, "Presiona de nuevo para salir", Toast.LENGTH_SHORT).show()
+            },
+            onSecondPress = {
+                navigateToBack()
+            }
+        )
     }
 
-    LaunchedEffect(familias) {
-        if(familias.isNotEmpty() && currentProduct.value.familyList.isEmpty()){
-            currentProduct.value.familyList.addAll(familias)
-        }
-    }
-    LaunchedEffect(categorias) {
-        if(categorias.isNotEmpty() && currentProduct.value.categoryList.isEmpty()){
-            currentProduct.value.categoryList.addAll(categorias)
-        }
-    }
 
-
-    LaunchedEffect(imagePaths) {
-        if(imagePaths.isNotEmpty()){
-            currentProduct.value.pathImageList.addAll(imagePaths)
-            showBottomSheet.value = true
-        }else{
-            currentProduct.value.pathImageList.removeAll(currentProduct.value.pathImageList)
-            showBottomSheet.value = false
+    // Limpiar al salir
+    DisposableEffect(Unit) {
+        onDispose {
+            backPressHandler.reset()
         }
     }
 
     BackHandler {
-        currentProduct.value = PAInfoModel()
-        onBackClick()
+        backClick()
+    }
+
+    LaunchedEffect(producto) {
+        producto?.let { prod ->
+            itemViewModel.setProductData(prod)
+        }
+
+    }
+    LaunchedEffect(familias) {
+        itemViewModel.setFamilyList(familias)
+    }
+    LaunchedEffect(categorias) {
+        Log.i("tag_pg","categorias: $categorias")
+        itemViewModel.setCategoryList(categorias)
+    }
+    LaunchedEffect(imagePaths) {
+        itemViewModel.setImagePaths(imagePaths.toMutableList())
+        showBottomSheet.value = imagePaths.isNotEmpty()
     }
 
     Scaffold(
@@ -121,8 +141,7 @@ fun ItemScreen(
             PAToolbar(
                 leftIcon = R.drawable.arrow_back,
                 onLeftClick = {
-                    currentProduct.value = PAInfoModel()
-                    onBackClick()
+                    backClick()
                 },
                 centerText = stringResource(R.string.label_item),
             )
@@ -141,13 +160,17 @@ fun ItemScreen(
                     if(imagePaths.isEmpty()){
                         openPicker()
                     } else {
-                        imageViewModel.sheetState.value = true
+                        showBottomSheet.value = true
                     }
+                },
+                onFamilyDropDownSelect = {
+                    productosViewModel.obtenerCategoriasPorFamilia(it)
                 },
                 onSaveClick = {
                     Log.i("tag","onSaveClick")
                 },
                 onScanClick = {
+                    showScanner.value = true
                     Toast
                         .makeText(context, "abrir escaner", Toast.LENGTH_SHORT)
                         .show()
@@ -178,11 +201,30 @@ fun ItemScreen(
                 item{
                     PAImageItem(
                         onImageClick = {
-                            openPicker()
+                            if(imagePaths.size < 5){
+                                openPicker()
+                            } else{
+                                Toast
+                                    .makeText(context, "Máximo 5 imágenes", Toast.LENGTH_SHORT)
+                                    .show()
+                            }
                         }
                     )
                 }
             }
+        }
+
+        PABottomSheetContainer(
+            showBottomSheet = showScanner,
+            showFullScreen = true,
+        ) {
+            BarcodeScannerScreen(
+                onBarcodeScanned = { code ->
+                    showScanner.value = false
+                    itemViewModel.setBarCode(code)
+                    Log.i("tag_pg", "Código escaneado: $code")
+                }
+            )
         }
     }
 }

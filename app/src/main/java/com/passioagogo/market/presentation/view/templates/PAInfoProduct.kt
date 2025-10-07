@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,13 +32,11 @@ import com.passioagogo.market.presentation.view.models.PAInfoModel
 fun PAInfoProduct(
     modifier: Modifier = Modifier,
     initialData: MutableState<PAInfoModel>,
+    onFamilyDropDownSelect: (family: String) -> Unit,
     onSaveClick: () -> Unit,
     onImageClick: () -> Unit,
     onScanClick: () -> Unit,
 ){
-    LaunchedEffect(Unit) {
-        Log.i("tag_pg","familias: ${initialData.value.familyList}")
-    }
     val showNewCategoryDialog = remember { mutableStateOf(false) }
     val showNewSubcategoryDialog = remember { mutableStateOf(false) }
 
@@ -153,13 +150,14 @@ fun PAInfoProduct(
                 placeHolder = stringResource(id = R.string.label_family),
             ){
                 Log.i("tag","dropdown: $it")
+                onFamilyDropDownSelect(it)
             }
             PADropDown(
                 modifier = Modifier
                     .fillMaxWidth(),
                 placeHolder = stringResource(id = R.string.label_categories),
-                items = initialData.value.categoryList,
                 item = initialData.value.category,
+                items = initialData.value.categoryList,
                 onAddNewClick = {
                     showNewCategoryDialog.value = true
                     Log.i("tag","onAddNewClick")
@@ -167,38 +165,24 @@ fun PAInfoProduct(
             ){
                 Log.i("tag","dropdown: $it")
             }
-            PADropDown(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                placeHolder = stringResource(id = R.string.label_subcategories),
-                items = initialData.value.subcategoryList,
-                item = initialData.value.subcategory,
-                onAddNewClick = {
-                    showNewSubcategoryDialog.value = true
-                    Log.i("tag","onAddNewClick")
-                }
-            ){
-                Log.i("tag","dropdown: $it")
-            }
+//            PADropDown(
+//                modifier = Modifier
+//                    .fillMaxWidth(),
+//                placeHolder = stringResource(id = R.string.label_subcategories),
+//                items = initialData.value.subcategoryList,
+//                item = initialData.value.subcategory,
+//                onAddNewClick = {
+//                    showNewSubcategoryDialog.value = true
+//                    Log.i("tag","onAddNewClick")
+//                }
+//            ){
+//                Log.i("tag","dropdown: $it")
+//            }
         }
         PABasicButton(
             label1 = "Guardar",
             onClick1 = {
-//                onSaveClick(
-//                    PAInfoModel(
-//                            nombre = tittle.value,
-//                            descripcion = description.value,
-//                            imagenes = rutasImagenList ?: emptyList(),
-//                            codigoBarras = codigoBarra.value,
-//                            skuInterno = sku.value,
-//                            precioCompra = buyPrice.value,
-//                            precioVenta = sellPrice.value,
-//                            cantidadActual = actualStock.value,
-//                            cantidadMinima = minStock.value,
-//                            familia = family.value,
-//                            categoria = category.value,
-//                    )
-//                )
+                onSaveClick()
             }
         )
     }
@@ -225,10 +209,9 @@ private fun Preview(
 
 ){
     PAInfoProduct(
-        initialData = mutableStateOf(PAInfoModel()),
-        onSaveClick = {
-
-        },
+        initialData = remember {mutableStateOf(PAInfoModel())},
+        onFamilyDropDownSelect = {},
+        onSaveClick = {},
         onScanClick = {},
         onImageClick = {}
     )

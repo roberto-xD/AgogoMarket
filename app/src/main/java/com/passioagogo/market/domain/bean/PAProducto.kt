@@ -23,6 +23,8 @@ data class Producto(
     val fechaActualizacion: Long = System.currentTimeMillis()
 ) {
 
+
+
     // Propiedades calculadas útiles para la lógica de negocio
     val margenGanancia: Double
         get() = if (precioCompra > 0) {

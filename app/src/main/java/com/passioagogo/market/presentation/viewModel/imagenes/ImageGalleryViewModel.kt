@@ -2,6 +2,8 @@ package com.passioagogo.market.presentation.viewModel.imagenes
 
 import android.net.Uri
 import android.util.Log
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.passioagogo.market.domain.usecase.imagenes.DeleteImageUseCase
@@ -31,11 +33,10 @@ class ImageGalleryViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(ImageGalleryUiState())
     val uiState: StateFlow<ImageGalleryUiState> = _uiState.asStateFlow()
-
     private val _actualFilePaths = MutableStateFlow<List<String>>(emptyList())
     val actualFilePaths: StateFlow<List<String>> = _actualFilePaths.asStateFlow()
+    val showBottomSheet: MutableState<Boolean> = mutableStateOf(false)
 
-    val sheetState = MutableStateFlow(false)
     fun saveSharedImages(uris: List<Uri>) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }

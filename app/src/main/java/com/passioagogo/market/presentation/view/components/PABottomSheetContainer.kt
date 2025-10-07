@@ -10,10 +10,11 @@ import androidx.compose.runtime.MutableState
 @Composable
 fun PABottomSheetContainer(
     showBottomSheet: MutableState<Boolean>,
+    showFullScreen: Boolean = false,
     content: @Composable () -> Unit
 ){
     val sheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = false
+        skipPartiallyExpanded = showFullScreen
     )
 
     if(showBottomSheet.value){
