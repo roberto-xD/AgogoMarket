@@ -11,7 +11,6 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -28,8 +27,8 @@ import com.passioagogo.market.R
 internal fun PADropDown(
     modifier : Modifier = Modifier,
     placeHolder : String ?= null,
-    item: MutableState<String> = remember { mutableStateOf("") },
-    items: MutableList<String> ?= null,
+    item: String,
+    items: List<String> ?= null,
     onAddNewClick: (()->Unit) ?= null,
     onSelectValue: ((String) -> Unit) ?= null,
 ){
@@ -60,8 +59,7 @@ internal fun PADropDown(
                         },
                         onClick = {
                             isExpanded.value = false
-                            item.value = label
-                            onSelectValue?.invoke(item.value)
+                            onSelectValue?.invoke(label)
                         }
                     )
                 }
@@ -98,7 +96,7 @@ internal fun PADropDown(
                     }
                     .wrapContentHeight(align = Alignment.CenterVertically)
                 ,
-                value = item.value,
+                value = item,
                 label = placeHolder,
                 placeholder = placeHolder,
                 enabled = false,
@@ -116,8 +114,9 @@ internal fun PADropDown(
 private fun Preview(){
     val context = LocalContext.current
     PADropDown(
+        item = "cuac",
         placeHolder = "Unidad",
-        items = mutableListOf("a","b","c","d")
+        items = listOf("a","b","c","d")
     ){
         Toast
             .makeText(context, "dato: $it", Toast.LENGTH_SHORT)

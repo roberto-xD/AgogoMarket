@@ -1,5 +1,6 @@
 package com.passioagogo.market.domain.usecase.producto
 
+import com.passioagogo.market.domain.bean.ImagenProducto
 import com.passioagogo.market.domain.bean.Producto
 import com.passioagogo.market.domain.bean.ProductoDetallado
 import com.passioagogo.market.domain.repository.IProductoRepository
@@ -9,7 +10,9 @@ import com.passioagogo.market.domain.usecase.base.UseCase
 import javax.inject.Inject
 import javax.inject.Singleton
 
-data class CrearProductoParams(
+
+data class ActualizaProductoParams(
+    val id : Long = 0,
     val nombre: String = "",
     val descripcion: String? = null,
     val skuInterno: String = "",
@@ -27,39 +30,24 @@ data class CrearProductoParams(
     val subcategorias: List<Long> = emptyList(),
     val atributos: Map<String, String> = emptyMap()
 )
-
 @Singleton
-class CrearProductoUseCase @Inject constructor(
+class ActualizarProductoDetalladoUseCase @Inject constructor(
     private val productoRepository: IProductoRepository
-) : UseCase<CrearProductoParams, Long>() {
+) : UseCase<ActualizaProductoParams, Unit>() {
 
-    override suspend fun execute(parameters: CrearProductoParams): Long {
+    override suspend fun execute(parameters: ActualizaProductoParams) {
         // Validaciones de negocio
         validarDatosProducto(parameters)
 
-        // Verificar duplicados
-        if (parameters.skuInterno.isNotBlank()) {
-            productoRepository.obtenerProductoPorSku(parameters.skuInterno)?.let {
-                throw DomainException.SkuDuplicado(parameters.skuInterno)
-            }
-        }
-
-        parameters.codigoBarras?.let { codigo ->
-            if (codigo.isNotBlank()) {
-                productoRepository.obtenerProductoPorCodigoBarras(codigo)?.let {
-                    throw DomainException.CodigoBarrasDuplicado(codigo)
-                }
-            }
-        }
-
         val producto = Producto(
+            id = parameters.id,
             nombre = parameters.nombre,
             descripcion = parameters.descripcion,
             skuInterno = parameters.skuInterno,
             codigoBarras = parameters.codigoBarras,
             precioCompra = parameters.precioCompra,
             precioVenta = parameters.precioVenta,
-            cantidadActual = parameters.cantidadActual,
+            cantidadActual = parameters.cantidadInicial,
             cantidadMinima = parameters.cantidadMinima,
             cantidadMaximaComprada = parameters.cantidadInicial,
             proveedorPrincipalId = parameters.proveedorPrincipalId,
@@ -69,26 +57,32 @@ class CrearProductoUseCase @Inject constructor(
             producto = producto,
             familia = parameters.familiaId,
             categorias = parameters.categorias,
-            subcategorias = parameters.subcategorias
+            subcategorias = parameters.subcategorias,
+            imagenes = parameters.imagenes.map {
+                ImagenProducto(
+                    orden = parameters.imagenes.indexOf(it),
+                    rutaImagen = it,
+                )
+            },
         )
 
-        return when (val result = productoRepository.guardarProductoDetallado(productoDetallado)) {
+        return when (val result = productoRepository.actualizarProductoDetallado(productoDetallado)) {
             is PADomainState.Success -> result.data
             is PADomainState.Error -> throw result.exception
             is PADomainState.Loading -> throw IllegalStateException("Operación en estado loading")
         }
     }
 
-    private fun validarDatosProducto(params: CrearProductoParams) {
+    private fun validarDatosProducto(params: ActualizaProductoParams) {
         if (params.nombre.isBlank()) {
             throw IllegalArgumentException("El nombre del producto no puede estar vacío")
         }
         if (params.skuInterno.isBlank()) {
             throw IllegalArgumentException("El SKU interno no puede estar vacío")
         }
-//        if (params.precioCompra < 0) {
-//            throw DomainException.PrecioInvalido(params.precioCompra)
-//        }
+        if (params.precioCompra < 0) {
+            throw DomainException.PrecioInvalido(params.precioCompra)
+        }
         if (params.precioVenta < 0) {
             throw DomainException.PrecioInvalido(params.precioVenta)
         }

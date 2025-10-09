@@ -48,7 +48,7 @@ class ItemViewModel @Inject constructor(
         barCode : String
     ) {
         uiState.value = uiState.value.copy(
-            codigoBarra = mutableStateOf(barCode)
+            codigoBarra = barCode
         )
     }
 

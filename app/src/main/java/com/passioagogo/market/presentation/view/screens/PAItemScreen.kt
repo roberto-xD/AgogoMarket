@@ -34,6 +34,7 @@ import com.passioagogo.market.presentation.view.components.BarcodeScannerScreen
 import com.passioagogo.market.presentation.view.components.PABottomSheetContainer
 import com.passioagogo.market.presentation.view.components.PAImageItem
 import com.passioagogo.market.presentation.view.components.PAToolbar
+import com.passioagogo.market.presentation.view.models.PAInfoModel
 import com.passioagogo.market.presentation.view.templates.PAInfoProduct
 import com.passioagogo.market.presentation.viewModel.BackPressHandler
 import com.passioagogo.market.presentation.viewModel.ItemViewModel
@@ -57,6 +58,7 @@ fun ItemScreen(
 
     val uiImageState = imageViewModel.uiState.collectAsState()
     val imagePaths = uiImageState.value.images
+    val deleteImage = uiImageState.value.deleteImage
 
     val familiaState = familiasViewModel.familias.collectAsState()
     val familias = familiaState.value.map { it.descripcion }.toMutableList()
@@ -68,16 +70,16 @@ fun ItemScreen(
     val uiProductState = detalleViewModel.uiState.collectAsState()
     val producto = uiProductState.value.productoDetallado
 
-    val currentProduct = itemViewModel.uiState
+    val currentProduct = remember { mutableStateOf(PAInfoModel()) }
     val showScanner = remember { mutableStateOf(false) }
-    val count = remember { mutableStateOf(0) }
 
 
     val filePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenMultipleDocuments()
     ) { uris ->
         if (uris.isNotEmpty()) {
-            imageViewModel.saveSharedImages(uris)
+            val show = if(uris.size < 5) uris else uris.subList(0,5)
+            imageViewModel.saveSharedImages(show)
         }
     }
 
@@ -99,6 +101,7 @@ fun ItemScreen(
                 Toast.makeText(context, "Presiona de nuevo para salir", Toast.LENGTH_SHORT).show()
             },
             onSecondPress = {
+                imageViewModel.clearPaths()
                 navigateToBack()
             }
         )
@@ -118,20 +121,33 @@ fun ItemScreen(
 
     LaunchedEffect(producto) {
         producto?.let { prod ->
-            itemViewModel.setProductData(prod)
+            currentProduct.value = currentProduct.value.update(prod)
         }
 
     }
     LaunchedEffect(familias) {
-        itemViewModel.setFamilyList(familias)
+        currentProduct.value = currentProduct.value.copy(
+            familyList = familias
+        )
     }
     LaunchedEffect(categorias) {
         Log.i("tag_pg","categorias: $categorias")
-        itemViewModel.setCategoryList(categorias)
+        currentProduct.value = currentProduct.value.copy(
+            categoryList = categorias
+        )
     }
     LaunchedEffect(imagePaths) {
-        itemViewModel.setImagePaths(imagePaths.toMutableList())
-        showBottomSheet.value = imagePaths.isNotEmpty()
+        currentProduct.value = currentProduct.value.copy(
+            pathImageList = currentProduct.value.pathImageList + imagePaths
+        )
+        showBottomSheet.value = currentProduct.value.pathImageList.isNotEmpty()
+    }
+    LaunchedEffect(deleteImage) {
+        deleteImage?.let {
+            currentProduct.value = currentProduct.value.copy(
+                pathImageList = currentProduct.value.pathImageList.filter { it!=deleteImage }
+            )
+        }
     }
 
     Scaffold(
@@ -155,9 +171,9 @@ fun ItemScreen(
                 .fillMaxSize()
         ) {
             PAInfoProduct(
-                initialData = currentProduct,
+                initialData = currentProduct.value,
                 onImageClick = {
-                    if(imagePaths.isEmpty()){
+                    if(currentProduct.value.pathImageList.isEmpty()){
                         openPicker()
                     } else {
                         showBottomSheet.value = true
@@ -166,16 +182,20 @@ fun ItemScreen(
                 onFamilyDropDownSelect = {
                     productosViewModel.obtenerCategoriasPorFamilia(it)
                 },
-                onSaveClick = {
-                    Log.i("tag","onSaveClick")
-                },
                 onScanClick = {
                     showScanner.value = true
                     Toast
                         .makeText(context, "abrir escaner", Toast.LENGTH_SHORT)
                         .show()
-                }
-            )
+                },
+                onSaveClick = {
+                    val data = currentProduct.value.toActualizaProductoParams()
+                    Log.i("tag","onSaveClick: $data")
+                    detalleViewModel.actualizarProducto(data)
+                },
+            ){ updatedProduct ->
+                currentProduct.value = updatedProduct
+            }
         }
         PABottomSheetContainer(
             showBottomSheet = showBottomSheet
@@ -189,19 +209,19 @@ fun ItemScreen(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(
-                    count = imagePaths.size,
+                    count = currentProduct.value.pathImageList.size,
                 ){ item ->
                     PAImageItem(
-                        imagePath = imagePaths[item],
+                        imagePath = currentProduct.value.pathImageList[item],
                         onDeleteClick = {
-                            imageViewModel.deleteImage(imagePaths[item])
+                            imageViewModel.deleteImage(currentProduct.value.pathImageList[item])
                         }
                     )
                 }
                 item{
                     PAImageItem(
                         onImageClick = {
-                            if(imagePaths.size < 5){
+                            if(currentProduct.value.pathImageList.size < 5){
                                 openPicker()
                             } else{
                                 Toast
@@ -221,7 +241,9 @@ fun ItemScreen(
             BarcodeScannerScreen(
                 onBarcodeScanned = { code ->
                     showScanner.value = false
-                    itemViewModel.setBarCode(code)
+                    currentProduct.value = currentProduct.value.copy(
+                        codigoBarra = code
+                    )
                     Log.i("tag_pg", "Código escaneado: $code")
                 }
             )

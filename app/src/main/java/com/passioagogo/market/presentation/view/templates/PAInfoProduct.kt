@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -31,11 +30,12 @@ import com.passioagogo.market.presentation.view.models.PAInfoModel
 @Composable
 fun PAInfoProduct(
     modifier: Modifier = Modifier,
-    initialData: MutableState<PAInfoModel>,
+    initialData: PAInfoModel,
     onFamilyDropDownSelect: (family: String) -> Unit,
     onSaveClick: () -> Unit,
     onImageClick: () -> Unit,
     onScanClick: () -> Unit,
+    onDataChange: (PAInfoModel) -> Unit,
 ){
     val showNewCategoryDialog = remember { mutableStateOf(false) }
     val showNewSubcategoryDialog = remember { mutableStateOf(false) }
@@ -54,25 +54,31 @@ fun PAInfoProduct(
                         .weight(2f),
                 ) {
                     PATextInput(
-                        mutableInput = initialData.value.tittle,
+                        value = initialData.tittle,
                         modifier = Modifier
                             .fillMaxWidth(),
                         placeHolder = stringResource(id = R.string.label_name),
-                    )
+                    ){
+                        onDataChange(initialData.copy(tittle = it))
+                    }
                     PATextInput(
-                        mutableInput = initialData.value.sku,
+                        value = initialData.sku,
                         modifier = Modifier
                             .fillMaxWidth(),
                         placeHolder = stringResource(id = R.string.label_sku),
-                    )
+                    ){
+                        onDataChange(initialData.copy(sku = it))
+                    }
                     PATextInput(
-                        mutableInput = initialData.value.codigoBarra,
+                        value = initialData.codigoBarra,
                         modifier = Modifier
                             .fillMaxWidth(),
                         placeHolder = stringResource(id = R.string.label_codigo_de_barras),
                         trailingIcon = R.drawable.barcode_reader,
                         onTrailingIconClick = onScanClick
-                    )
+                    ){
+                        onDataChange(initialData.copy(codigoBarra = it))
+                    }
                 }
                 Box(
                         modifier = modifier
@@ -82,7 +88,7 @@ fun PAInfoProduct(
                 ){
                     ImageView(
                         modifier = modifier,
-                        imagePath = initialData.value.pathImageList.firstOrNull(),
+                        imagePath = initialData.pathImageList.firstOrNull(),
                         onImageClick = onImageClick
                     )
                 }
@@ -94,21 +100,25 @@ fun PAInfoProduct(
             containerTittle = "Información de ventas"
         ) {
             PATextInput(
-                mutableInput = initialData.value.sellPrice,
+                value = initialData.sellPrice,
                 modifier = Modifier
                     .fillMaxWidth(),
                 placeHolder = stringResource(id = R.string.label_sell_price),
                 keyboardType = KeyboardType.Number
-            )
+            ){
+                onDataChange(initialData.copy(sellPrice = it))
+            }
             PATextInput(
-                mutableInput = initialData.value.description,
+                value = initialData.description,
                 modifier = Modifier
                     .fillMaxWidth(),
                 placeHolder = stringResource(id = R.string.label_description),
                 minLines = 3,
                 maxLines = 5,
                 maxLength = 50,
-            )
+            ){
+                onDataChange(initialData.copy(description = it))
+            }
         }
         Spacer(modifier = Modifier.size(10.dp))
         PAContainer(
@@ -116,26 +126,32 @@ fun PAInfoProduct(
             containerTittle = "Seguimiento del artículo"
         ) {
             PATextInput(
-                mutableInput = initialData.value.currentStock,
+                value = initialData.currentStock,
                 modifier = Modifier
                     .fillMaxWidth(),
                 placeHolder = stringResource(id = R.string.label_actual_stock),
                 keyboardType = KeyboardType.Number
-            )
+            ){
+                onDataChange(initialData.copy(currentStock = it))
+            }
             PATextInput(
-                mutableInput = initialData.value.minStock,
+                value = initialData.minStock,
                 modifier = Modifier
                     .fillMaxWidth(),
                 placeHolder = stringResource(id = R.string.label_reposition_quantity),
                 keyboardType = KeyboardType.Number
-            )
+            ){
+                onDataChange(initialData.copy(minStock = it))
+            }
             PATextInput(
-                mutableInput = initialData.value.buyPrice,
+                value = initialData.buyPrice,
                 modifier = Modifier
                     .fillMaxWidth(),
                 placeHolder = stringResource(id = R.string.label_buy_price),
                 keyboardType = KeyboardType.Number
-            )
+            ){
+                onDataChange(initialData.copy(buyPrice = it))
+            }
         }
         Spacer(modifier = Modifier.size(10.dp))
         PAContainer(
@@ -143,39 +159,41 @@ fun PAInfoProduct(
             containerTittle = "Atributos"
         ){
             PADropDown(
-                item = initialData.value.family,
-                items = initialData.value.familyList,
+                item = initialData.family,
+                items = initialData.familyList,
                 modifier = Modifier
                     .fillMaxWidth(),
                 placeHolder = stringResource(id = R.string.label_family),
             ){
                 Log.i("tag","dropdown: $it")
-                onFamilyDropDownSelect(it)
+                onDataChange(initialData.copy(family = it))
             }
             PADropDown(
                 modifier = Modifier
                     .fillMaxWidth(),
                 placeHolder = stringResource(id = R.string.label_categories),
-                item = initialData.value.category,
-                items = initialData.value.categoryList,
+                item = initialData.category,
+                items = initialData.categoryList,
                 onAddNewClick = {
                     showNewCategoryDialog.value = true
                     Log.i("tag","onAddNewClick")
                 }
             ){
+                onDataChange(initialData.copy(category = it))
                 Log.i("tag","dropdown: $it")
             }
 //            PADropDown(
 //                modifier = Modifier
 //                    .fillMaxWidth(),
 //                placeHolder = stringResource(id = R.string.label_subcategories),
-//                items = initialData.value.subcategoryList,
-//                item = initialData.value.subcategory,
+//                items = initialData.subcategoryList,
+//                item = initialData.subcategory,
 //                onAddNewClick = {
 //                    showNewSubcategoryDialog.value = true
 //                    Log.i("tag","onAddNewClick")
 //                }
 //            ){
+//            onDataChange(initialData.copy(subcategory = it))
 //                Log.i("tag","dropdown: $it")
 //            }
         }
@@ -191,15 +209,23 @@ fun PAInfoProduct(
         tittle = "Añadir nueva categoría",
         showDialog = showNewCategoryDialog
     ){
-        initialData.value.categoryList.add(it)
-        initialData.value.category.value = it
+        onDataChange(
+            initialData.copy(
+                category = it,
+                categoryList = initialData.categoryList + it
+            )
+        )
     }
     PACustomAlertDialog(
         tittle = "Añadir nueva subcategoría",
         showDialog = showNewSubcategoryDialog
     ){
-        initialData.value.subcategoryList.add(it)
-        initialData.value.subcategory.value = it
+        onDataChange(
+            initialData.copy(
+                subcategory = it,
+                subcategoryList = initialData.subcategoryList + it
+            )
+        )
     }
 }
 
@@ -209,10 +235,10 @@ private fun Preview(
 
 ){
     PAInfoProduct(
-        initialData = remember {mutableStateOf(PAInfoModel())},
+        initialData = PAInfoModel(),
         onFamilyDropDownSelect = {},
         onSaveClick = {},
         onScanClick = {},
         onImageClick = {}
-    )
+    ){}
 }

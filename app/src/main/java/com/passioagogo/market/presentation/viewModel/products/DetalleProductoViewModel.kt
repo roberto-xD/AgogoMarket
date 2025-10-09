@@ -1,24 +1,26 @@
 package com.passioagogo.market.presentation.viewModel.products
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.passioagogo.market.domain.state.DomainException
 import com.passioagogo.market.domain.state.onError
 import com.passioagogo.market.domain.state.onSuccess
-import com.passioagogo.market.domain.usecase.producto.ActualizarProductoUseCase
 import com.passioagogo.market.domain.usecase.compras.GestionarStockUseCase
-import com.passioagogo.market.domain.usecase.producto.GuardarImagenParams
-import com.passioagogo.market.domain.usecase.producto.GuardarImagenProductoUseCase
 import com.passioagogo.market.domain.usecase.compras.MovimientoStockParams
-import com.passioagogo.market.domain.usecase.producto.ObtenerProductoDetalladoUseCase
 import com.passioagogo.market.domain.usecase.compras.RegistrarCompraParams
 import com.passioagogo.market.domain.usecase.compras.RegistrarCompraUseCase
-import com.passioagogo.market.domain.usecase.ventas.RegistrarVentaParams
-import com.passioagogo.market.domain.usecase.ventas.RegistrarVentaUseCase
 import com.passioagogo.market.domain.usecase.compras.TipoMovimiento
+import com.passioagogo.market.domain.usecase.producto.ActualizaProductoParams
+import com.passioagogo.market.domain.usecase.producto.ActualizarProductoDetalladoUseCase
+import com.passioagogo.market.domain.usecase.producto.GuardarImagenParams
+import com.passioagogo.market.domain.usecase.producto.GuardarImagenProductoUseCase
+import com.passioagogo.market.domain.usecase.producto.ObtenerProductoDetalladoUseCase
 import com.passioagogo.market.domain.usecase.producto.ValidarCodigoBarrasUseCase
 import com.passioagogo.market.domain.usecase.producto.ValidarSkuParams
 import com.passioagogo.market.domain.usecase.producto.ValidarSkuUseCase
+import com.passioagogo.market.domain.usecase.ventas.RegistrarVentaParams
+import com.passioagogo.market.domain.usecase.ventas.RegistrarVentaUseCase
 import com.passioagogo.market.presentation.uiState.DetalleProductoUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -31,6 +33,7 @@ import javax.inject.Inject
 @HiltViewModel
 class DetalleProductoViewModel @Inject constructor(
     private val obtenerProductoDetalladoUseCase: ObtenerProductoDetalladoUseCase,
+    private val actualizarProductoDetalladoUseCase: ActualizarProductoDetalladoUseCase,
     private val gestionarStockUseCase: GestionarStockUseCase,
     private val registrarVentaUseCase: RegistrarVentaUseCase,
     private val registrarCompraUseCase: RegistrarCompraUseCase,
@@ -58,6 +61,27 @@ class DetalleProductoViewModel @Inject constructor(
                     it.copy(
                         errorMessage = error.message,
                         isLoading = false
+                    )
+                }
+            }
+        }
+    }
+
+    fun actualizarProducto(datosProducto: ActualizaProductoParams) {
+        viewModelScope.launch {
+            actualizarProductoDetalladoUseCase.invoke(datosProducto).onSuccess {
+                Log.i("tag", "Producto actualizado exitosamente")
+                _uiState.update {
+                    it.copy(
+                        mensajeExito = "Producto actualizado exitosamente"
+                    )
+                    // Los datos se actualizarán automáticamente por el Flow
+                }
+            }.onError { error ->
+                Log.i("tag", "error al actualizar: $error")
+                _uiState.update {
+                    it.copy(
+                        errorMessage = error.message ?: "Error desconocido"
                     )
                 }
             }

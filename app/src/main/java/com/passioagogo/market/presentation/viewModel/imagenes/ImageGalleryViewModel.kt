@@ -1,7 +1,6 @@
 package com.passioagogo.market.presentation.viewModel.imagenes
 
 import android.net.Uri
-import android.util.Log
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
@@ -19,6 +18,7 @@ import javax.inject.Inject
 
 data class ImageGalleryUiState(
     val images: List<String> = emptyList(),
+    val deleteImage: String? = null,
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
     val selectedImageForPreview: String? = null
@@ -33,8 +33,6 @@ class ImageGalleryViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(ImageGalleryUiState())
     val uiState: StateFlow<ImageGalleryUiState> = _uiState.asStateFlow()
-    private val _actualFilePaths = MutableStateFlow<List<String>>(emptyList())
-    val actualFilePaths: StateFlow<List<String>> = _actualFilePaths.asStateFlow()
     val showBottomSheet: MutableState<Boolean> = mutableStateOf(false)
 
     fun saveSharedImages(uris: List<Uri>) {
@@ -48,11 +46,9 @@ class ImageGalleryViewModel @Inject constructor(
             val failures = results.filter { it.isFailure }
             val success = results.filter { it.isSuccess }.map { result -> result.fold(onSuccess = { it }, onFailure = { "" }) }
 
-            _actualFilePaths.value = _actualFilePaths.value + success
-            Log.i("tag","actual paths: ${actualFilePaths.value}")
             _uiState.update {
                 it.copy(
-                    images = actualFilePaths.value,
+                    images = success,
                     isLoading = false,
                     errorMessage = "Error al guardar ${failures.size} imagen(es)"
                 )
@@ -64,10 +60,9 @@ class ImageGalleryViewModel @Inject constructor(
         viewModelScope.launch {
             deleteImageUseCase.execute(imagePath).fold(
                 onSuccess = {
-                    _actualFilePaths.value = _actualFilePaths.value.filter { it != imagePath }
                     _uiState.update {
                         it.copy(
-                            images = actualFilePaths.value,
+                            deleteImage = imagePath,
                             isLoading = false,
                             errorMessage = "Error al borrar imagen"
                         )
@@ -83,6 +78,14 @@ class ImageGalleryViewModel @Inject constructor(
     }
     fun clearError() {
         _uiState.update { it.copy(errorMessage = null) }
+    }
+
+    fun clearPaths(){
+        _uiState.update { it.copy(images = emptyList()) }
+    }
+
+    init {
+        loadImages()
     }
 
     private fun loadImages() {

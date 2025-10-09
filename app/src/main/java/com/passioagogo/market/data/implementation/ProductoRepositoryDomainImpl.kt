@@ -179,7 +179,7 @@ class ProductoRepositoryDomainImpl @Inject constructor(
                         productoId = productoId,
                         rutaImagen = imagen.rutaImagen,
                         orden = imagen.orden,
-                        esPrincipal = imagen.esPrincipal,
+                        esPrincipal = imagen.orden == 0,
                         fechaCreacion = imagen.fechaCreacion
                     )
                 )
@@ -211,13 +211,14 @@ class ProductoRepositoryDomainImpl @Inject constructor(
             )
             productoDao.actualizarProducto(entity)
 
+
             // Actualizar relaciones (eliminar y recrear)
             productoFamiliaDao.eliminarFamiliaDeProducto(productoId)
             productoCategoriaDao.eliminarCategoriasDeProducto(productoId)
             productoSubcategoriaDao.eliminarSubcategoriasDeProducto(productoId)
 
             val productoFamilia = ProductoFamiliaEntity(
-                familiaId = productoDetallado.familia?: 0,
+                familiaId = productoDetallado.familia?: 1,
                 productoId = productoId
             )
             productoFamiliaDao.insertarProductoFamilia(productoFamilia)
@@ -231,13 +232,25 @@ class ProductoRepositoryDomainImpl @Inject constructor(
             }
             productoCategoriaDao.insertarProductoCategorias(productosCategorias)
 
-            val productosSubcategorias = productoDetallado.subcategorias.map { subcategoria ->
-                ProductoSubcategoriaEntity(
-                    productoId = productoId,
-                    subcategoriaId = subcategoria
+//            val productosSubcategorias = productoDetallado.subcategorias.map { subcategoria ->
+//                ProductoSubcategoriaEntity(
+//                    productoId = productoId,
+//                    subcategoriaId = subcategoria
+//                )
+//            }
+//            productoSubcategoriaDao.insertarProductoSubcategorias(productosSubcategorias)
+
+            productoDetallado.imagenes.forEach { imagen ->
+                productoImagenDao.insertarImagen(
+                    ProductoImagenEntity(
+                        productoId = productoId,
+                        rutaImagen = imagen.rutaImagen,
+                        orden = imagen.orden,
+                        esPrincipal = imagen.esPrincipal,
+                        fechaCreacion = imagen.fechaCreacion
+                    )
                 )
             }
-            productoSubcategoriaDao.insertarProductoSubcategorias(productosSubcategorias)
 
             PADomainState.Success(Unit)
         } catch (e: Exception) {

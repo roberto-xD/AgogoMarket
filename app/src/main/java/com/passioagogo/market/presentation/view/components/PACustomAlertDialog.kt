@@ -24,10 +24,12 @@ fun PACustomAlertDialog(
             title = { Text(tittle) },
             text = {
                 PATextInput(
-                    mutableInput = inputText,
+                    value = inputText.value,
                     modifier = Modifier
                         .fillMaxWidth(),
-                )
+                ){
+                    inputText.value = it
+                }
             },
             confirmButton = {
                 TextButton(
