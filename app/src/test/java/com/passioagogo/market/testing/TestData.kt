@@ -4,7 +4,7 @@ import com.passioagogo.market.domain.bean.Categoria
 import com.passioagogo.market.domain.bean.Familia
 import com.passioagogo.market.domain.bean.Producto
 import com.passioagogo.market.domain.bean.Proveedor
-import com.passioagogo.market.domain.usecase.producto.CrearProductoParams
+import com.passioagogo.market.domain.usecase.producto.GuardarProductoParams
 
 object TestData {
 
@@ -106,7 +106,7 @@ object TestData {
     )
 
     // Parámetros de casos de uso
-    val crearProductoParamsValidos = CrearProductoParams(
+    val crearProductoParamsValidos = GuardarProductoParams(
         nombre = "Nuevo Producto",
         descripcion = "Descripción del nuevo producto",
         skuInterno = "NEW001",
@@ -119,7 +119,7 @@ object TestData {
         color = "Verde"
     )
 
-    val crearProductoParamsInvalidos = CrearProductoParams(
+    val crearProductoParamsInvalidos = GuardarProductoParams(
         nombre = "", // Nombre vacío - inválido
         descripcion = null,
         skuInterno = "",

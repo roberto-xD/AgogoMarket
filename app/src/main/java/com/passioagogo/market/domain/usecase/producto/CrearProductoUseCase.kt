@@ -9,31 +9,12 @@ import com.passioagogo.market.domain.usecase.base.UseCase
 import javax.inject.Inject
 import javax.inject.Singleton
 
-data class CrearProductoParams(
-    val nombre: String = "",
-    val descripcion: String? = null,
-    val skuInterno: String = "",
-    val codigoBarras: String? = null,
-    val precioCompra: Double = 0.0,
-    val precioVenta: Double = 0.0,
-    val cantidadInicial: Int = 0,
-    val cantidadMinima: Int = 0,
-    val cantidadActual: Int = 0,
-    val proveedorPrincipalId: Long? = null,
-    val color: String? = null,
-    val imagenes: List<String> = emptyList(),
-    val familiaId: Long? = null,
-    val categorias: List<Long> = emptyList(),
-    val subcategorias: List<Long> = emptyList(),
-    val atributos: Map<String, String> = emptyMap()
-)
-
 @Singleton
 class CrearProductoUseCase @Inject constructor(
     private val productoRepository: IProductoRepository
-) : UseCase<CrearProductoParams, Long>() {
+) : UseCase<GuardarProductoParams, Long>() {
 
-    override suspend fun execute(parameters: CrearProductoParams): Long {
+    override suspend fun execute(parameters: GuardarProductoParams): Long {
         // Validaciones de negocio
         validarDatosProducto(parameters)
 
@@ -79,7 +60,7 @@ class CrearProductoUseCase @Inject constructor(
         }
     }
 
-    private fun validarDatosProducto(params: CrearProductoParams) {
+    private fun validarDatosProducto(params: GuardarProductoParams) {
         if (params.nombre.isBlank()) {
             throw IllegalArgumentException("El nombre del producto no puede estar vacío")
         }

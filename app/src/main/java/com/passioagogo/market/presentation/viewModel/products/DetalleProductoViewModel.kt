@@ -11,10 +11,11 @@ import com.passioagogo.market.domain.usecase.compras.MovimientoStockParams
 import com.passioagogo.market.domain.usecase.compras.RegistrarCompraParams
 import com.passioagogo.market.domain.usecase.compras.RegistrarCompraUseCase
 import com.passioagogo.market.domain.usecase.compras.TipoMovimiento
-import com.passioagogo.market.domain.usecase.producto.ActualizaProductoParams
 import com.passioagogo.market.domain.usecase.producto.ActualizarProductoDetalladoUseCase
+import com.passioagogo.market.domain.usecase.producto.CrearProductoUseCase
 import com.passioagogo.market.domain.usecase.producto.GuardarImagenParams
 import com.passioagogo.market.domain.usecase.producto.GuardarImagenProductoUseCase
+import com.passioagogo.market.domain.usecase.producto.GuardarProductoParams
 import com.passioagogo.market.domain.usecase.producto.ObtenerProductoDetalladoUseCase
 import com.passioagogo.market.domain.usecase.producto.ValidarCodigoBarrasUseCase
 import com.passioagogo.market.domain.usecase.producto.ValidarSkuParams
@@ -34,6 +35,7 @@ import javax.inject.Inject
 class DetalleProductoViewModel @Inject constructor(
     private val obtenerProductoDetalladoUseCase: ObtenerProductoDetalladoUseCase,
     private val actualizarProductoDetalladoUseCase: ActualizarProductoDetalladoUseCase,
+    private val crearProductoUseCase: CrearProductoUseCase,
     private val gestionarStockUseCase: GestionarStockUseCase,
     private val registrarVentaUseCase: RegistrarVentaUseCase,
     private val registrarCompraUseCase: RegistrarCompraUseCase,
@@ -67,7 +69,7 @@ class DetalleProductoViewModel @Inject constructor(
         }
     }
 
-    fun actualizarProducto(datosProducto: ActualizaProductoParams) {
+    fun actualizarProductoDetallado(datosProducto: GuardarProductoParams) {
         viewModelScope.launch {
             actualizarProductoDetalladoUseCase.invoke(datosProducto).onSuccess {
                 Log.i("tag", "Producto actualizado exitosamente")
@@ -75,13 +77,40 @@ class DetalleProductoViewModel @Inject constructor(
                     it.copy(
                         mensajeExito = "Producto actualizado exitosamente"
                     )
-                    // Los datos se actualizarán automáticamente por el Flow
                 }
             }.onError { error ->
                 Log.i("tag", "error al actualizar: $error")
                 _uiState.update {
                     it.copy(
                         errorMessage = error.message ?: "Error desconocido"
+                    )
+                }
+            }
+        }
+    }
+
+    fun crearProductoDetallado(datosProducto: GuardarProductoParams) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
+
+            crearProductoUseCase(datosProducto).onSuccess { nuevoId ->
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        mensajeExito = "Producto creado exitosamente"
+                    )
+                }
+                // Los datos se actualizarán automáticamente por el Flow
+            }.onError { error ->
+                _uiState.update {
+                    it.copy(
+                        errorMessage = when (error) {
+                            is DomainException.SkuDuplicado -> "El SKU ya existe"
+                            is DomainException.CodigoBarrasDuplicado -> "El código de barras ya existe"
+                            is DomainException.PrecioInvalido -> "Precio inválido"
+                            else -> error.message ?: "Error desconocido"
+                        },
+                        isLoading = false
                     )
                 }
             }

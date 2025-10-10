@@ -35,12 +35,12 @@ class ImageGalleryViewModel @Inject constructor(
     val uiState: StateFlow<ImageGalleryUiState> = _uiState.asStateFlow()
     val showBottomSheet: MutableState<Boolean> = mutableStateOf(false)
 
-    fun saveSharedImages(uris: List<Uri>) {
+    fun saveSharedImages(uris: List<Uri>, id: Long? = null) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
 
             val results = uris.map { uri ->
-                saveSharedImageUseCase.execute(uri)
+                saveSharedImageUseCase.execute(uri,id)
             }
 
             val failures = results.filter { it.isFailure }

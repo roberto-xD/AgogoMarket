@@ -3,7 +3,6 @@ package com.passioagogo.market.presentation.viewModel.products
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.passioagogo.market.domain.bean.Producto
-import com.passioagogo.market.domain.state.DomainException
 import com.passioagogo.market.domain.state.onError
 import com.passioagogo.market.domain.state.onSuccess
 import com.passioagogo.market.domain.usecase.categorias.ObtenerCategoriasPorFamiliaUseCase
@@ -11,8 +10,6 @@ import com.passioagogo.market.domain.usecase.categorias.ObtenerCategoriasUseCase
 import com.passioagogo.market.domain.usecase.producto.ActualizarProductoUseCase
 import com.passioagogo.market.domain.usecase.producto.BuscarProductosParams
 import com.passioagogo.market.domain.usecase.producto.BuscarProductosUseCase
-import com.passioagogo.market.domain.usecase.producto.CrearProductoParams
-import com.passioagogo.market.domain.usecase.producto.CrearProductoUseCase
 import com.passioagogo.market.domain.usecase.producto.EliminarProductoUseCase
 import com.passioagogo.market.domain.usecase.producto.ObtenerProductosStockBajoUseCase
 import com.passioagogo.market.domain.usecase.producto.ObtenerProductosUseCase
@@ -31,7 +28,7 @@ class ProductosViewModel @Inject constructor(
     private val obtenerProductosUseCase: ObtenerProductosUseCase,
     private val obtenerProductosStockBajoUseCase: ObtenerProductosStockBajoUseCase,
     private val buscarProductosUseCase: BuscarProductosUseCase,
-    private val crearProductoUseCase: CrearProductoUseCase,
+
     private val actualizarProductoUseCase: ActualizarProductoUseCase,
     private val eliminarProductoUseCase: EliminarProductoUseCase,
     private val obtenerCategoriasUseCase: ObtenerCategoriasUseCase,
@@ -114,33 +111,7 @@ class ProductosViewModel @Inject constructor(
         }
     }
 
-    fun crearProducto(datosProducto: CrearProductoParams) {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
 
-            crearProductoUseCase(datosProducto).onSuccess { nuevoId ->
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        mensajeExito = "Producto creado exitosamente"
-                    )
-                }
-                // Los datos se actualizarán automáticamente por el Flow
-            }.onError { error ->
-                _uiState.update {
-                    it.copy(
-                        errorMessage = when (error) {
-                            is DomainException.SkuDuplicado -> "El SKU ya existe"
-                            is DomainException.CodigoBarrasDuplicado -> "El código de barras ya existe"
-                            is DomainException.PrecioInvalido -> "Precio inválido"
-                            else -> error.message ?: "Error desconocido"
-                        },
-                        isLoading = false
-                    )
-                }
-            }
-        }
-    }
 
     fun actualizarProducto(datosProducto: Producto) {
         viewModelScope.launch {

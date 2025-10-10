@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface ProductoDao {
     @Query("SELECT * FROM productos WHERE nombre LIKE :searchTerm || '%'")
-    fun buscarProductos(searchTerm: String): Flow<List<ProductoEntity>>
+    fun buscarProductos(searchTerm: String): Flow<List<ProductoConImagenes>>
 
     @Transaction
     @Query("SELECT * FROM productos WHERE activo = 1 ORDER BY nombre")

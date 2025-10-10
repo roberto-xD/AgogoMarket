@@ -1,6 +1,6 @@
 package com.passioagogo.market.domain.bean
 
-import com.passioagogo.market.domain.usecase.producto.CrearProductoParams
+import com.passioagogo.market.domain.usecase.producto.GuardarProductoParams
 
 data class ProductoImport(
     val numeroFila: Int,
@@ -24,8 +24,8 @@ data class ProductoImport(
     val esValido: Boolean
         get() = erroresValidacion.isEmpty()
 
-    fun toCrearProductoParams(): CrearProductoParams {
-        return CrearProductoParams(
+    fun toCrearProductoParams(): GuardarProductoParams {
+        return GuardarProductoParams(
             nombre = nombre,
             descripcion = descripcion,
             skuInterno = skuInterno,

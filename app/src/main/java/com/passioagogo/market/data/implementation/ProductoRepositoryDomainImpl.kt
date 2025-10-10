@@ -343,7 +343,7 @@ class ProductoRepositoryDomainImpl @Inject constructor(
 
     override suspend fun buscarProductos(query: String): Flow<List<Producto>> {
         return productoDao.buscarProductos(query).map { productos ->
-            productos.map { Producto.fromEntity(it) }
+            productos.map { Producto.fromEntity(it.producto).copy(imagenPrincipal = it.imagenes.firstOrNull()?.rutaImagen.orEmpty()) }
         }
     }
 }

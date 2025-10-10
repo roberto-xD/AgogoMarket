@@ -11,7 +11,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 
-data class ActualizaProductoParams(
+data class GuardarProductoParams(
     val id : Long = 0,
     val nombre: String = "",
     val descripcion: String? = null,
@@ -33,9 +33,9 @@ data class ActualizaProductoParams(
 @Singleton
 class ActualizarProductoDetalladoUseCase @Inject constructor(
     private val productoRepository: IProductoRepository
-) : UseCase<ActualizaProductoParams, Unit>() {
+) : UseCase<GuardarProductoParams, Unit>() {
 
-    override suspend fun execute(parameters: ActualizaProductoParams) {
+    override suspend fun execute(parameters: GuardarProductoParams) {
         // Validaciones de negocio
         validarDatosProducto(parameters)
 
@@ -73,7 +73,7 @@ class ActualizarProductoDetalladoUseCase @Inject constructor(
         }
     }
 
-    private fun validarDatosProducto(params: ActualizaProductoParams) {
+    private fun validarDatosProducto(params: GuardarProductoParams) {
         if (params.nombre.isBlank()) {
             throw IllegalArgumentException("El nombre del producto no puede estar vacío")
         }

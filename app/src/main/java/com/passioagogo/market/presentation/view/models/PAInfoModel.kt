@@ -1,10 +1,10 @@
 package com.passioagogo.market.presentation.view.models
 
 import com.passioagogo.market.domain.bean.ProductoDetallado
-import com.passioagogo.market.domain.usecase.producto.ActualizaProductoParams
+import com.passioagogo.market.domain.usecase.producto.GuardarProductoParams
 
 data class PAInfoModel(
-    val id: Long = 0,
+    val id: Long ?= null,
     val tittle          : String = "",
     val description     : String = "",
     val pathImageList   : List<String> = listOf(),
@@ -50,9 +50,9 @@ data class PAInfoModel(
             )
         }
 
-        fun toActualizaProductoParams(): ActualizaProductoParams {
-            return ActualizaProductoParams(
-                id = id,
+        fun toActualizaProductoParams(): GuardarProductoParams {
+            return GuardarProductoParams(
+                id = id ?: 0L,
                 nombre = tittle,
                 descripcion = description,
                 skuInterno = sku,

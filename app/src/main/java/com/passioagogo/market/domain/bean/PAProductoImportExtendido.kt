@@ -1,6 +1,6 @@
 package com.passioagogo.market.domain.bean
 
-import com.passioagogo.market.domain.usecase.producto.CrearProductoParams
+import com.passioagogo.market.domain.usecase.producto.GuardarProductoParams
 
 data class ProductoImportExtendido(
     val productoBase: ProductoImport,
@@ -17,8 +17,8 @@ data class ProductoImportExtendido(
         familiaId: Long ?= null,
         categoriaIds: List<Long> = emptyList(),
         subcategoriaIds: List<Long> = emptyList()
-    ): CrearProductoParams {
-        return CrearProductoParams(
+    ): GuardarProductoParams {
+        return GuardarProductoParams(
             nombre = productoBase.nombre,
             descripcion = productoBase.descripcion,
             skuInterno = productoBase.skuInterno,

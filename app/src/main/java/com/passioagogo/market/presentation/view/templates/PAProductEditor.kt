@@ -16,12 +16,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.passioagogo.market.R
 import com.passioagogo.market.domain.bean.Producto
-import com.passioagogo.market.domain.usecase.producto.CrearProductoParams
+import com.passioagogo.market.domain.usecase.producto.GuardarProductoParams
 
 @Composable
 fun ProductEditor(
     currentProduct: Producto,
-    updateItem: (item: CrearProductoParams?) -> Unit,
+    updateItem: (item: GuardarProductoParams?) -> Unit,
 ) {
     val context = LocalContext.current
 

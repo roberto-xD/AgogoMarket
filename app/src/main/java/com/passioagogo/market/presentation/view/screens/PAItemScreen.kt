@@ -37,7 +37,6 @@ import com.passioagogo.market.presentation.view.components.PAToolbar
 import com.passioagogo.market.presentation.view.models.PAInfoModel
 import com.passioagogo.market.presentation.view.templates.PAInfoProduct
 import com.passioagogo.market.presentation.viewModel.BackPressHandler
-import com.passioagogo.market.presentation.viewModel.ItemViewModel
 import com.passioagogo.market.presentation.viewModel.imagenes.ImageGalleryViewModel
 import com.passioagogo.market.presentation.viewModel.products.DetalleProductoViewModel
 import com.passioagogo.market.presentation.viewModel.products.FamiliasViewModel
@@ -48,7 +47,6 @@ import com.passioagogo.market.presentation.viewModel.products.ProductosViewModel
 fun ItemScreen(
     imageViewModel: ImageGalleryViewModel,
     detalleViewModel: DetalleProductoViewModel,
-    itemViewModel: ItemViewModel = hiltViewModel(),
     familiasViewModel: FamiliasViewModel = hiltViewModel(),
     productosViewModel: ProductosViewModel = hiltViewModel(),
     navigateToBack: () -> Unit,
@@ -79,7 +77,7 @@ fun ItemScreen(
     ) { uris ->
         if (uris.isNotEmpty()) {
             val show = if(uris.size < 5) uris else uris.subList(0,5)
-            imageViewModel.saveSharedImages(show)
+            imageViewModel.saveSharedImages(show, currentProduct.value.id)
         }
     }
 
@@ -92,16 +90,17 @@ fun ItemScreen(
     }
 
     val scope = rememberCoroutineScope()
-    val backPressHandler = remember { BackPressHandler(delayMillis = 2000L) }
+    val backPressHandler = remember { BackPressHandler(delayMillis = 4000L) }
 
     fun backClick(){
         backPressHandler.onBackPressed(
             scope = scope,
             onFirstPress = {
-                Toast.makeText(context, "Presiona de nuevo para salir", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "Presiona de nuevo para salir", Toast.LENGTH_LONG).show()
             },
             onSecondPress = {
                 imageViewModel.clearPaths()
+                currentProduct.value = PAInfoModel()
                 navigateToBack()
             }
         )
@@ -191,7 +190,11 @@ fun ItemScreen(
                 onSaveClick = {
                     val data = currentProduct.value.toActualizaProductoParams()
                     Log.i("tag","onSaveClick: $data")
-                    detalleViewModel.actualizarProducto(data)
+                    if(data.id != 0L){
+                        detalleViewModel.actualizarProductoDetallado(data)
+                    }else {
+                        detalleViewModel.crearProductoDetallado(data)
+                    }
                 },
             ){ updatedProduct ->
                 currentProduct.value = updatedProduct
