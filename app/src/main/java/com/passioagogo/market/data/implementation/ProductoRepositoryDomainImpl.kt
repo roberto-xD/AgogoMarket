@@ -48,7 +48,7 @@ class ProductoRepositoryDomainImpl @Inject constructor(
 
     override suspend fun obtenerTodosLosProductos(): Flow<List<Producto>> {
         return productoDao.obtenerProductosActivos().map { entities ->
-            entities.map { Producto.fromEntity(it) }
+            entities.map { Producto.fromEntity(it.producto).copy(imagenPrincipal = it.imagenes.firstOrNull()?.rutaImagen.orEmpty()) }
         }
     }
 

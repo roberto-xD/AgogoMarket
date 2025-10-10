@@ -94,7 +94,7 @@ fun DashboardScreen(
                             ProductCard(
                                 id = product.id,
                                 tittle = product.nombre,
-                                imagePath = "",
+                                imagePath = product.imagenPrincipal,
                                 onStock = product.activo,
                                 sellPrice = product.precioVenta.toString(),
                             ) { id ->

@@ -1,9 +1,12 @@
 package com.passioagogo.market.data.local.entity.base
 
+import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import androidx.room.Relation
+import com.passioagogo.market.data.local.entity.utils.ProductoImagenEntity
 
 @Entity(
     tableName = "productos",
@@ -40,4 +43,13 @@ data class ProductoEntity(
     val activo: Boolean = true,
     val fechaCreacion: Long = System.currentTimeMillis(),
     val fechaActualizacion: Long = System.currentTimeMillis()
+)
+
+data class ProductoConImagenes(
+    @Embedded val producto: ProductoEntity,
+    @Relation(
+        parentColumn = "id",
+        entityColumn = "productoId"
+    )
+    val imagenes: List<ProductoImagenEntity>
 )

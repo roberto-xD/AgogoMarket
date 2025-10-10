@@ -3,9 +3,10 @@ package com.passioagogo.market.data.local.dao
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Transaction
 import androidx.room.Update
+import com.passioagogo.market.data.local.entity.base.ProductoConImagenes
 import com.passioagogo.market.data.local.entity.base.ProductoEntity
-import com.passioagogo.market.domain.bean.Producto
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -13,8 +14,9 @@ interface ProductoDao {
     @Query("SELECT * FROM productos WHERE nombre LIKE :searchTerm || '%'")
     fun buscarProductos(searchTerm: String): Flow<List<ProductoEntity>>
 
+    @Transaction
     @Query("SELECT * FROM productos WHERE activo = 1 ORDER BY nombre")
-    fun obtenerProductosActivos(): Flow<List<ProductoEntity>>
+    fun obtenerProductosActivos(): Flow<List<ProductoConImagenes>>
 
     @Query("SELECT * FROM productos WHERE id = :id")
     suspend fun obtenerProductoPorId(id: Long): ProductoEntity?

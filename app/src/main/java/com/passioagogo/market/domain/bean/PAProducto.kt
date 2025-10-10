@@ -7,6 +7,7 @@ data class Producto(
     val id: Long = 0,
     val nombre: String = "",
     val descripcion: String?= null,
+    val imagenPrincipal: String = "",
     val codigoBarras: String?= null,
     val skuInterno: String = "",
     val precioCompra: Double = 0.0,
@@ -41,7 +42,9 @@ data class Producto(
         get() = fechaUltimaVenta?.let { System.currentTimeMillis() - it }
 
     companion object {
-        fun fromEntity(entity: ProductoEntity): Producto {
+        fun fromEntity(
+            entity: ProductoEntity,
+        ): Producto {
             return Producto(
                 id = entity.id,
                 nombre = entity.nombre,

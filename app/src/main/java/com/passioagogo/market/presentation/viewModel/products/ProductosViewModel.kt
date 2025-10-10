@@ -8,7 +8,6 @@ import com.passioagogo.market.domain.state.onError
 import com.passioagogo.market.domain.state.onSuccess
 import com.passioagogo.market.domain.usecase.categorias.ObtenerCategoriasPorFamiliaUseCase
 import com.passioagogo.market.domain.usecase.categorias.ObtenerCategoriasUseCase
-import com.passioagogo.market.domain.usecase.imagenes.ObtenerImagenPrincipalUseCase
 import com.passioagogo.market.domain.usecase.producto.ActualizarProductoUseCase
 import com.passioagogo.market.domain.usecase.producto.BuscarProductosParams
 import com.passioagogo.market.domain.usecase.producto.BuscarProductosUseCase
@@ -35,7 +34,6 @@ class ProductosViewModel @Inject constructor(
     private val crearProductoUseCase: CrearProductoUseCase,
     private val actualizarProductoUseCase: ActualizarProductoUseCase,
     private val eliminarProductoUseCase: EliminarProductoUseCase,
-    private val obtenerImagenPrincipalUseCase: ObtenerImagenPrincipalUseCase,
     private val obtenerCategoriasUseCase: ObtenerCategoriasUseCase,
     private val obtenerProveedoresUseCase: ObtenerProveedoresUseCase,
     private val obtenerCategoriasPorFamiliaUseCase: ObtenerCategoriasPorFamiliaUseCase,
