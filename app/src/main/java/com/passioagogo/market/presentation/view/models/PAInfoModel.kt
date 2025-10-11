@@ -12,6 +12,7 @@ data class PAInfoModel(
     val codigoBarra     : String = "",
     val currentStock    : String = "",
     val minStock        : String = "",
+    val firtsStock      : String = "",
     val buyPrice        : String = "",
     val sellPrice       : String = "",
     val family          : String = "",
@@ -60,8 +61,9 @@ data class PAInfoModel(
                 precioCompra = buyPrice.toDouble(),
                 precioVenta = sellPrice.toDouble(),
                 cantidadMinima = minStock.toInt(),
-                cantidadInicial = currentStock.toInt(),
+                cantidadActual = currentStock.toInt(),
                 imagenes = pathImageList,
+//                cantidadInicial = if(id == 0L) currentStock.toInt() else firtsStock.toInt(), todo corregir esto
 //                categorias = emptyList(),
 //                subcategorias = emptyList(),
             )

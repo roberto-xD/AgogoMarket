@@ -7,11 +7,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.passioagogo.market.domain.bean.Producto
 import com.passioagogo.market.presentation.view.templates.ProductDetails
 import com.passioagogo.market.presentation.view.templates.ProductEditor
-import com.passioagogo.market.presentation.viewModel.products.ProductosViewModel
+import com.passioagogo.market.presentation.viewModel.products.DashboardViewModel
 
 @Composable
 fun DetailBottomSheet(
-    productViewModel: ProductosViewModel = hiltViewModel(),
+    productViewModel: DashboardViewModel = hiltViewModel(),
     enableEdit: Boolean = false,
     currentProduct: Producto,
     hideModal: (updateList: Boolean) -> Unit,
@@ -23,9 +23,7 @@ fun DetailBottomSheet(
         ProductEditor(
             currentProduct = currentProduct,
         ){ productoNuevo ->
-            productoNuevo?.let {
-                productViewModel.crearProducto(it)
-            }
+
         }
     }else{
         ProductDetails(

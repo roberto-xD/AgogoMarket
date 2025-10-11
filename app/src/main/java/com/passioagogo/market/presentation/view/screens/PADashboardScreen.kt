@@ -28,14 +28,14 @@ import com.passioagogo.market.presentation.view.components.ProductCard
 import com.passioagogo.market.presentation.view.components.SearchInput
 import com.passioagogo.market.presentation.view.components.Splash
 import com.passioagogo.market.presentation.viewModel.products.DetalleProductoViewModel
-import com.passioagogo.market.presentation.viewModel.products.ProductosViewModel
+import com.passioagogo.market.presentation.viewModel.products.DashboardViewModel
 import com.passioagogo.market.ui.decorators.shimmerEffect
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardScreen(
     detalleViewModel: DetalleProductoViewModel,
-    productViewModel: ProductosViewModel = hiltViewModel(),
+    productViewModel: DashboardViewModel = hiltViewModel(),
     navigateToProductScreen: () -> Unit,
     navigate: (route: String) -> Unit,
 ) {

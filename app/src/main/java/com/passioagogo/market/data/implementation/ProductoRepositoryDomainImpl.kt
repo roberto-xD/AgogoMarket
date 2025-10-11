@@ -12,7 +12,6 @@ import com.passioagogo.market.data.local.dao.ProveedorDao
 import com.passioagogo.market.data.local.dao.SubcategoriaDao
 import com.passioagogo.market.data.local.entity.relation.ProductoCategoriaEntity
 import com.passioagogo.market.data.local.entity.relation.ProductoFamiliaEntity
-import com.passioagogo.market.data.local.entity.relation.ProductoSubcategoriaEntity
 import com.passioagogo.market.data.local.entity.utils.ProductoImagenEntity
 import com.passioagogo.market.domain.bean.AtributoProducto
 import com.passioagogo.market.domain.bean.Categoria
@@ -146,7 +145,10 @@ class ProductoRepositoryDomainImpl @Inject constructor(
 
     override suspend fun guardarProductoDetallado(productoDetallado: ProductoDetallado): PADomainState<Long> {
         return try {
-            val productoId = productoDao.insertarProducto(productoDetallado.producto.toEntity())
+            val entity = productoDetallado.producto.toEntity().copy(
+                fechaActualizacion = System.currentTimeMillis()
+            )
+            val productoId = productoDao.insertarProducto(entity)
 
             // Guardar relaciones
             val productoFamilia = ProductoFamiliaEntity(
@@ -164,13 +166,13 @@ class ProductoRepositoryDomainImpl @Inject constructor(
             }
             productoCategoriaDao.insertarProductoCategorias(productosCategorias)
 
-            val productosSubcategorias = productoDetallado.subcategorias.map { subcategoria ->
-                ProductoSubcategoriaEntity(
-                    productoId = productoId,
-                    subcategoriaId = subcategoria
-                )
-            }
-            productoSubcategoriaDao.insertarProductoSubcategorias(productosSubcategorias)
+//            val productosSubcategorias = productoDetallado.subcategorias.map { subcategoria ->
+//                ProductoSubcategoriaEntity(
+//                    productoId = productoId,
+//                    subcategoriaId = subcategoria
+//                )
+//            }
+//            productoSubcategoriaDao.insertarProductoSubcategorias(productosSubcategorias)
 
             // Guardar imágenes
             productoDetallado.imagenes.forEach { imagen ->
@@ -210,7 +212,6 @@ class ProductoRepositoryDomainImpl @Inject constructor(
                 fechaActualizacion = System.currentTimeMillis()
             )
             productoDao.actualizarProducto(entity)
-
 
             // Actualizar relaciones (eliminar y recrear)
             productoFamiliaDao.eliminarFamiliaDeProducto(productoId)

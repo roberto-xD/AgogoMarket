@@ -21,7 +21,7 @@ internal fun PATextInput(
     keyboardType : KeyboardType = KeyboardType.Text,
     minLines: Int = 1,
     maxLines: Int = 1,
-    maxLength: Int = 15,
+    maxLength: Int = 35,
     onValueChange: (String) -> Unit,
 ){
     PAOutlinedTextField(

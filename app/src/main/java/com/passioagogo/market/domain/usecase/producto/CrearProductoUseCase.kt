@@ -1,5 +1,6 @@
 package com.passioagogo.market.domain.usecase.producto
 
+import com.passioagogo.market.domain.bean.ImagenProducto
 import com.passioagogo.market.domain.bean.Producto
 import com.passioagogo.market.domain.bean.ProductoDetallado
 import com.passioagogo.market.domain.repository.IProductoRepository
@@ -50,7 +51,13 @@ class CrearProductoUseCase @Inject constructor(
             producto = producto,
             familia = parameters.familiaId,
             categorias = parameters.categorias,
-            subcategorias = parameters.subcategorias
+            subcategorias = parameters.subcategorias,
+            imagenes = parameters.imagenes.map {
+                ImagenProducto(
+                    orden = parameters.imagenes.indexOf(it),
+                    rutaImagen = it,
+                )
+            },
         )
 
         return when (val result = productoRepository.guardarProductoDetallado(productoDetallado)) {

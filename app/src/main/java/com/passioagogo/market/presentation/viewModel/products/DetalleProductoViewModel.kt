@@ -13,6 +13,7 @@ import com.passioagogo.market.domain.usecase.compras.RegistrarCompraUseCase
 import com.passioagogo.market.domain.usecase.compras.TipoMovimiento
 import com.passioagogo.market.domain.usecase.producto.ActualizarProductoDetalladoUseCase
 import com.passioagogo.market.domain.usecase.producto.CrearProductoUseCase
+import com.passioagogo.market.domain.usecase.producto.EliminarProductoUseCase
 import com.passioagogo.market.domain.usecase.producto.GuardarImagenParams
 import com.passioagogo.market.domain.usecase.producto.GuardarImagenProductoUseCase
 import com.passioagogo.market.domain.usecase.producto.GuardarProductoParams
@@ -36,6 +37,7 @@ class DetalleProductoViewModel @Inject constructor(
     private val obtenerProductoDetalladoUseCase: ObtenerProductoDetalladoUseCase,
     private val actualizarProductoDetalladoUseCase: ActualizarProductoDetalladoUseCase,
     private val crearProductoUseCase: CrearProductoUseCase,
+    private val eliminarProductoUseCase: EliminarProductoUseCase,
     private val gestionarStockUseCase: GestionarStockUseCase,
     private val registrarVentaUseCase: RegistrarVentaUseCase,
     private val registrarCompraUseCase: RegistrarCompraUseCase,
@@ -46,6 +48,17 @@ class DetalleProductoViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(DetalleProductoUiState())
     val uiState: StateFlow<DetalleProductoUiState> = _uiState.asStateFlow()
+
+    private val _snackbarMessage = MutableStateFlow<String?>(null)
+    val snackbarMessage = _snackbarMessage.asStateFlow()
+
+    fun showSnackbar(message: String) {
+        _snackbarMessage.value = message
+    }
+
+    fun clearSnackbarMessage() {
+        _snackbarMessage.value = null
+    }
 
     fun cargarProducto(id: Long) {
         viewModelScope.launch {
@@ -96,6 +109,7 @@ class DetalleProductoViewModel @Inject constructor(
             crearProductoUseCase(datosProducto).onSuccess { nuevoId ->
                 _uiState.update {
                     it.copy(
+                        productoDetallado = it.productoDetallado?.copy(producto = it.productoDetallado.producto.copy(id = nuevoId)),
                         isLoading = false,
                         mensajeExito = "Producto creado exitosamente"
                     )
@@ -112,6 +126,20 @@ class DetalleProductoViewModel @Inject constructor(
                         },
                         isLoading = false
                     )
+                }
+            }
+        }
+    }
+
+    fun eliminarProducto(id: Long) {
+        viewModelScope.launch {
+            eliminarProductoUseCase(id).onSuccess {
+                _uiState.update {
+                    it.copy(mensajeExito = "Producto eliminado exitosamente")
+                }
+            }.onError { error ->
+                _uiState.update {
+                    it.copy(errorMessage = error.message ?: "Error al eliminar producto")
                 }
             }
         }
@@ -240,6 +268,7 @@ class DetalleProductoViewModel @Inject constructor(
     fun limpiarMensajes() {
         _uiState.update {
             it.copy(
+                productoDetallado = null,
                 errorMessage = null,
                 mensajeExito = null
             )

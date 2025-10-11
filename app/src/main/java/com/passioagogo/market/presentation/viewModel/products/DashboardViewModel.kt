@@ -2,15 +2,12 @@ package com.passioagogo.market.presentation.viewModel.products
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.passioagogo.market.domain.bean.Producto
 import com.passioagogo.market.domain.state.onError
 import com.passioagogo.market.domain.state.onSuccess
 import com.passioagogo.market.domain.usecase.categorias.ObtenerCategoriasPorFamiliaUseCase
 import com.passioagogo.market.domain.usecase.categorias.ObtenerCategoriasUseCase
-import com.passioagogo.market.domain.usecase.producto.ActualizarProductoUseCase
 import com.passioagogo.market.domain.usecase.producto.BuscarProductosParams
 import com.passioagogo.market.domain.usecase.producto.BuscarProductosUseCase
-import com.passioagogo.market.domain.usecase.producto.EliminarProductoUseCase
 import com.passioagogo.market.domain.usecase.producto.ObtenerProductosStockBajoUseCase
 import com.passioagogo.market.domain.usecase.producto.ObtenerProductosUseCase
 import com.passioagogo.market.domain.usecase.producto.ObtenerProveedoresUseCase
@@ -24,13 +21,10 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class ProductosViewModel @Inject constructor(
+class DashboardViewModel @Inject constructor(
     private val obtenerProductosUseCase: ObtenerProductosUseCase,
     private val obtenerProductosStockBajoUseCase: ObtenerProductosStockBajoUseCase,
     private val buscarProductosUseCase: BuscarProductosUseCase,
-
-    private val actualizarProductoUseCase: ActualizarProductoUseCase,
-    private val eliminarProductoUseCase: EliminarProductoUseCase,
     private val obtenerCategoriasUseCase: ObtenerCategoriasUseCase,
     private val obtenerProveedoresUseCase: ObtenerProveedoresUseCase,
     private val obtenerCategoriasPorFamiliaUseCase: ObtenerCategoriasPorFamiliaUseCase,
@@ -111,43 +105,6 @@ class ProductosViewModel @Inject constructor(
         }
     }
 
-
-
-    fun actualizarProducto(datosProducto: Producto) {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
-            actualizarProductoUseCase(datosProducto).onSuccess {
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        mensajeExito = "Producto actualizado exitosamente"
-                    )
-                }
-                // Los datos se actualizarán automáticamente por el Flow
-            }.onError { error ->
-                _uiState.update {
-                    it.copy(
-                        errorMessage = error.message ?: "Error desconocido",
-                        isLoading = false
-                    )
-                }
-            }
-        }
-    }
-
-    fun eliminarProducto(id: Long) {
-        viewModelScope.launch {
-            eliminarProductoUseCase(id).onSuccess {
-                _uiState.update {
-                    it.copy(mensajeExito = "Producto eliminado exitosamente")
-                }
-            }.onError { error ->
-                _uiState.update {
-                    it.copy(errorMessage = error.message ?: "Error al eliminar producto")
-                }
-            }
-        }
-    }
 
     fun limpiarMensajes() {
         _uiState.update {

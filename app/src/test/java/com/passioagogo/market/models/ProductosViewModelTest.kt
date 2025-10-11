@@ -11,7 +11,7 @@ import com.passioagogo.market.domain.usecase.categorias.ObtenerCategoriasUseCase
 import com.passioagogo.market.domain.usecase.producto.ObtenerProductosStockBajoUseCase
 import com.passioagogo.market.domain.usecase.producto.ObtenerProductosUseCase
 import com.passioagogo.market.domain.usecase.producto.ObtenerProveedoresUseCase
-import com.passioagogo.market.presentation.viewModel.products.ProductosViewModel
+import com.passioagogo.market.presentation.viewModel.products.DashboardViewModel
 import com.passioagogo.market.testing.CoroutineTestRule
 import com.passioagogo.market.testing.TestData
 import com.passioagogo.market.testing.test
@@ -41,13 +41,13 @@ class ProductosViewModelTest {
     private val mockObtenerCategoriasUseCase: ObtenerCategoriasUseCase = mockk()
     private val mockObtenerProveedoresUseCase: ObtenerProveedoresUseCase = mockk()
 
-    private lateinit var viewModel: ProductosViewModel
+    private lateinit var viewModel: DashboardViewModel
 
     @BeforeEach
     fun setup() {
         clearAllMocks()
         setupDefaultMocks()
-        viewModel = ProductosViewModel(
+        viewModel = DashboardViewModel(
             obtenerProductosUseCase = mockObtenerProductosUseCase,
             obtenerProductosStockBajoUseCase = mockObtenerProductosStockBajoUseCase,
             buscarProductosUseCase = mockBuscarProductosUseCase,
@@ -80,7 +80,7 @@ class ProductosViewModelTest {
         coEvery { mockObtenerProveedoresUseCase() } returns PADomainState.Success(flowOf(proveedores))
 
         // When
-        viewModel = ProductosViewModel(
+        viewModel = DashboardViewModel(
             obtenerProductosUseCase = mockObtenerProductosUseCase,
             obtenerProductosStockBajoUseCase = mockObtenerProductosStockBajoUseCase,
             buscarProductosUseCase = mockBuscarProductosUseCase,
