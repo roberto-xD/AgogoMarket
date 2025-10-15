@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.passioagogo.market.domain.usecase.imagenes.DeleteImageUseCase
 import com.passioagogo.market.domain.usecase.imagenes.GetAllImagesUseCase
 import com.passioagogo.market.domain.usecase.imagenes.SaveSharedImageUseCase
+import com.passioagogo.market.presentation.view.models.PAImageModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -17,11 +18,11 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class ImageGalleryUiState(
-    val images: List<String> = emptyList(),
+    val images: List<PAImageModel> = emptyList(),
     val deleteImage: String? = null,
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
-    val selectedImageForPreview: String? = null
+    val mensajeExito: String? = null,
 )
 
 @HiltViewModel
@@ -43,28 +44,40 @@ class ImageGalleryViewModel @Inject constructor(
                 saveSharedImageUseCase.execute(uri,id)
             }
 
-            val failures = results.filter { it.isFailure }
-            val success = results.filter { it.isSuccess }.map { result -> result.fold(onSuccess = { it }, onFailure = { "" }) }
+            val success = results.filter { it.isSuccess }.map { result ->
+                result.fold(
+                    onSuccess = {
+                        PAImageModel(
+                            idProduct = id ?: 0,
+                            rutaImagen = it,
+                            orden = results.indexOf(result)
+                        )
+                                },
+                    onFailure = { null }
+                )
+            }
 
             _uiState.update {
                 it.copy(
-                    images = success,
+                    images = success.filterNotNull(),
                     isLoading = false,
-                    errorMessage = "Error al guardar ${failures.size} imagen(es)"
+                    mensajeExito = "Se guardaron ${success.size} imagen(es)",
                 )
             }
         }
     }
 
-    fun deleteImage(imagePath: String) {
+    fun deleteImage(imageModel: PAImageModel) {
         viewModelScope.launch {
-            deleteImageUseCase.execute(imagePath).fold(
+            deleteImageUseCase.execute(
+                imageModel = imageModel
+            ).fold(
                 onSuccess = {
                     _uiState.update {
                         it.copy(
-                            deleteImage = imagePath,
+                            deleteImage = imageModel.rutaImagen,
                             isLoading = false,
-                            errorMessage = "Error al borrar imagen"
+                            mensajeExito = "Imagen borrada",
                         )
                     }
                 },
@@ -84,14 +97,16 @@ class ImageGalleryViewModel @Inject constructor(
         _uiState.update { it.copy(images = emptyList()) }
     }
 
-    init {
-        loadImages()
-    }
-
-    private fun loadImages() {
+    fun loadImages() {
         viewModelScope.launch {
-            getAllImagesUseCase.execute()?.collect { images ->
-                _uiState.update { it.copy(images = images) }
+            getAllImagesUseCase.execute().let { images ->
+                _uiState.update {
+                    it.copy(
+                        images = images?.map {
+                            it.toImageProductModel()
+                        } ?: emptyList()
+                    )
+                }
             }
         }
     }

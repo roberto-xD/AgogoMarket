@@ -79,6 +79,8 @@ class ProductoRepositoryDomainImpl @Inject constructor(
         val productoEntity = productoDao.obtenerProductoPorId(id) ?: return null
         val producto = Producto.fromEntity(productoEntity)
 
+        val familia = productoFamiliaDao.obtenerFamiliaPorProducto(id)?.familiaId.orZero()
+
         val categorias = productoCategoriaDao.obtenerCategoriasPorProducto(id)
             .map { Categoria.fromEntity(it) }
 
@@ -126,6 +128,7 @@ class ProductoRepositoryDomainImpl @Inject constructor(
 
         return ProductoDetallado(
             producto = producto,
+            familia = familia,
             categorias = categorias.map { it.id },
             subcategorias = subcategorias.map { it.id },
             proveedores = proveedoresConPrecio,
@@ -152,7 +155,7 @@ class ProductoRepositoryDomainImpl @Inject constructor(
 
             // Guardar relaciones
             val productoFamilia = ProductoFamiliaEntity(
-                familiaId = productoDetallado.familia?: 0,
+                familiaId = productoDetallado.familia,
                 productoId = productoId
             )
             productoFamiliaDao.insertarProductoFamilia(productoFamilia)
@@ -219,7 +222,7 @@ class ProductoRepositoryDomainImpl @Inject constructor(
             productoSubcategoriaDao.eliminarSubcategoriasDeProducto(productoId)
 
             val productoFamilia = ProductoFamiliaEntity(
-                familiaId = productoDetallado.familia?: 1,
+                familiaId = productoDetallado.familia,
                 productoId = productoId
             )
             productoFamiliaDao.insertarProductoFamilia(productoFamilia)

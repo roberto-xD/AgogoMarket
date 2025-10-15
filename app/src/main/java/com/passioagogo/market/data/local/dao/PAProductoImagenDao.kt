@@ -8,7 +8,10 @@ import com.passioagogo.market.data.local.entity.utils.ProductoImagenEntity
 
 @Dao
 interface ProductoImagenDao {
-    @Query("SELECT * FROM producto_imagenes WHERE productoId = :productoId ORDER BY orden, fechaCreacion")
+    @Query("SELECT * FROM producto_imagenes")
+    suspend fun obtenerTodasLasImagenes(): List<ProductoImagenEntity>
+
+    @Query("SELECT * FROM producto_imagenes WHERE productoId = :productoId ORDER BY fechaCreacion")
     suspend fun obtenerImagenesPorProducto(productoId: Long): List<ProductoImagenEntity>
 
     @Query("SELECT * FROM producto_imagenes WHERE productoId = :productoId AND esPrincipal = 1 LIMIT 1")

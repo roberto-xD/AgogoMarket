@@ -74,7 +74,6 @@ fun PANavigation(
             route = Routes.ImageGallery.Name
         ) {
             ImageGalleryScreen(
-                viewModel = imageViewModel,
                 onBackClick = ::onBack
             )
         }

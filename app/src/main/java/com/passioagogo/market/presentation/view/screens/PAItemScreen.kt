@@ -62,7 +62,7 @@ fun ItemScreen(
     val deleteImage = uiImageState.value.deleteImage
 
     val familiaState = familiasViewModel.familias.collectAsState()
-    val familias = familiaState.value.map { it.descripcion }.toMutableList()
+    val familias = familiaState.value.map { it.toModel() }.toMutableList()
 
     val productosState = dashboardViewModel.uiState.collectAsState()
     val categorias = productosState.value.categorias.map { it.nombre }.toMutableList()
@@ -75,7 +75,6 @@ fun ItemScreen(
     val showScanner = remember { mutableStateOf(false) }
 
     val snackbarHostState = remember { SnackbarHostState() }
-    val snackbarMessage = detalleViewModel.snackbarMessage.collectAsState()
 
     val filePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenMultipleDocuments()
@@ -126,13 +125,14 @@ fun ItemScreen(
 
     LaunchedEffect(producto) {
         producto?.let { prod ->
+            Log.i("tag_pg","producto: $prod")
             currentProduct.value = currentProduct.value.update(prod)
         }
 
     }
     LaunchedEffect(familias) {
         currentProduct.value = currentProduct.value.copy(
-            familyList = familias
+            familyList = familias,
         )
     }
     LaunchedEffect(categorias) {
@@ -150,7 +150,7 @@ fun ItemScreen(
     LaunchedEffect(deleteImage) {
         deleteImage?.let {
             currentProduct.value = currentProduct.value.copy(
-                pathImageList = currentProduct.value.pathImageList.filter { it!=deleteImage }
+                pathImageList = currentProduct.value.pathImageList.filter { it.rutaImagen != deleteImage }
             )
         }
     }
@@ -237,7 +237,7 @@ fun ItemScreen(
                         count = currentProduct.value.pathImageList.size,
                     ){ item ->
                         PAImageItem(
-                            imagePath = currentProduct.value.pathImageList[item],
+                            imagePath = currentProduct.value.pathImageList[item].rutaImagen,
                             onDeleteClick = {
                                 imageViewModel.deleteImage(currentProduct.value.pathImageList[item])
                             }

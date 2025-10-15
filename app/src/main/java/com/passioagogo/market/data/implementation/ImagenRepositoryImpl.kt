@@ -12,11 +12,23 @@ import javax.inject.Singleton
 class ImagenRepositoryImpl @Inject constructor(
     private val productoImagenDao: ProductoImagenDao
 ) : IImagenRepository {
+    override suspend fun obtenerTodasLasImagenes(): List<ImagenProducto> {
+        return productoImagenDao.obtenerTodasLasImagenes().map { entity ->
+            ImagenProducto(
+                id = entity.id,
+                productoId = entity.productoId,
+                rutaImagen = entity.rutaImagen,
+                esPrincipal = entity.esPrincipal,
+                fechaCreacion = entity.fechaCreacion
+            )
+        }
+    }
 
     override suspend fun obtenerImagenesPorProducto(productoId: Long): List<ImagenProducto> {
         return productoImagenDao.obtenerImagenesPorProducto(productoId).map { entity ->
             ImagenProducto(
                 id = entity.id,
+                productoId = entity.productoId,
                 rutaImagen = entity.rutaImagen,
                 orden = entity.orden,
                 esPrincipal = entity.esPrincipal,
@@ -29,6 +41,7 @@ class ImagenRepositoryImpl @Inject constructor(
         return productoImagenDao.obtenerImagenPrincipal(productoId)?.let { entity ->
             ImagenProducto(
                 id = entity.id,
+                productoId = entity.productoId,
                 rutaImagen = entity.rutaImagen,
                 orden = entity.orden,
                 esPrincipal = entity.esPrincipal,
@@ -59,7 +72,7 @@ class ImagenRepositoryImpl @Inject constructor(
         return try {
             val entity = ProductoImagenEntity(
                 id = imagen.id,
-                productoId = 0, // Se necesitaría el productoId aquí
+                productoId = imagen.productoId,
                 rutaImagen = imagen.rutaImagen,
                 orden = imagen.orden,
                 esPrincipal = imagen.esPrincipal,
@@ -97,6 +110,22 @@ class ImagenRepositoryImpl @Inject constructor(
                 productoImagenDao.actualizarImagen(it.copy(esPrincipal = true))
             }
 
+            PADomainState.Success(Unit)
+        } catch (e: Exception) {
+            PADomainState.Error(e)
+        }
+    }
+
+    override suspend fun eliminarImagenDeProducto(
+        productoId: Long,
+        imagenId: Long
+    ): PADomainState<Unit> {
+        return try {
+            val imagenes = productoImagenDao.obtenerImagenesPorProducto(productoId)
+            val toDelete = imagenes.find { it.id == imagenId }
+            toDelete?.let {
+                productoImagenDao.eliminarImagen(it.id)
+            }
             PADomainState.Success(Unit)
         } catch (e: Exception) {
             PADomainState.Error(e)

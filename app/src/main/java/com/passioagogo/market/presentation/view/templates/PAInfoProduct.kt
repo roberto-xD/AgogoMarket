@@ -26,6 +26,7 @@ import com.passioagogo.market.presentation.view.components.PACustomAlertDialog
 import com.passioagogo.market.presentation.view.components.PADropDown
 import com.passioagogo.market.presentation.view.components.PATextInput
 import com.passioagogo.market.presentation.view.models.PAInfoModel
+import com.passioagogo.market.presentation.view.models.getDescripcion
 
 @Composable
 fun PAInfoProduct(
@@ -88,7 +89,7 @@ fun PAInfoProduct(
                 ){
                     ImageView(
                         modifier = modifier,
-                        imagePath = initialData.pathImageList.firstOrNull(),
+                        imagePath = initialData.pathImageList.firstOrNull()?.rutaImagen,
                         onImageClick = onImageClick
                     )
                 }
@@ -159,14 +160,19 @@ fun PAInfoProduct(
             containerTittle = "Atributos"
         ){
             PADropDown(
-                item = initialData.family,
-                items = initialData.familyList,
+                item = initialData.familyList.getDescripcion(initialData.familyId),
+                items = initialData.familyList.map{it.descripcion},
                 modifier = Modifier
                     .fillMaxWidth(),
                 placeHolder = stringResource(id = R.string.label_family),
-            ){
-                Log.i("tag","dropdown: $it")
-                onDataChange(initialData.copy(family = it))
+            ){ seleccion ->
+                Log.i("tag","dropdown: $seleccion")
+                initialData.familyList.find { it.descripcion.equals(seleccion) }?.let { reasigned ->
+                    onDataChange(initialData.copy(
+                        familyId = reasigned.id,
+                    ))
+                }
+//                onFamilyDropDownSelect(it)
             }
             PADropDown(
                 modifier = Modifier

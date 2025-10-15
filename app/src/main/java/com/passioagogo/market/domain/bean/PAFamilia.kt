@@ -1,6 +1,7 @@
 package com.passioagogo.market.domain.bean
 
 import com.passioagogo.market.data.local.entity.base.FamiliaEntity
+import com.passioagogo.market.presentation.view.models.PAFamiliasModel
 
 data class Familia(
     val id: Long = 0,
@@ -30,4 +31,10 @@ data class Familia(
             fechaCreacion = fechaCreacion
         )
     }
+
+    fun toModel() = PAFamiliasModel(
+        id = id,
+        nombre = nombre,
+        descripcion = descripcion,
+    )
 }

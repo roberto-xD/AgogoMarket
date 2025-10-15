@@ -7,3 +7,7 @@ fun Double?.orZero(): Double {
 fun Int?.orZero(): Int {
     return this ?: 0
 }
+
+fun Long?.orZero(): Long {
+    return this ?: 0L
+}

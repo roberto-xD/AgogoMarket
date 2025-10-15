@@ -14,4 +14,7 @@ interface ProductoFamiliaDao{
     @Query("DELETE FROM producto_familia WHERE productoId = :productoId")
     suspend fun eliminarFamiliaDeProducto(productoId: Long)
 
+    @Query("SELECT * FROM producto_familia WHERE productoId = :productoId")
+    suspend fun obtenerFamiliaPorProducto(productoId: Long): ProductoFamiliaEntity?
+
 }

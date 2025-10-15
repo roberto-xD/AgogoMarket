@@ -1,12 +1,12 @@
 package com.passioagogo.market.domain.usecase.producto
 
-import com.passioagogo.market.domain.bean.ImagenProducto
 import com.passioagogo.market.domain.bean.Producto
 import com.passioagogo.market.domain.bean.ProductoDetallado
 import com.passioagogo.market.domain.repository.IProductoRepository
 import com.passioagogo.market.domain.state.DomainException
 import com.passioagogo.market.domain.state.PADomainState
 import com.passioagogo.market.domain.usecase.base.UseCase
+import com.passioagogo.market.ui.decorators.orZero
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -49,14 +49,11 @@ class CrearProductoUseCase @Inject constructor(
         )
         val productoDetallado = ProductoDetallado(
             producto = producto,
-            familia = parameters.familiaId,
+            familia = parameters.familiaId.orZero(),
             categorias = parameters.categorias,
             subcategorias = parameters.subcategorias,
             imagenes = parameters.imagenes.map {
-                ImagenProducto(
-                    orden = parameters.imagenes.indexOf(it),
-                    rutaImagen = it,
-                )
+                it.toImagenProducto()
             },
         )
 

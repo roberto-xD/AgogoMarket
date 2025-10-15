@@ -120,7 +120,7 @@ fun PADrawerSheet(
                                 contentDescription = null
                             )
                         },
-                        onClick = { navigate.invoke(Routes.Import.Name) }
+                        onClick = { navigate.invoke(Routes.ImageGallery.Name) }
                     )
 
                     /*HorizontalDivider()
