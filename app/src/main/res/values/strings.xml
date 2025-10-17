@@ -22,5 +22,10 @@
     <string name="label_categories">Categoria</string>
     <string name="label_subcategories">Subcategoria</string>
     <string name="label_provider">Proveedor</string>
-
+    <string name="label_client_name">Nombre del cliente</string>
+    <string name="label_client_phone">Teléfono (opcional)</string>
+    <string name="label_client_address">Dirección (opcional)</string>
+    <string name="label_client_delivery_instructions">Instrucciones de entrega</string>
+    <string name="label_cliente_delivery_detail">Detalles adicionales...</string>
+    <string name="label_payment_method">Método de Pago</string>
 </resources>

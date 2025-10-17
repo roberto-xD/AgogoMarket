@@ -20,6 +20,7 @@ import com.passioagogo.market.data.local.dao.ProductoSubcategoriaDao
 import com.passioagogo.market.data.local.dao.ProveedorDao
 import com.passioagogo.market.data.local.dao.SubcategoriaDao
 import com.passioagogo.market.data.local.dao.TipoAtributoDao
+import com.passioagogo.market.data.local.dao.VentaDao
 import com.passioagogo.market.data.local.entity.base.CategoriaEntity
 import com.passioagogo.market.data.local.entity.base.FamiliaEntity
 import com.passioagogo.market.data.local.entity.base.ProductoEntity
@@ -33,10 +34,11 @@ import com.passioagogo.market.data.local.entity.relation.ProductoProveedorEntity
 import com.passioagogo.market.data.local.entity.relation.ProductoSubcategoriaEntity
 import com.passioagogo.market.data.local.entity.utils.HistorialPrecioEntity
 import com.passioagogo.market.data.local.entity.utils.ProductoImagenEntity
+import com.passioagogo.market.data.local.entity.venta.VentaEntity
+import com.passioagogo.market.data.local.entity.venta.VentaProductoEntity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.util.Date
 
 @Database(
     entities = [
@@ -52,7 +54,9 @@ import java.util.Date
         TipoAtributoEntity::class,
         ProductoAtributoEntity::class,
         ProductoImagenEntity::class,
-        HistorialPrecioEntity::class
+        HistorialPrecioEntity::class,
+        VentaEntity::class,
+        VentaProductoEntity::class
     ],
     version = 1,
     exportSchema = false
@@ -74,6 +78,7 @@ abstract class InventarioDatabase : RoomDatabase() {
     abstract fun productoAtributoDao(): ProductoAtributoDao
     abstract fun productoImagenDao(): ProductoImagenDao
     abstract fun historialPrecioDao(): HistorialPrecioDao
+    abstract fun ventaDao(): VentaDao
 
     companion object {
         @Volatile

@@ -1,9 +1,6 @@
 package com.passioagogo.market.di
 
-import PADataConstants.NAME_TABLE
-import android.app.Application
 import android.content.Context
-import androidx.room.Room
 import com.passioagogo.market.data.local.InventarioDatabase
 import com.passioagogo.market.data.local.dao.CategoriaDao
 import com.passioagogo.market.data.local.dao.FamiliaDao
@@ -18,7 +15,7 @@ import com.passioagogo.market.data.local.dao.ProductoSubcategoriaDao
 import com.passioagogo.market.data.local.dao.ProveedorDao
 import com.passioagogo.market.data.local.dao.SubcategoriaDao
 import com.passioagogo.market.data.local.dao.TipoAtributoDao
-import com.passioagogo.market.domain.bean.HistorialPrecio
+import com.passioagogo.market.data.local.dao.VentaDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -141,5 +138,13 @@ object PADatabaseModule {
         db: InventarioDatabase
     ): HistorialPrecioDao {
         return db.historialPrecioDao()
+    }
+
+    @Singleton
+    @Provides
+    fun provideVentaDao(
+        db: InventarioDatabase
+    ): VentaDao {
+        return db.ventaDao()
     }
 }

@@ -10,6 +10,7 @@ import com.passioagogo.market.presentation.view.screens.DashboardScreen
 import com.passioagogo.market.presentation.view.screens.ImageGalleryScreen
 import com.passioagogo.market.presentation.view.screens.ImportacionScreen
 import com.passioagogo.market.presentation.view.screens.ItemScreen
+import com.passioagogo.market.presentation.view.screens.RegistrarVentaScreen
 import com.passioagogo.market.presentation.view.screens.SearchScreen
 import com.passioagogo.market.presentation.viewModel.imagenes.ImageGalleryViewModel
 import com.passioagogo.market.presentation.viewModel.products.DetalleProductoViewModel
@@ -90,6 +91,16 @@ fun PANavigation(
         ) {
             ImportacionScreen(
                 onNavigateBack = ::onBack
+            )
+        }
+        composable(
+            route = Routes.SellProcess.Name
+        ) {
+            RegistrarVentaScreen(
+                onNavigateBack = ::onBack,
+                onNavigateToSeleccionProductos = {
+
+                }
             )
         }
     }

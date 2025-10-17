@@ -1,12 +1,12 @@
 package com.passioagogo.market.presentation.view.components
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -15,18 +15,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.passioagogo.market.ui.theme.bungeeRegular
 import com.passioagogo.market.ui.theme.onPrimaryLight
 import com.passioagogo.market.ui.theme.primaryContainerLight
-import com.passioagogo.market.ui.theme.primaryLight
 import com.passioagogo.market.ui.theme.secondaryContainerLight
 import com.passioagogo.market.ui.theme.secondaryLight
-import com.passioagogo.market.ui.theme.surfaceLight
 
 @Composable
 fun PAContainer(
@@ -38,11 +33,9 @@ fun PAContainer(
     val checked = remember {
         mutableStateOf(isOpen)
     }
-    Box(
+    Card(
         modifier = modifier
-            .background(color = surfaceLight)
-            .clip(shape = RoundedCornerShape(4.dp))
-            .shadow(elevation = 2.dp, shape = RoundedCornerShape(4.dp))
+            .fillMaxWidth()
     ){
         Column(
             modifier = Modifier
@@ -57,9 +50,8 @@ fun PAContainer(
                         modifier = Modifier
                             .weight(1f)
                             .align(Alignment.CenterVertically),
-                        color = primaryLight,
-                        fontSize = 20.sp,
-                        fontFamily = bungeeRegular,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
                         text = it
                     )
                     Switch(

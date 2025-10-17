@@ -8,9 +8,11 @@ import com.passioagogo.market.data.implementation.ImagenRepositoryImpl
 import com.passioagogo.market.data.implementation.ProductoRepositoryDomainImpl
 import com.passioagogo.market.data.implementation.ProveedorRepositoryDomainImpl
 import com.passioagogo.market.data.implementation.SubcategoriaRepositoryDomainImpl
+import com.passioagogo.market.data.implementation.VentaRepositoryImpl
 import com.passioagogo.market.data.imports.GoogleSheetsImportService
 import com.passioagogo.market.data.imports.GoogleSheetsImportServiceImpl
 import com.passioagogo.market.data.repository.ICategoriaRepository
+import com.passioagogo.market.data.repository.VentaRepository
 import com.passioagogo.market.domain.repository.IFamiliaRepository
 import com.passioagogo.market.domain.repository.IHistorialRepository
 import com.passioagogo.market.domain.repository.IImagenRepository
@@ -274,4 +276,8 @@ abstract class DomainRepositoryModule {
         imagenRepositoryDomainImpl: ImagenRepositoryImpl
     ): IImagenRepository
 
+    @Binds
+    abstract fun bindVentaRepository(
+        impl: VentaRepositoryImpl
+    ): VentaRepository
 }

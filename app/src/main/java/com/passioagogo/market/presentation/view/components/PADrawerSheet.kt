@@ -123,6 +123,21 @@ fun PADrawerSheet(
                         onClick = { navigate.invoke(Routes.ImageGallery.Name) }
                     )
 
+                    HorizontalDivider()
+                    NavigationDrawerItem(
+                        label = { Text(text = "Registrar venta") },
+                        selected = false,
+                        icon = {
+                            Icon(
+                                painter = painterResource(id = R.drawable.shopping_bag_speed),
+                                modifier = Modifier
+                                    .size(24.dp),
+                                contentDescription = null
+                            )
+                        },
+                        onClick = { navigate.invoke(Routes.SellProcess.Name) }
+                    )
+
                     /*HorizontalDivider()
                     NavigationDrawerItem(
                         label = { Text(text = "Iniciar sesión") },

@@ -7,4 +7,6 @@ sealed class Routes(val Name: String) {
     object Import: Routes("Import")
     object ImageGallery: Routes("ImageGallery")
     object ItemDetail: Routes("ItemDetail")
+    object SellProcess: Routes("SellProcess")
+
 }
