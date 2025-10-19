@@ -161,6 +161,8 @@ dependencies {
     implementation("androidx.camera:camera-lifecycle:$cameraxVersion")
     implementation("androidx.camera:camera-view:$cameraxVersion")
 
+    implementation("com.itextpdf:itext7-core:7.2.5")
+    implementation("com.itextpdf:html2pdf:4.0.5")
 }
 kapt {
     correctErrorTypes = true

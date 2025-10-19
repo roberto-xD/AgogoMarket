@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Directorio interno de la app -->
+    <files-path
+        name="pdf_files"
+        path="pdfs/" />
+
+    <!-- Directorio de caché -->
+    <cache-path
+        name="pdf_cache"
+        path="pdfs/" />
+
+    <!-- Directorio externo (Downloads) -->
+    <external-path
+        name="external_files"
+        path="Download/" />
+</paths>
