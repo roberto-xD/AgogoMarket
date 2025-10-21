@@ -1,8 +1,12 @@
 package com.passioagogo.market.pdf.template
 
+import com.passioagogo.market.domain.model.catalogo.CatalogoCompleto
+import com.passioagogo.market.domain.model.catalogo.CategoriaCatalogo
+import com.passioagogo.market.domain.model.catalogo.ProductoCatalogo
+
 object CatalogoHtmlTemplate {
 
-    fun generatePortada(catalogo: com.passioagogo.market.domain.model.CatalogoCompleto): String {
+    fun generatePortada(catalogo: CatalogoCompleto): String {
         return """
         <!DOCTYPE html>
         <html>
@@ -115,8 +119,8 @@ object CatalogoHtmlTemplate {
     }
 
     fun generateProductosPage(
-        categoria: com.passioagogo.market.domain.model.CategoriaCatalogo,
-        productos: List<com.passioagogo.market.domain.model.ProductoCatalogo>
+        categoria: CategoriaCatalogo,
+        productos: List<ProductoCatalogo>
     ): String {
         val productosHtml = productos.joinToString("") { producto ->
             generateProductoCard(producto)
@@ -254,7 +258,7 @@ object CatalogoHtmlTemplate {
         """.trimIndent()
     }
 
-    private fun generateProductoCard(producto: com.passioagogo.market.domain.model.ProductoCatalogo): String {
+    private fun generateProductoCard(producto: ProductoCatalogo): String {
         val atributosHtml = producto.atributos.take(6).joinToString("") { atributo ->
             """
             <div class="atributo">
@@ -285,7 +289,7 @@ object CatalogoHtmlTemplate {
         """
     }
 
-    fun generateFichaProducto(producto: com.passioagogo.market.domain.model.ProductoCatalogo): String {
+    fun generateFichaProducto(producto: ProductoCatalogo): String {
         val atributosHtml = producto.atributos.joinToString("") { atributo ->
             """
             <tr>

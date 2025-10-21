@@ -9,8 +9,8 @@ import com.itextpdf.html2pdf.resolver.font.DefaultFontProvider
 import com.itextpdf.io.image.ImageDataFactory
 import com.itextpdf.kernel.pdf.PdfDocument
 import com.itextpdf.kernel.pdf.PdfWriter
-import com.passioagogo.market.domain.model.CatalogoCompleto
-import com.passioagogo.market.domain.model.ProductoCatalogo
+import com.passioagogo.market.domain.model.catalogo.CatalogoCompleto
+import com.passioagogo.market.domain.model.catalogo.ProductoCatalogo
 import com.passioagogo.market.pdf.template.CatalogoHtmlTemplate
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers

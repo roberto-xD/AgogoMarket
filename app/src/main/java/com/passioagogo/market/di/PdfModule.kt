@@ -1,7 +1,7 @@
 package com.passioagogo.market.di
 
 import android.content.Context
-import com.passioagogo.market.data.repository.CatalogoRepositoryImpl
+import com.passioagogo.market.data.implementation.CatalogoRepositoryImpl
 import com.passioagogo.market.domain.repository.CatalogoRepository
 import com.passioagogo.market.pdf.generator.PdfGenerator
 import dagger.Module
@@ -26,13 +26,14 @@ object PdfModule {
     @Provides
     @Singleton
     fun provideCatalogoRepository(
-        // Inyecta tus DAOs aquí
-        // productoDao: ProductoDao,
-        // familiaDao: FamiliaDao,
-        // etc.
+
     ): CatalogoRepository {
         return CatalogoRepositoryImpl(
-            // pasa tus DAOs
+            productoDao = TODO(),
+            familiaDao = TODO(),
+            categoriaDao = TODO(),
+            subcategoriaDao = TODO(),
+            atributoDao = TODO()
         )
     }
 }

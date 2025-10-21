@@ -1,7 +1,5 @@
 package com.passioagogo.market.domain.usecase
 
-import com.passioagogo.market.domain.model.CatalogoCompleto
-import com.passioagogo.market.domain.model.ProductoCatalogo
 import com.passioagogo.market.domain.repository.CatalogoRepository
 import com.passioagogo.market.pdf.generator.PdfGenerator
 import java.io.File
