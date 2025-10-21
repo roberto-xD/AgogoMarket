@@ -2,6 +2,8 @@ package com.passioagogo.market.presentation.view.models
 
 import com.passioagogo.market.domain.bean.ProductoDetallado
 import com.passioagogo.market.domain.usecase.producto.GuardarProductoParams
+import com.passioagogo.market.ui.decorators.toDoubleSafe
+import com.passioagogo.market.ui.decorators.toIntSafe
 
 data class PAInfoModel(
     val id: Long ?= null,
@@ -25,50 +27,51 @@ data class PAInfoModel(
     val familyList      : List<PAFamiliasModel> = listOf(),
     val categoryList    : List<String> = listOf(),
     val subcategoryList : List<String> = listOf(),
-    ){
-        fun isEmpty(): Boolean{
-            return tittle.isEmpty()
-        }
-
-        fun update(
-            data : ProductoDetallado
-        ): PAInfoModel {
-            return this.copy(
-                id = data.producto.id,
-                tittle = data.producto.nombre,
-                description = data.producto.descripcion.orEmpty(),
-                pathImageList = data.imagenes.map {
-                    it.toImageProductModel()
-                },
-                familyId = data.familia,
-                sku = data.producto.skuInterno,
-                codigoBarra = data.producto.codigoBarras.orEmpty(),
-                currentStock = data.producto.cantidadActual.toString(),
-                minStock = data.producto.cantidadMinima.toString(),
-                buyPrice = data.producto.cantidadMinima.toString(),
-                sellPrice = data.producto.precioVenta.toString(),
-                provider = data.proveedores.toString(),
-                createDateBuy = data.producto.fechaUltimaCompra,
-                lastDateSell = data.producto.fechaUltimaVenta,
-                active =data.producto.activo,
-            )
-        }
-
-        fun toActualizaProductoParams(): GuardarProductoParams {
-            return GuardarProductoParams(
-                id = id ?: 0L,
-                nombre = tittle,
-                descripcion = description,
-                skuInterno = sku,
-                codigoBarras = codigoBarra,
-                precioCompra = buyPrice.toDouble(),
-                precioVenta = sellPrice.toDouble(),
-                cantidadMinima = minStock.toInt(),
-                cantidadActual = currentStock.toInt(),
-                imagenes = pathImageList.map { it },
-//                cantidadInicial = if(id == 0L) currentStock.toInt() else firtsStock.toInt(), todo corregir esto
-//                categorias = emptyList(),
-//                subcategorias = emptyList(),
-            )
-        }
+    ) {
+    fun isEmpty(): Boolean {
+        return tittle.isEmpty()
     }
+
+    fun update(
+        data: ProductoDetallado
+    ): PAInfoModel {
+        return this.copy(
+            id = data.producto.id,
+            tittle = data.producto.nombre,
+            description = data.producto.descripcion.orEmpty(),
+            pathImageList = data.imagenes.map {
+                it.toImageProductModel()
+            },
+            familyId = data.familia,
+            sku = data.producto.skuInterno,
+            codigoBarra = data.producto.codigoBarras.orEmpty(),
+            currentStock = data.producto.cantidadActual.toString(),
+            minStock = data.producto.cantidadMinima.toString(),
+            buyPrice = data.producto.cantidadMinima.toString(),
+            sellPrice = data.producto.precioVenta.toString(),
+            provider = data.proveedores.toString(),
+            createDateBuy = data.producto.fechaUltimaCompra,
+            lastDateSell = data.producto.fechaUltimaVenta,
+            active = data.producto.activo,
+        )
+    }
+
+    fun toActualizaProductoParams(): GuardarProductoParams {
+        return GuardarProductoParams(
+            id = id ?: 0L,
+            nombre = tittle,
+            descripcion = description,
+            skuInterno = sku,
+            codigoBarras = codigoBarra,
+            precioCompra = buyPrice.toDoubleSafe(),
+            precioVenta = sellPrice.toDoubleSafe(),
+            cantidadMinima = minStock.toIntSafe(),
+            cantidadActual = currentStock.toIntSafe(),
+            imagenes = pathImageList.map { it },
+        )
+    }
+
+    fun validateRules(): Boolean {
+        return tittle.isNotEmpty() && currentStock.isNotEmpty() && sellPrice.isNotEmpty()
+    }
+}

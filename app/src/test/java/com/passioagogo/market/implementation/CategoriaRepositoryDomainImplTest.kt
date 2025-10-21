@@ -68,10 +68,10 @@ class CategoriaRepositoryDomainImplTest {
         val categoriasEntity = listOf(TestData.categoriaTest1.toEntity())
         val flowEntity = flowOf(categoriasEntity)
 
-        every { mockCategoriaDao.obtenerCategoriasPorFamilia(familiaId) } returns flowEntity
+        every { mockCategoriaDao.obtenerCategoriasPorFamiliaId(familiaId) } returns flowEntity
 
         // When
-        val result = repository.obtenerCategoriasPorFamilia(familiaId)
+        val result = repository.obtenerCategoriasPorFamiliaId(familiaId)
 
         // Then
         result.test {
@@ -81,7 +81,7 @@ class CategoriaRepositoryDomainImplTest {
             awaitComplete()
         }
 
-        verify { mockCategoriaDao.obtenerCategoriasPorFamilia(familiaId) }
+        verify { mockCategoriaDao.obtenerCategoriasPorFamiliaId(familiaId) }
     }
 
     @Test

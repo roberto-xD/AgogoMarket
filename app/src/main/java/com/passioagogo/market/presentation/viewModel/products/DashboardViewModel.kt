@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.passioagogo.market.domain.state.onError
 import com.passioagogo.market.domain.state.onSuccess
-import com.passioagogo.market.domain.usecase.categorias.ObtenerCategoriasPorFamiliaUseCase
+import com.passioagogo.market.domain.usecase.categorias.ObtenerCategoriasPorFamiliaIdUseCase
 import com.passioagogo.market.domain.usecase.categorias.ObtenerCategoriasUseCase
 import com.passioagogo.market.domain.usecase.producto.BuscarProductosParams
 import com.passioagogo.market.domain.usecase.producto.BuscarProductosUseCase
@@ -27,7 +27,7 @@ class DashboardViewModel @Inject constructor(
     private val buscarProductosUseCase: BuscarProductosUseCase,
     private val obtenerCategoriasUseCase: ObtenerCategoriasUseCase,
     private val obtenerProveedoresUseCase: ObtenerProveedoresUseCase,
-    private val obtenerCategoriasPorFamiliaUseCase: ObtenerCategoriasPorFamiliaUseCase,
+    private val obtenerCategoriasPorFamiliaIdUseCase: ObtenerCategoriasPorFamiliaIdUseCase,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(ProductosUiState())
     val uiState: StateFlow<ProductosUiState> = _uiState.asStateFlow()
@@ -120,9 +120,9 @@ class DashboardViewModel @Inject constructor(
         // Implementar filtrado local o recargar datos
     }
 
-    fun obtenerCategoriasPorFamilia(familia: String) {
+    fun obtenerCategoriasPorFamiliaId(familia: Long) {
         viewModelScope.launch {
-            obtenerCategoriasPorFamiliaUseCase.invoke(familia).onSuccess { categoriasFlow ->
+            obtenerCategoriasPorFamiliaIdUseCase.invoke(familia).onSuccess { categoriasFlow ->
                 categoriasFlow.collect { categorias ->
                     _uiState.update { it.copy(categorias = categorias) }
                 }

@@ -68,9 +68,9 @@ class CrearProductoUseCase @Inject constructor(
         if (params.nombre.isBlank()) {
             throw IllegalArgumentException("El nombre del producto no puede estar vacío")
         }
-        if (params.skuInterno.isBlank()) {
-            throw IllegalArgumentException("El SKU interno no puede estar vacío")
-        }
+//        if (params.skuInterno.isBlank()) {
+//            throw IllegalArgumentException("El SKU interno no puede estar vacío")
+//        }
 //        if (params.precioCompra < 0) {
 //            throw DomainException.PrecioInvalido(params.precioCompra)
 //        }

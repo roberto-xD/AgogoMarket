@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.Flow
 
 interface ICategoriaRepository {
     suspend fun obtenerTodasLasCategorias(): Flow<List<Categoria>>
-    suspend fun obtenerCategoriasPorFamilia(familiaId: String): Flow<List<Categoria>>
+    suspend fun obtenerCategoriasPorFamiliaId(familiaId: Long): Flow<List<Categoria>>
     suspend fun obtenerCategoriaPorId(id: Long): Categoria?
     suspend fun guardarCategoria(categoria: Categoria): PADomainState<Long>
     suspend fun actualizarCategoria(categoria: Categoria): PADomainState<Unit>

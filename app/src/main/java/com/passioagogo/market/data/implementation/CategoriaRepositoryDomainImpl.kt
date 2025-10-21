@@ -20,8 +20,8 @@ class CategoriaRepositoryDomainImpl @Inject constructor(
         }
     }
 
-    override suspend fun obtenerCategoriasPorFamilia(familiaId: String): Flow<List<Categoria>> {
-        return categoriaDao.obtenerCategoriasPorFamilia(familiaId).map { entities ->
+    override suspend fun obtenerCategoriasPorFamiliaId(familiaId: Long): Flow<List<Categoria>> {
+        return categoriaDao.obtenerCategoriasPorFamiliaId(familiaId).map { entities ->
             entities.map { Categoria.fromEntity(it) }
         }
     }

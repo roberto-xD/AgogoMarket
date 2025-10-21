@@ -44,6 +44,7 @@ import com.passioagogo.market.presentation.viewModel.imagenes.ImageGalleryViewMo
 import com.passioagogo.market.presentation.viewModel.products.DashboardViewModel
 import com.passioagogo.market.presentation.viewModel.products.DetalleProductoViewModel
 import com.passioagogo.market.presentation.viewModel.products.FamiliasViewModel
+import com.passioagogo.market.ui.decorators.orZero
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -175,11 +176,30 @@ fun ItemScreen(
                 .background(MaterialTheme.colorScheme.surfaceBright),
             topBar = {
                 PAToolbar(
+                    centerText = stringResource(R.string.label_item),
                     leftIcon = R.drawable.arrow_back,
                     onLeftClick = {
                         backClick()
                     },
-                    centerText = stringResource(R.string.label_item),
+                    rightText = if(currentProduct.value.id.orZero() == 0L){"Guardar"} else{"Actualizar"},
+                    onRightClick = {
+                        Log.i("tag","onSaveClick")
+                        if(currentProduct.value.validateRules()){
+                            val data = currentProduct.value.toActualizaProductoParams()
+                            Log.i("tag","$data")
+                            if(data.id != 0L){
+                                Log.i("tag","actualizar")
+                                detalleViewModel.actualizarProductoDetallado(data)
+                            }else {
+                                Log.i("tag","crear")
+                                detalleViewModel.crearProductoDetallado(data)
+                            }
+                        } else {
+                            Toast
+                                .makeText(context, "Rellene todos los campos", Toast.LENGTH_LONG)
+                                .show()
+                        }
+                    }
                 )
             },
             snackbarHost = { SnackbarHost(snackbarHostState) }
@@ -200,25 +220,16 @@ fun ItemScreen(
                             showBottomSheet.value = true
                         }
                     },
-                    onFamilyDropDownSelect = {
-                        dashboardViewModel.obtenerCategoriasPorFamilia(it)
-                    },
                     onScanClick = {
                         showScanner.value = true
                         Toast
                             .makeText(context, "abrir escaner", Toast.LENGTH_SHORT)
                             .show()
                     },
-                    onSaveClick = {
-                        val data = currentProduct.value.toActualizaProductoParams()
-                        Log.i("tag","onSaveClick: $data")
-                        if(data.id != 0L){
-                            detalleViewModel.actualizarProductoDetallado(data)
-                        }else {
-                            detalleViewModel.crearProductoDetallado(data)
-                        }
-                    },
                 ){ updatedProduct ->
+                    if(updatedProduct.familyId != currentProduct.value.familyId ){
+                        dashboardViewModel.obtenerCategoriasPorFamiliaId(updatedProduct.familyId)
+                    }
                     currentProduct.value = updatedProduct
                 }
             }

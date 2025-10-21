@@ -12,8 +12,8 @@ interface CategoriaDao {
     @Query("SELECT * FROM categorias WHERE activo = 1 ORDER BY nombre")
     fun obtenerCategoriasActivas(): Flow<List<CategoriaEntity>>
 
-    @Query("SELECT * FROM categorias WHERE nombre = :nombre AND activo = 1 ORDER BY nombre")
-    fun obtenerCategoriasPorFamilia(nombre: String): Flow<List<CategoriaEntity>>
+    @Query("SELECT * FROM categorias WHERE familiaId = :familiaId AND activo = 1 ORDER BY nombre")
+    fun obtenerCategoriasPorFamiliaId(familiaId: Long): Flow<List<CategoriaEntity>>
 
     @Query("SELECT * FROM categorias WHERE id = :id")
     suspend fun obtenerCategoriaPorId(id: Long): CategoriaEntity?

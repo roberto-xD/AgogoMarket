@@ -75,12 +75,12 @@ class ActualizarProductoDetalladoUseCase @Inject constructor(
         if (params.nombre.isBlank()) {
             throw IllegalArgumentException("El nombre del producto no puede estar vacío")
         }
-        if (params.skuInterno.isBlank()) {
-            throw IllegalArgumentException("El SKU interno no puede estar vacío")
-        }
-        if (params.precioCompra < 0) {
-            throw DomainException.PrecioInvalido(params.precioCompra)
-        }
+//        if (params.skuInterno.isBlank()) {
+//            throw IllegalArgumentException("El SKU interno no puede estar vacío")
+//        }
+//        if (params.precioCompra < 0) {
+//            throw DomainException.PrecioInvalido(params.precioCompra)
+//        }
         if (params.precioVenta < 0) {
             throw DomainException.PrecioInvalido(params.precioVenta)
         }

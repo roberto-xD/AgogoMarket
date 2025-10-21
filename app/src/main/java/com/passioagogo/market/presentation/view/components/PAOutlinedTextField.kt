@@ -45,6 +45,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.passioagogo.market.R
 import com.passioagogo.market.ui.theme.abelRegular
+import com.passioagogo.market.ui.theme.errorLight
 import com.passioagogo.market.ui.theme.onSurfaceLight
 import com.passioagogo.market.ui.theme.outlineLight
 import com.passioagogo.market.ui.theme.primaryLight
@@ -60,19 +61,23 @@ fun PAOutlinedTextField(
     @DrawableRes trailingIcon : Int ? = null,
     onTrailingIconClick: (() -> Unit) ?= null,
     keyboardType: KeyboardType = KeyboardType.Text,
+    isAmount: Boolean = false,
     minLines: Int = 1,
     maxLines: Int = 1,
+    minLenght: Int ?= null,
     maxLength: Int = 999,
     onValueChange: ((String) -> Unit) ?= null,
 ) {
     val focusRequester = remember { FocusRequester() }
     var isFocused by remember { mutableStateOf(false) }
+    val status = remember { mutableStateOf< InputStatus>(InputStatus.REPOSO) }
     val interactionSource = remember { MutableInteractionSource() }
 
     val outlineColor by animateColorAsState(
         targetValue = when {
+            status.value == InputStatus.ERROR -> errorLight
+            status.value == InputStatus.REPOSO -> outlineLight
             isFocused -> primaryLight
-            value.isNotEmpty() -> outlineLight
             else -> outlineLight
         },
         animationSpec = tween(durationMillis = 200)
@@ -156,12 +161,22 @@ fun PAOutlinedTextField(
                     // TextField principal
                     BasicTextField(
                         value = value,
-                        onValueChange = {
-                            if (it.length <= maxLength){
-                                when(keyboardType){
-                                    KeyboardType.Number -> if (it.all { char -> char.isDigit() }) onValueChange?.invoke(it)
-                                    else -> onValueChange?.invoke(it)
+                        onValueChange = { newValue ->
+                            minLenght?.let{
+                                if (newValue.length >= it){
+                                    status.value = InputStatus.REPOSO
+                                }else{
+                                    status.value = InputStatus.ERROR
                                 }
+                            }
+
+                            if (newValue.length <= maxLength){
+                                onValueChange?.invoke(
+                                    when(keyboardType){
+                                        KeyboardType.Number -> newValue.filter { it.isDigit() }
+                                        else -> newValue
+                                    }
+                                )
                             }
                         },
                         modifier = Modifier

@@ -98,6 +98,7 @@ fun PAToolbar(
                                     onRightClick.invoke()
                                 },
                             text = it,
+                            color = MaterialTheme.colorScheme.primary,
                             fontFamily = MaterialTheme.typography.bodySmall.fontFamily ,
                         )
                     } ?: run {
@@ -127,7 +128,7 @@ fun PAToolbar(
 private fun Preview(){
     PAToolbar(
         centerText = "Titulo diferente",
-        rightText = null,
+        rightText = "Guardar",
         onLeftClick = {},
         onRightClick = {},
         onCenterClick = {}

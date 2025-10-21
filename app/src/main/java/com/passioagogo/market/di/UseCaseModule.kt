@@ -20,7 +20,7 @@ import com.passioagogo.market.domain.repository.IProductoRepository
 import com.passioagogo.market.domain.repository.IProveedorRepository
 import com.passioagogo.market.domain.repository.ISubcategoriaRepository
 import com.passioagogo.market.domain.usecase.categorias.CrearCategoriaConFamiliaUseCase
-import com.passioagogo.market.domain.usecase.categorias.ObtenerCategoriasPorFamiliaUseCase
+import com.passioagogo.market.domain.usecase.categorias.ObtenerCategoriasPorFamiliaIdUseCase
 import com.passioagogo.market.domain.usecase.categorias.ObtenerCategoriasUseCase
 import com.passioagogo.market.domain.usecase.compras.CrearProveedorUseCase
 import com.passioagogo.market.domain.usecase.compras.GestionarStockUseCase
@@ -127,7 +127,7 @@ object UseCaseModule {
     @Provides
     fun provideObtenerCategoriasPorFamiliaUseCase(
         categoriaRepository: ICategoriaRepository
-    ): ObtenerCategoriasPorFamiliaUseCase = ObtenerCategoriasPorFamiliaUseCase(categoriaRepository)
+    ): ObtenerCategoriasPorFamiliaIdUseCase = ObtenerCategoriasPorFamiliaIdUseCase(categoriaRepository)
 
     @Provides
     fun provideCrearCategoriaConFamiliaUseCase(

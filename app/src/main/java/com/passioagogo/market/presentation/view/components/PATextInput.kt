@@ -10,6 +10,12 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
+enum class InputStatus{
+    REPOSO,
+    OK,
+    ERROR;
+}
+
 @Composable
 internal fun PATextInput(
     value: String,
@@ -20,8 +26,10 @@ internal fun PATextInput(
     onTrailingIconClick: (() -> Unit) ?= null,
     enabled: Boolean = true,
     keyboardType : KeyboardType = KeyboardType.Text,
+    isAmount: Boolean = false,
     minLines: Int = 1,
     maxLines: Int = 1,
+    minLenght: Int ?= null,
     maxLength: Int = 35,
     onValueChange: (String) -> Unit,
 ){
@@ -36,8 +44,10 @@ internal fun PATextInput(
         trailingIcon = trailingIcon,
         onTrailingIconClick = onTrailingIconClick,
         keyboardType = keyboardType,
-        minLines = minLines,
+        isAmount = isAmount,
         maxLength = maxLength,
+        minLenght = minLenght,
+        minLines = minLines,
         maxLines = maxLines,
     )
 }

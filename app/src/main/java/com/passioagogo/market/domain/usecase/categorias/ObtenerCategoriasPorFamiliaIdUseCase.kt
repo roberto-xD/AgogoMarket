@@ -8,11 +8,11 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class ObtenerCategoriasPorFamiliaUseCase @Inject constructor(
+class ObtenerCategoriasPorFamiliaIdUseCase @Inject constructor(
     private val categoriaRepository: ICategoriaRepository
-) : UseCase<String, Flow<List<Categoria>>>() {
+) : UseCase<Long, Flow<List<Categoria>>>() {
 
-    override suspend fun execute(parameters: String): Flow<List<Categoria>> {
-        return categoriaRepository.obtenerCategoriasPorFamilia(parameters)
+    override suspend fun execute(parameters: Long): Flow<List<Categoria>> {
+        return categoriaRepository.obtenerCategoriasPorFamiliaId(parameters)
     }
 }

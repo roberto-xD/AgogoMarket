@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -38,12 +37,11 @@ fun ImageView(
     onImageClick: () -> Unit = {},
 ){
     Box(
-        modifier = Modifier
+        modifier = modifier
             .clickable(
                 enabled = true,
                 onClick = onImageClick
             )
-            .fillMaxWidth()
             .border(
                 width = 1.dp,
                 color = outlineLight,
@@ -52,12 +50,12 @@ fun ImageView(
     ){
         if (imagePath.isNullOrEmpty()){
             Column(
-                modifier = modifier
-                    .fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxSize()
                     .padding(5.dp)
                     .align(Alignment.Center),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.Center,
             ) {
                 IconButton(
                     onClick = onImageClick,
@@ -74,6 +72,7 @@ fun ImageView(
                     )
                 }
                 Text(
+                    modifier = Modifier.padding(top= 8.dp),
                     text = "Agregar Imagen",
                     color = primaryLight,
                     textAlign = TextAlign.Center
