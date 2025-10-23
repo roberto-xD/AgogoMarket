@@ -27,20 +27,22 @@ import com.passioagogo.market.presentation.view.components.PACustomAlertDialog
 import com.passioagogo.market.presentation.view.components.PADropDown
 import com.passioagogo.market.presentation.view.components.PATextInput
 import com.passioagogo.market.presentation.view.models.PAInfoModel
-import com.passioagogo.market.presentation.view.models.getDescripcion
+import com.passioagogo.market.ui.utils.PAConstants.NEW_CATEGORY
+import com.passioagogo.market.ui.utils.PAConstants.NEW_SUBCATEGORY
 
 @Composable
 fun PAInfoProduct(
     modifier: Modifier = Modifier,
     initialData: PAInfoModel,
+    createNew: (param : Pair<String, String>) -> Unit,
     onImageClick: () -> Unit,
     onScanClick: () -> Unit,
     onDataChange: (PAInfoModel) -> Unit,
 ){
+
+    val details = remember { mutableStateOf(false) }
     val showNewCategoryDialog = remember { mutableStateOf(false) }
     val showNewSubcategoryDialog = remember { mutableStateOf(false) }
-    val details = remember { mutableStateOf(false) }
-
 
     Column(
         modifier = modifier
@@ -161,7 +163,7 @@ fun PAInfoProduct(
                 onDataChange(initialData.copy(description = it))
             }
             PADropDown(
-                item = initialData.familyList.getDescripcion(initialData.familyId),
+                item = initialData.familyList.find { it.id == initialData.familyId }?.descripcion.orEmpty(),
                 items = initialData.familyList.map{it.descripcion},
                 modifier = Modifier
                     .fillMaxWidth(),
@@ -180,30 +182,39 @@ fun PAInfoProduct(
                     modifier = Modifier
                         .fillMaxWidth(),
                     placeHolder = stringResource(id = R.string.label_categories),
-                    item = initialData.category,
-                    items = initialData.categoryList,
+                    item = initialData.categoryList.find { it.id == initialData.categoryId }?.descripcion.orEmpty(),
+                    items = initialData.categoryList.map{it.descripcion.orEmpty()},
                     onAddNewClick = {
                         showNewCategoryDialog.value = true
-                        Log.i("tag","onAddNewClick")
                     }
-                ){
-                    onDataChange(initialData.copy(category = it))
-                    Log.i("tag","dropdown: $it")
+                ){ seleccion ->
+                    Log.i("tag","dropdown: $seleccion")
+                    initialData.categoryList.find { it.descripcion.equals(seleccion) }?.let { reasigned ->
+                        onDataChange(initialData.copy(
+                            categoryId = reasigned.id,
+                        ))
+                    }
                 }
-//            PADropDown(
-//                modifier = Modifier
-//                    .fillMaxWidth(),
-//                placeHolder = stringResource(id = R.string.label_subcategories),
-//                items = initialData.subcategoryList,
-//                item = initialData.subcategory,
-//                onAddNewClick = {
-//                    showNewSubcategoryDialog.value = true
-//                    Log.i("tag","onAddNewClick")
-//                }
-//            ){
-//            onDataChange(initialData.copy(subcategory = it))
-//                Log.i("tag","dropdown: $it")
-//            }
+            }
+
+            if(initialData.categoryId != 0L){
+                PADropDown(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    placeHolder = stringResource(id = R.string.label_subcategories),
+                    item = initialData.subcategoryList.find { it.id == initialData.subcategoryId }?.descripcion.orEmpty(),
+                    items = initialData.subcategoryList.map{it.descripcion.orEmpty()},
+                    onAddNewClick = {
+                        showNewSubcategoryDialog.value = true
+                    }
+                ){seleccion ->
+                    Log.i("tag","dropdown: $seleccion")
+                    initialData.subcategoryList.find { it.descripcion.equals(seleccion) }?.let { reasigned ->
+                        onDataChange(initialData.copy(
+                            subcategoryId = reasigned.id,
+                        ))
+                    }
+                }
             }
         }
         Spacer(modifier = Modifier.size(10.dp))
@@ -230,23 +241,18 @@ fun PAInfoProduct(
         tittle = "Añadir nueva categoría",
         showDialog = showNewCategoryDialog
     ){
-        onDataChange(
-            initialData.copy(
-                category = it,
-                categoryList = initialData.categoryList + it
-            )
-        )
+        Log.i("tag_pg","categoria para crear: $it")
+        showNewCategoryDialog.value = false
+        createNew(Pair(NEW_CATEGORY,it))
     }
+
     PACustomAlertDialog(
         tittle = "Añadir nueva subcategoría",
         showDialog = showNewSubcategoryDialog
     ){
-        onDataChange(
-            initialData.copy(
-                subcategory = it,
-                subcategoryList = initialData.subcategoryList + it
-            )
-        )
+        Log.i("tag_pg","subcategoria para crear: $it")
+        showNewSubcategoryDialog.value = false
+        createNew(Pair(NEW_SUBCATEGORY,it))
     }
 }
 
@@ -257,6 +263,7 @@ private fun Preview(
 ){
     PAInfoProduct(
         initialData = PAInfoModel(),
+        createNew = {},
         onScanClick = {},
         onImageClick = {}
     ){}

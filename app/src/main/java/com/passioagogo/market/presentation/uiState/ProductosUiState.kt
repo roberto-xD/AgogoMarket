@@ -3,11 +3,13 @@ package com.passioagogo.market.presentation.uiState
 import com.passioagogo.market.domain.bean.Categoria
 import com.passioagogo.market.domain.bean.Producto
 import com.passioagogo.market.domain.bean.Proveedor
+import com.passioagogo.market.domain.bean.Subcategoria
 
 data class ProductosUiState(
     val productos: List<Producto> = emptyList(),
     val productosStockBajo: List<Producto> = emptyList(),
     val categorias: List<Categoria> = emptyList(),
+    val subcategorias: List<Subcategoria> = emptyList(),
     val proveedores: List<Proveedor> = emptyList(),
     val categoriaSeleccionada: Long? = null,
     val isLoading: Boolean = true,

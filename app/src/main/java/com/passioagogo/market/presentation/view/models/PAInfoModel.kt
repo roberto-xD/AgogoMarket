@@ -1,6 +1,9 @@
 package com.passioagogo.market.presentation.view.models
 
+import com.passioagogo.market.domain.bean.Categoria
+import com.passioagogo.market.domain.bean.Familia
 import com.passioagogo.market.domain.bean.ProductoDetallado
+import com.passioagogo.market.domain.bean.Subcategoria
 import com.passioagogo.market.domain.usecase.producto.GuardarProductoParams
 import com.passioagogo.market.ui.decorators.toDoubleSafe
 import com.passioagogo.market.ui.decorators.toIntSafe
@@ -18,15 +21,15 @@ data class PAInfoModel(
     val buyPrice        : String = "",
     val sellPrice       : String = "",
     val familyId        : Long = 0L,
-    val category        : String = "",
-    val subcategory     : String = "",
+    val categoryId      : Long = 0L,
+    val subcategoryId   : Long = 0L,
     val provider        : String = "",
     val createDateBuy   : Long? = 0L,
     val lastDateSell    : Long? = 0L,
     val active          : Boolean = false,
-    val familyList      : List<PAFamiliasModel> = listOf(),
-    val categoryList    : List<String> = listOf(),
-    val subcategoryList : List<String> = listOf(),
+    val familyList      : List<Familia> = listOf(),
+    val categoryList    : List<Categoria> = listOf(),
+    val subcategoryList : List<Subcategoria> = listOf(),
     ) {
     fun isEmpty(): Boolean {
         return tittle.isEmpty()

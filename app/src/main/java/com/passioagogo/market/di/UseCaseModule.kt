@@ -42,6 +42,7 @@ import com.passioagogo.market.domain.usecase.producto.ObtenerProveedoresUseCase
 import com.passioagogo.market.domain.usecase.producto.ValidarCodigoBarrasUseCase
 import com.passioagogo.market.domain.usecase.producto.ValidarSkuUseCase
 import com.passioagogo.market.domain.usecase.subcategorias.CrearSubcategoriaConCategoriaUseCase
+import com.passioagogo.market.domain.usecase.subcategorias.ObtenerSubcategoriaPorCategoriaUseCase
 import com.passioagogo.market.domain.usecase.ventas.GenerarReporteVentasUseCase
 import com.passioagogo.market.domain.usecase.ventas.RegistrarVentaUseCase
 import dagger.Binds
@@ -144,7 +145,10 @@ object UseCaseModule {
         subcategoriaRepository: ISubcategoriaRepository
     ): CrearSubcategoriaConCategoriaUseCase = CrearSubcategoriaConCategoriaUseCase(subcategoriaRepository)
 
-
+    @Provides
+    fun provideObtenerSubcategoriaPorCategoriaUseCase(
+        subcategoriaRepository: ISubcategoriaRepository
+    ): ObtenerSubcategoriaPorCategoriaUseCase = ObtenerSubcategoriaPorCategoriaUseCase(subcategoriaRepository)
     // ===========================================
     // CASOS DE USO - PROVEEDORES
     // ===========================================

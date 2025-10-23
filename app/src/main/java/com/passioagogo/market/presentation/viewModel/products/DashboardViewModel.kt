@@ -11,6 +11,7 @@ import com.passioagogo.market.domain.usecase.producto.BuscarProductosUseCase
 import com.passioagogo.market.domain.usecase.producto.ObtenerProductosStockBajoUseCase
 import com.passioagogo.market.domain.usecase.producto.ObtenerProductosUseCase
 import com.passioagogo.market.domain.usecase.producto.ObtenerProveedoresUseCase
+import com.passioagogo.market.domain.usecase.subcategorias.ObtenerSubcategoriaPorCategoriaUseCase
 import com.passioagogo.market.presentation.uiState.ProductosUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,6 +29,7 @@ class DashboardViewModel @Inject constructor(
     private val obtenerCategoriasUseCase: ObtenerCategoriasUseCase,
     private val obtenerProveedoresUseCase: ObtenerProveedoresUseCase,
     private val obtenerCategoriasPorFamiliaIdUseCase: ObtenerCategoriasPorFamiliaIdUseCase,
+    private val obtenerSubcategoriaPorCategoriaUseCase: ObtenerSubcategoriaPorCategoriaUseCase,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(ProductosUiState())
     val uiState: StateFlow<ProductosUiState> = _uiState.asStateFlow()
@@ -130,4 +132,18 @@ class DashboardViewModel @Inject constructor(
         }
     }
 
+    fun obtenerSubcategoriasPorCategoria(categoriaId: Long){
+        viewModelScope.launch {
+            obtenerSubcategoriaPorCategoriaUseCase.invoke(categoriaId)
+                .onSuccess { subcategoriasFlow ->
+                    subcategoriasFlow.collect { subcategorias ->
+                        _uiState.update {
+                            it.copy(
+                                subcategorias = subcategorias
+                            )
+                        }
+                    }
+                }
+        }
+    }
 }

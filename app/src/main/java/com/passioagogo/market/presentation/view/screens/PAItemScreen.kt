@@ -42,16 +42,18 @@ import com.passioagogo.market.presentation.view.templates.PAInfoProduct
 import com.passioagogo.market.presentation.viewModel.BackPressHandler
 import com.passioagogo.market.presentation.viewModel.imagenes.ImageGalleryViewModel
 import com.passioagogo.market.presentation.viewModel.products.DashboardViewModel
+import com.passioagogo.market.presentation.viewModel.products.DetailsViewModel
 import com.passioagogo.market.presentation.viewModel.products.DetalleProductoViewModel
-import com.passioagogo.market.presentation.viewModel.products.FamiliasViewModel
 import com.passioagogo.market.ui.decorators.orZero
+import com.passioagogo.market.ui.utils.PAConstants.NEW_CATEGORY
+import com.passioagogo.market.ui.utils.PAConstants.NEW_SUBCATEGORY
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ItemScreen(
     imageViewModel: ImageGalleryViewModel,
     detalleViewModel: DetalleProductoViewModel,
-    familiasViewModel: FamiliasViewModel = hiltViewModel(),
+    detailsViewModel: DetailsViewModel = hiltViewModel(),
     dashboardViewModel: DashboardViewModel = hiltViewModel(),
     navigateToBack: () -> Unit,
 ){
@@ -62,18 +64,20 @@ fun ItemScreen(
     val imagePaths = uiImageState.value.images
     val deleteImage = uiImageState.value.deleteImage
 
-    val familiaState = familiasViewModel.familias.collectAsState()
-    val familias = familiaState.value.map { it.toModel() }.toMutableList()
+    val familiaState = detailsViewModel.familias.collectAsState()
+    val familias = familiaState.value.toMutableList()
 
     val productosState = dashboardViewModel.uiState.collectAsState()
-    val categorias = productosState.value.categorias.map { it.nombre }.toMutableList()
-    val proveedores = productosState.value.proveedores.map { it.nombre }.toMutableList()
+    val categorias = productosState.value.categorias.toMutableList()
+    val subcategorias = productosState.value.subcategorias.toMutableList()
+    val proveedores = productosState.value.proveedores.toMutableList()
 
     val uiProductState = detalleViewModel.uiState.collectAsState()
     val producto = uiProductState.value.productoDetallado
 
     val currentProduct = remember { mutableStateOf(PAInfoModel()) }
     val showScanner = remember { mutableStateOf(false) }
+
 
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -140,6 +144,12 @@ fun ItemScreen(
         Log.i("tag_pg","categorias: $categorias")
         currentProduct.value = currentProduct.value.copy(
             categoryList = categorias
+        )
+    }
+    LaunchedEffect(subcategorias) {
+        Log.i("tag_pg","categorias: $subcategorias")
+        currentProduct.value = currentProduct.value.copy(
+            subcategoryList = subcategorias
         )
     }
     LaunchedEffect(imagePaths) {
@@ -213,6 +223,28 @@ fun ItemScreen(
             ) {
                 PAInfoProduct(
                     initialData = currentProduct.value,
+                    createNew = {
+                        when(it.first){
+                            NEW_CATEGORY -> {
+                                detailsViewModel.crearCategoriaConFamilia(
+                                    nombre = it.second,
+                                    descripcion = "",
+                                    familiaId = currentProduct.value.familyId
+                                ).invokeOnCompletion {
+                                    dashboardViewModel.obtenerCategoriasPorFamiliaId(currentProduct.value.familyId)
+                                }
+                            }
+                            NEW_SUBCATEGORY -> {
+                                detailsViewModel.crearSubcategoriaConCategoria(
+                                    nombre = it.second,
+                                    descripcion = "",
+                                    categoriaId = currentProduct.value.categoryId
+                                ).invokeOnCompletion {
+                                    dashboardViewModel.obtenerSubcategoriasPorCategoria(currentProduct.value.categoryId)
+                                }
+                            }
+                        }
+                    },
                     onImageClick = {
                         if(currentProduct.value.pathImageList.isEmpty()){
                             openPicker()
@@ -227,8 +259,11 @@ fun ItemScreen(
                             .show()
                     },
                 ){ updatedProduct ->
-                    if(updatedProduct.familyId != currentProduct.value.familyId ){
+                    if(updatedProduct.familyId != currentProduct.value.familyId){
                         dashboardViewModel.obtenerCategoriasPorFamiliaId(updatedProduct.familyId)
+                    }
+                    if(updatedProduct.categoryId != currentProduct.value.categoryId){
+                        dashboardViewModel.obtenerSubcategoriasPorCategoria(updatedProduct.categoryId)
                     }
                     currentProduct.value = updatedProduct
                 }
@@ -284,6 +319,8 @@ fun ItemScreen(
                     }
                 )
             }
+
+
         }
     }
 }
