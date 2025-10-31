@@ -186,7 +186,7 @@ fun ItemScreen(
                 .background(MaterialTheme.colorScheme.surfaceBright),
             topBar = {
                 PAToolbar(
-                    centerText = stringResource(R.string.label_item),
+                    centerText = if(currentProduct.value.id.orZero() == 0L){stringResource(R.string.label_new_item)} else{stringResource(R.string.label_update_item)},
                     leftIcon = R.drawable.arrow_back,
                     onLeftClick = {
                         backClick()

@@ -1,5 +1,8 @@
 package com.passioagogo.market.presentation.view.components
 
+import android.util.Log
+import android.widget.ImageButton
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -10,36 +13,43 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.passioagogo.market.R
+import com.passioagogo.market.domain.PAConstants.TAG_PG
 import com.passioagogo.market.domain.model.venta.ProductoVenta
 
 @Composable
 fun ProductosSection(
     productos: List<ProductoVenta>,
-    onAgregarProducto: () -> Unit,
+    searchInput:(input: String) -> Unit,
     onEliminarProducto: (Long) -> Unit,
     onCantidadChange: (Long, Int) -> Unit,
     errorStock: String?
 ) {
+    val showInputSearch = remember { mutableStateOf(false) }
+    val showScanner = remember { mutableStateOf(false) }
+
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = if (errorStock != null) {
-            CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)
-        } else {
-            CardDefaults.cardColors()
-        }
     ) {
         Column(
             modifier = Modifier.padding(16.dp)
@@ -49,19 +59,68 @@ fun ProductosSection(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "Productos",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
-
-                Button(
-                    onClick = onAgregarProducto,
-                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
+//                IconButton(
+//                    onClick = {
+//                        showInputSearch.value = showInputSearch.value.not()
+//                    },
+//                    modifier = Modifier
+//                        .padding(4.dp)
+//                        .background(
+//                            Color.Black.copy(alpha = 0.5f),
+//                            RoundedCornerShape(50)
+//                        )
+//                        .size(32.dp)
+//                ) {
+//                    Icon(
+//                        painter = painterResource(R.drawable.database_search),
+//                        contentDescription = "buscar_sku",
+//                        tint = Color.Black,
+//                        modifier = Modifier.size(16.dp),
+//                    )
+//                }
+                IconButton(
+                    onClick = {
+                        showInputSearch.value = false
+                    },
+                    modifier = Modifier
+                        .padding(4.dp)
+                        .background(
+                            Color.Black.copy(alpha = 0.5f),
+                            RoundedCornerShape(50)
+                        )
+                        .size(32.dp)
                 ) {
-                    Icon(Icons.Default.Add, "Agregar", modifier = Modifier.size(18.dp))
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text("Agregar")
+                    Icon(
+                        painter = painterResource(R.drawable.barcode_scann),
+                        contentDescription = "buscar_codigo",
+                        tint = Color.Black,
+                        modifier = Modifier.size(16.dp),
+                    )
+                }
+                IconButton(
+                    onClick = {
+                        showInputSearch.value = showInputSearch.value.not()
+                    },
+                    modifier = Modifier
+                        .padding(4.dp)
+                        .background(
+                            Color.Black.copy(alpha = 0.5f),
+                            RoundedCornerShape(50)
+                        )
+                        .size(32.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.search_24),
+                        contentDescription = "buscar_nombre",
+                        tint = Color.Black,
+                        modifier = Modifier.size(16.dp),
+                    )
+                }
+            }
+
+            if(showInputSearch.value){
+                SearchInput {
+                    searchInput(it)
                 }
             }
 

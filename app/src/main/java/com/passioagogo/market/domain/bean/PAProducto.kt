@@ -1,6 +1,7 @@
 package com.passioagogo.market.domain.bean
 
 import com.passioagogo.market.data.local.entity.base.ProductoEntity
+import com.passioagogo.market.domain.model.venta.ProductoVenta
 import com.passioagogo.market.ui.decorators.orZero
 
 data class Producto(
@@ -86,6 +87,16 @@ data class Producto(
             activo = activo,
             fechaCreacion = fechaCreacion,
             fechaActualizacion = fechaActualizacion
+        )
+    }
+
+    fun toVenta(): ProductoVenta {
+        return ProductoVenta(
+            productoId = id,
+            nombre = nombre,
+            cantidad = 0,
+            precioUnitario = precioVenta,
+            stockDisponible = cantidadActual,
         )
     }
 }

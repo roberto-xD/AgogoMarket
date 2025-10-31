@@ -26,7 +26,6 @@ fun ProductCard(
     tittle: String,
     imagePath: String,
     sellPrice: String,
-    onStock: Boolean = true,
     onDetailClick: (id: Long) -> Unit,
 ) {
     Column(
@@ -42,33 +41,6 @@ fun ProductCard(
                 shape = RoundedCornerShape(15.dp)
             )
     ) {
-        if (onStock) {
-            Column(
-                modifier = Modifier
-                    .padding(3.dp)
-                    .background(
-                        color = backgroundLight,
-                        shape = RoundedCornerShape(15.dp)
-                    )
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(10.dp)
-                ) {
-                    Text(
-                        text = "En Existencia",
-                        modifier = Modifier.weight(2.0f),
-                    )
-                    Image(
-                        painter = painterResource(id = R.drawable.ic_launcher_background),
-                        contentDescription = null,
-                        modifier = Modifier.size(15.dp)
-                    )
-                }
-            }
-        }
-
         PAImageItem(
             imagePath = imagePath,
         )
@@ -117,7 +89,6 @@ fun ProductCard(
 private fun ProductPre() {
     ProductCard(
         id = 1L,
-        onStock = true,
         tittle = "Rose tongue licking & suction",
         imagePath = "",
         sellPrice = "$1423.35",

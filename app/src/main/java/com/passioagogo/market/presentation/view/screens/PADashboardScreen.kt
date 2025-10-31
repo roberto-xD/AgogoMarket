@@ -95,7 +95,6 @@ fun DashboardScreen(
                                 id = product.id,
                                 tittle = product.nombre,
                                 imagePath = product.imagenPrincipal,
-                                onStock = product.activo,
                                 sellPrice = product.precioVenta.toString(),
                             ) { id ->
                                 detalleViewModel.cargarProducto(id)

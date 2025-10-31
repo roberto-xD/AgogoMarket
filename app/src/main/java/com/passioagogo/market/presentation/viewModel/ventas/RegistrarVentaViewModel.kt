@@ -4,6 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.passioagogo.market.domain.model.venta.ProductoVenta
 import com.passioagogo.market.domain.model.venta.Venta
+import com.passioagogo.market.domain.state.onError
+import com.passioagogo.market.domain.state.onSuccess
+import com.passioagogo.market.domain.usecase.producto.BuscarProductosParams
+import com.passioagogo.market.domain.usecase.producto.BuscarProductosUseCase
 import com.passioagogo.market.domain.usecase.ventas.GuardarVentaUseCase
 import com.passioagogo.market.domain.usecase.ventas.ValidarStockUseCase
 import com.passioagogo.market.presentation.view.components.ClienteModel
@@ -18,7 +22,8 @@ import javax.inject.Inject
 @HiltViewModel
 class RegistrarVentaViewModel @Inject constructor(
     private val guardarVentaUseCase: GuardarVentaUseCase,
-    private val validarStockUseCase: ValidarStockUseCase
+    private val validarStockUseCase: ValidarStockUseCase,
+    private val buscarProductosUseCase: BuscarProductosUseCase,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(RegistrarVentaUiState())
@@ -161,6 +166,31 @@ class RegistrarVentaViewModel @Inject constructor(
 
     fun resetearFormulario() {
         _uiState.value = RegistrarVentaUiState()
+    }
+
+    fun buscarProductos(query: String) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
+
+            val params = BuscarProductosParams(query = query)
+            buscarProductosUseCase(params).onSuccess { resultadosFlow ->
+                resultadosFlow.collect { productos ->
+                    _uiState.update {
+                        it.copy(
+                            productos = productos.map { it.toVenta() },
+                            isLoading = false
+                        )
+                    }
+                }
+            }.onError { error ->
+                _uiState.update {
+                    it.copy(
+                        error = error.message,
+                        isLoading = false
+                    )
+                }
+            }
+        }
     }
 }
 

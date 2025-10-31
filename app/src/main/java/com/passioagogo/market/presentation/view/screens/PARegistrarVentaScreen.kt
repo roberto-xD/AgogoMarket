@@ -1,5 +1,6 @@
 package com.passioagogo.market.presentation.view.screens
 
+import android.util.Log
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -33,12 +34,15 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.passioagogo.market.R
+import com.passioagogo.market.domain.PAConstants.TAG_PG
 import com.passioagogo.market.presentation.view.components.ClienteSection
 import com.passioagogo.market.presentation.view.components.FechaActualSection
 import com.passioagogo.market.presentation.view.components.PAContainer
 import com.passioagogo.market.presentation.view.components.PADropDown
 import com.passioagogo.market.presentation.view.components.ProductosSection
+import com.passioagogo.market.presentation.view.components.SearchInput
 import com.passioagogo.market.presentation.view.components.TotalSection
+import com.passioagogo.market.presentation.viewModel.products.DashboardViewModel
 import com.passioagogo.market.presentation.viewModel.ventas.RegistrarVentaViewModel
 import kotlinx.coroutines.delay
 
@@ -91,12 +95,14 @@ fun RegistrarVentaScreen(
                 .fillMaxSize()
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
-                .padding(16.dp)
+                .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
         ) {
             // Sección Productos
             ProductosSection(
                 productos = uiState.productos,
-                onAgregarProducto = onNavigateToSeleccionProductos,
+                searchInput = {
+                    viewModel.buscarProductos(it)
+                },
                 onEliminarProducto = viewModel::eliminarProducto,
                 onCantidadChange = viewModel::actualizarCantidadProducto,
                 errorStock = uiState.errorStock
