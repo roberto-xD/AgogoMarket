@@ -16,16 +16,25 @@ import com.passioagogo.market.data.local.entity.base.ProductoEntity
             onDelete = ForeignKey.CASCADE
         )
     ],
-    indices = [Index(value = ["productoId"])]
+    indices = [
+        Index(value = ["productoId"]),
+        Index(value = ["remoteId"], unique = true)
+    ]
 )
 data class HistorialPrecioEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
+    val remoteId: String? = null,
     val productoId: Long,
+    val productoRemoteId: String? = null,  // Para sincronización
     val precioCompraAnterior: Double,
     val precioVentaAnterior: Double,
     val precioCompraNuevo: Double,
     val precioVentaNuevo: Double,
     val motivo: String?, // "Actualización manual", "Cambio de proveedor", etc.
-    val fechaCambio: Long = System.currentTimeMillis()
+    val fechaCambio: Long = System.currentTimeMillis(),
+    // Campos de sincronización
+    val isSynced: Boolean = false,
+    val isDeleted: Boolean = false,
+    val needsSync: Boolean = false
 )

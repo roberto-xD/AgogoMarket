@@ -5,6 +5,7 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.passioagogo.market.data.local.converters.Converters
 import com.passioagogo.market.data.local.dao.CategoriaDao
@@ -58,8 +59,8 @@ import kotlinx.coroutines.launch
         VentaEntity::class,
         VentaProductoEntity::class
     ],
-    version = 1,
-    exportSchema = false
+    version = 2,
+    exportSchema = true
 )
 @TypeConverters(Converters::class)
 abstract class InventarioDatabase : RoomDatabase() {
@@ -138,5 +139,132 @@ abstract class InventarioDatabase : RoomDatabase() {
                 }
             }
         }
+    }
+}
+
+// Migración de versión 1 a 2
+val MIGRATION_1_2 = object : Migration(1, 2) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        // Agregar campos a familias
+        database.execSQL("ALTER TABLE familias ADD COLUMN remoteId TEXT DEFAULT NULL")
+        database.execSQL("ALTER TABLE familias ADD COLUMN userId TEXT DEFAULT NULL")
+        database.execSQL("ALTER TABLE familias ADD COLUMN updatedAt INTEGER DEFAULT NULL")
+        database.execSQL("ALTER TABLE familias ADD COLUMN isSynced INTEGER NOT NULL DEFAULT 0")
+        database.execSQL("ALTER TABLE familias ADD COLUMN isDeleted INTEGER NOT NULL DEFAULT 0")
+        database.execSQL("ALTER TABLE familias ADD COLUMN needsSync INTEGER NOT NULL DEFAULT 0")
+        database.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_familias_remoteId ON familias(remoteId)")
+
+        // Agregar campos a categorias
+        database.execSQL("ALTER TABLE categorias ADD COLUMN remoteId TEXT DEFAULT NULL")
+        database.execSQL("ALTER TABLE categorias ADD COLUMN userId TEXT DEFAULT NULL")
+        database.execSQL("ALTER TABLE categorias ADD COLUMN familiaRemoteId TEXT DEFAULT NULL")
+        database.execSQL("ALTER TABLE categorias ADD COLUMN updatedAt INTEGER DEFAULT NULL")
+        database.execSQL("ALTER TABLE categorias ADD COLUMN isSynced INTEGER NOT NULL DEFAULT 0")
+        database.execSQL("ALTER TABLE categorias ADD COLUMN isDeleted INTEGER NOT NULL DEFAULT 0")
+        database.execSQL("ALTER TABLE categorias ADD COLUMN needsSync INTEGER NOT NULL DEFAULT 0")
+        database.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_categorias_remoteId ON categorias(remoteId)")
+
+        // Agregar campos a subcategorias
+        database.execSQL("ALTER TABLE subcategorias ADD COLUMN remoteId TEXT DEFAULT NULL")
+        database.execSQL("ALTER TABLE subcategorias ADD COLUMN userId TEXT DEFAULT NULL")
+        database.execSQL("ALTER TABLE subcategorias ADD COLUMN categoriaRemoteId TEXT DEFAULT NULL")
+        database.execSQL("ALTER TABLE subcategorias ADD COLUMN updatedAt INTEGER DEFAULT NULL")
+        database.execSQL("ALTER TABLE subcategorias ADD COLUMN isSynced INTEGER NOT NULL DEFAULT 0")
+        database.execSQL("ALTER TABLE subcategorias ADD COLUMN isDeleted INTEGER NOT NULL DEFAULT 0")
+        database.execSQL("ALTER TABLE subcategorias ADD COLUMN needsSync INTEGER NOT NULL DEFAULT 0")
+        database.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_subcategorias_remoteId ON subcategorias(remoteId)")
+
+        // Agregar campos a proveedores
+        database.execSQL("ALTER TABLE proveedores ADD COLUMN remoteId TEXT DEFAULT NULL")
+        database.execSQL("ALTER TABLE proveedores ADD COLUMN userId TEXT DEFAULT NULL")
+        database.execSQL("ALTER TABLE proveedores ADD COLUMN updatedAt INTEGER DEFAULT NULL")
+        database.execSQL("ALTER TABLE proveedores ADD COLUMN isSynced INTEGER NOT NULL DEFAULT 0")
+        database.execSQL("ALTER TABLE proveedores ADD COLUMN isDeleted INTEGER NOT NULL DEFAULT 0")
+        database.execSQL("ALTER TABLE proveedores ADD COLUMN needsSync INTEGER NOT NULL DEFAULT 0")
+        database.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_proveedores_remoteId ON proveedores(remoteId)")
+
+        // Agregar campos a productos
+        database.execSQL("ALTER TABLE productos ADD COLUMN remoteId TEXT DEFAULT NULL")
+        database.execSQL("ALTER TABLE productos ADD COLUMN userId TEXT DEFAULT NULL")
+        database.execSQL("ALTER TABLE productos ADD COLUMN proveedorPrincipalRemoteId TEXT DEFAULT NULL")
+        database.execSQL("ALTER TABLE productos ADD COLUMN updatedAt INTEGER DEFAULT NULL")
+        database.execSQL("ALTER TABLE productos ADD COLUMN isSynced INTEGER NOT NULL DEFAULT 0")
+        database.execSQL("ALTER TABLE productos ADD COLUMN isDeleted INTEGER NOT NULL DEFAULT 0")
+        database.execSQL("ALTER TABLE productos ADD COLUMN needsSync INTEGER NOT NULL DEFAULT 0")
+        database.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_productos_remoteId ON productos(remoteId)")
+
+        // Agregar campos a tipos_atributos
+        database.execSQL("ALTER TABLE tipos_atributos ADD COLUMN remoteId TEXT DEFAULT NULL")
+        database.execSQL("ALTER TABLE tipos_atributos ADD COLUMN userId TEXT DEFAULT NULL")
+        database.execSQL("ALTER TABLE tipos_atributos ADD COLUMN fechaCreacion INTEGER NOT NULL DEFAULT ${System.currentTimeMillis()}")
+        database.execSQL("ALTER TABLE tipos_atributos ADD COLUMN isSynced INTEGER NOT NULL DEFAULT 0")
+        database.execSQL("ALTER TABLE tipos_atributos ADD COLUMN isDeleted INTEGER NOT NULL DEFAULT 0")
+        database.execSQL("ALTER TABLE tipos_atributos ADD COLUMN needsSync INTEGER NOT NULL DEFAULT 0")
+        database.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_tipos_atributos_remoteId ON tipos_atributos(remoteId)")
+
+        // Agregar campos a producto_atributos
+        database.execSQL("ALTER TABLE producto_atributos ADD COLUMN remoteId TEXT DEFAULT NULL")
+        database.execSQL("ALTER TABLE producto_atributos ADD COLUMN productoRemoteId TEXT DEFAULT NULL")
+        database.execSQL("ALTER TABLE producto_atributos ADD COLUMN tipoAtributoRemoteId TEXT DEFAULT NULL")
+        database.execSQL("ALTER TABLE producto_atributos ADD COLUMN isSynced INTEGER NOT NULL DEFAULT 0")
+        database.execSQL("ALTER TABLE producto_atributos ADD COLUMN isDeleted INTEGER NOT NULL DEFAULT 0")
+        database.execSQL("ALTER TABLE producto_atributos ADD COLUMN needsSync INTEGER NOT NULL DEFAULT 0")
+        database.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_producto_atributos_remoteId ON producto_atributos(remoteId)")
+
+        // Agregar campos a historial_precios
+        database.execSQL("ALTER TABLE historial_precios ADD COLUMN remoteId TEXT DEFAULT NULL")
+        database.execSQL("ALTER TABLE historial_precios ADD COLUMN productoRemoteId TEXT DEFAULT NULL")
+        database.execSQL("ALTER TABLE historial_precios ADD COLUMN isSynced INTEGER NOT NULL DEFAULT 0")
+        database.execSQL("ALTER TABLE historial_precios ADD COLUMN isDeleted INTEGER NOT NULL DEFAULT 0")
+        database.execSQL("ALTER TABLE historial_precios ADD COLUMN needsSync INTEGER NOT NULL DEFAULT 0")
+        database.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_historial_precios_remoteId ON historial_precios(remoteId)")
+
+        // Agregar campos a producto_imagenes
+        database.execSQL("ALTER TABLE producto_imagenes ADD COLUMN remoteId TEXT DEFAULT NULL")
+        database.execSQL("ALTER TABLE producto_imagenes ADD COLUMN productoRemoteId TEXT DEFAULT NULL")
+        database.execSQL("ALTER TABLE producto_imagenes ADD COLUMN isSynced INTEGER NOT NULL DEFAULT 0")
+        database.execSQL("ALTER TABLE producto_imagenes ADD COLUMN isDeleted INTEGER NOT NULL DEFAULT 0")
+        database.execSQL("ALTER TABLE producto_imagenes ADD COLUMN needsSync INTEGER NOT NULL DEFAULT 0")
+        database.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_producto_imagenes_remoteId ON producto_imagenes(remoteId)")
+
+        // Agregar campos a producto_familia
+        database.execSQL("ALTER TABLE producto_familia ADD COLUMN productoRemoteId TEXT DEFAULT NULL")
+        database.execSQL("ALTER TABLE producto_familia ADD COLUMN familiaRemoteId TEXT DEFAULT NULL")
+        database.execSQL("ALTER TABLE producto_familia ADD COLUMN isSynced INTEGER NOT NULL DEFAULT 0")
+        database.execSQL("ALTER TABLE producto_familia ADD COLUMN needsSync INTEGER NOT NULL DEFAULT 0")
+
+        // Agregar campos a producto_categorias
+        database.execSQL("ALTER TABLE producto_categorias ADD COLUMN productoRemoteId TEXT DEFAULT NULL")
+        database.execSQL("ALTER TABLE producto_categorias ADD COLUMN categoriaRemoteId TEXT DEFAULT NULL")
+        database.execSQL("ALTER TABLE producto_categorias ADD COLUMN isSynced INTEGER NOT NULL DEFAULT 0")
+        database.execSQL("ALTER TABLE producto_categorias ADD COLUMN needsSync INTEGER NOT NULL DEFAULT 0")
+
+        // Agregar campos a producto_subcategorias
+        database.execSQL("ALTER TABLE producto_subcategorias ADD COLUMN productoRemoteId TEXT DEFAULT NULL")
+        database.execSQL("ALTER TABLE producto_subcategorias ADD COLUMN subcategoriaRemoteId TEXT DEFAULT NULL")
+        database.execSQL("ALTER TABLE producto_subcategorias ADD COLUMN isSynced INTEGER NOT NULL DEFAULT 0")
+        database.execSQL("ALTER TABLE producto_subcategorias ADD COLUMN needsSync INTEGER NOT NULL DEFAULT 0")
+
+        // Agregar campos a producto_proveedores
+        database.execSQL("ALTER TABLE producto_proveedores ADD COLUMN productoRemoteId TEXT DEFAULT NULL")
+        database.execSQL("ALTER TABLE producto_proveedores ADD COLUMN proveedorRemoteId TEXT DEFAULT NULL")
+        database.execSQL("ALTER TABLE producto_proveedores ADD COLUMN isSynced INTEGER NOT NULL DEFAULT 0")
+        database.execSQL("ALTER TABLE producto_proveedores ADD COLUMN needsSync INTEGER NOT NULL DEFAULT 0")
+
+        // Agregar campos a ventas
+        database.execSQL("ALTER TABLE ventas ADD COLUMN remoteId TEXT DEFAULT NULL")
+        database.execSQL("ALTER TABLE ventas ADD COLUMN userId TEXT DEFAULT NULL")
+        database.execSQL("ALTER TABLE ventas ADD COLUMN isSynced INTEGER NOT NULL DEFAULT 0")
+        database.execSQL("ALTER TABLE ventas ADD COLUMN isDeleted INTEGER NOT NULL DEFAULT 0")
+        database.execSQL("ALTER TABLE ventas ADD COLUMN needsSync INTEGER NOT NULL DEFAULT 0")
+        database.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_ventas_remoteId ON ventas(remoteId)")
+
+        // Agregar campos a venta_productos
+        database.execSQL("ALTER TABLE venta_productos ADD COLUMN remoteId TEXT DEFAULT NULL")
+        database.execSQL("ALTER TABLE venta_productos ADD COLUMN ventaRemoteId TEXT DEFAULT NULL")
+        database.execSQL("ALTER TABLE venta_productos ADD COLUMN productoRemoteId TEXT DEFAULT NULL")
+        database.execSQL("ALTER TABLE venta_productos ADD COLUMN isSynced INTEGER NOT NULL DEFAULT 0")
+        database.execSQL("ALTER TABLE venta_productos ADD COLUMN needsSync INTEGER NOT NULL DEFAULT 0")
+        database.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_venta_productos_remoteId ON venta_productos(remoteId)")
     }
 }

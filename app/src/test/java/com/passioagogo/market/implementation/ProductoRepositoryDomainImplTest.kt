@@ -10,7 +10,7 @@ import com.passioagogo.market.data.local.dao.ProductoProveedorDao
 import com.passioagogo.market.data.local.dao.ProductoSubcategoriaDao
 import com.passioagogo.market.data.local.dao.ProveedorDao
 import com.passioagogo.market.data.local.dao.SubcategoriaDao
-import com.passioagogo.market.data.implementation.ProductoRepositoryDomainImpl
+import com.passioagogo.market.data.repository.ProductoRepositoryDomainImpl
 import com.passioagogo.market.domain.state.DomainException
 import com.passioagogo.market.testing.CoroutineTestRule
 import com.passioagogo.market.testing.TestData

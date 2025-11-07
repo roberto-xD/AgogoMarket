@@ -30,5 +30,11 @@ import com.passioagogo.market.data.local.entity.base.SubcategoriaEntity
 )
 data class ProductoSubcategoriaEntity(
     val productoId: Long,
-    val subcategoriaId: Long
+    val subcategoriaId: Long,
+    val productoRemoteId: String? = null,  // Para sincronización
+    val subcategoriaRemoteId: String? = null,  // Para sincronización
+
+    // Campos de sincronización
+    val isSynced: Boolean = false,
+    val needsSync: Boolean = false
 )

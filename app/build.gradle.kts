@@ -30,6 +30,9 @@ android {
                 )
             }
         }
+
+        buildConfigField("String", "SUPABASE_URL", "\"${project.findProperty("SUPABASE_URL") ?: ""}\"")
+        buildConfigField("String", "SUPABASE_KEY", "\"${project.findProperty("SUPABASE_KEY") ?: ""}\"")
     }
 
     buildTypes {
@@ -50,6 +53,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "2.1.20"
@@ -163,6 +167,14 @@ dependencies {
 
     implementation("com.itextpdf:itext7-core:7.2.5")
     implementation("com.itextpdf:html2pdf:4.0.5")
+
+    // Supabase
+    implementation(platform("io.github.jan-tennert.supabase:bom:2.0.0"))
+    implementation("io.github.jan-tennert.supabase:postgrest-kt")
+    implementation("io.github.jan-tennert.supabase:gotrue-kt")
+    implementation("io.github.jan-tennert.supabase:realtime-kt")
+    implementation("io.github.jan-tennert.supabase:storage-kt")
+    implementation("io.ktor:ktor-client-android:2.3.7")
 }
 kapt {
     correctErrorTypes = true

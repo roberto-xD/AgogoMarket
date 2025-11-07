@@ -31,5 +31,9 @@ import com.passioagogo.market.data.local.entity.base.ProductoEntity
 data class ProductoCategoriaEntity(
     val productoId: Long,
     val categoriaId: Long,
-    val esPrincipal: Boolean = false // Para identificar la categoría principal
+    val productoRemoteId: String? = null,  // Para sincronización
+    val categoriaRemoteId: String? = null,  // Para sincronización
+    val esPrincipal: Boolean = false, // Para identificar la categoría principal
+    val isSynced: Boolean = false,
+    val needsSync: Boolean = false,
 )

@@ -1,18 +1,17 @@
 package com.passioagogo.market.domain.usecase.producto
 
 import com.passioagogo.market.data.imports.GoogleSheetsImportService
-import com.passioagogo.market.data.repository.ICategoriaRepository
+import com.passioagogo.market.domain.repository.ICategoriaRepository
 import com.passioagogo.market.domain.bean.CategoriaImport
 import com.passioagogo.market.domain.bean.ErrorImportacion
 import com.passioagogo.market.domain.bean.FamiliaImport
-import com.passioagogo.market.domain.bean.ProductoImport
 import com.passioagogo.market.domain.bean.ProductoImportExtendido
 import com.passioagogo.market.domain.bean.ResultadoImportacionCompleta
 import com.passioagogo.market.domain.bean.ResultadoImportacionProductos
 import com.passioagogo.market.domain.bean.ResultadoImportacionItem
 import com.passioagogo.market.domain.bean.SubcategoriaImport
 import com.passioagogo.market.domain.bean.TipoErrorImportacion
-import com.passioagogo.market.domain.repository.IFamiliaRepository
+import com.passioagogo.market.domain.repository.FamiliaRepository
 import com.passioagogo.market.domain.repository.IProductoRepository
 import com.passioagogo.market.domain.repository.ISubcategoriaRepository
 import com.passioagogo.market.domain.state.DomainException
@@ -45,7 +44,7 @@ class ImportarProductosDesdeGoogleSheetsUseCase @Inject constructor(
     private val crearCategoriaUseCase: CrearCategoriaConFamiliaUseCase,
     private val crearSubcategoriaUseCase: CrearSubcategoriaConCategoriaUseCase,
     private val productoRepository: IProductoRepository,
-    private val familiaRepository: IFamiliaRepository,
+    private val familiaRepository: FamiliaRepository,
     private val categoriaRepository: ICategoriaRepository,
     private val subcategoriaRepository: ISubcategoriaRepository,
 ) : UseCase<ImportarProductosParams, ResultadoImportacionCompleta>() {

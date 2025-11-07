@@ -1,7 +1,7 @@
 package com.passioagogo.market.domain.usecase.familias
 
 import com.passioagogo.market.domain.bean.Familia
-import com.passioagogo.market.domain.repository.IFamiliaRepository
+import com.passioagogo.market.domain.repository.FamiliaRepository
 import com.passioagogo.market.domain.state.PADomainState
 import com.passioagogo.market.domain.usecase.base.UseCase
 import jakarta.inject.Inject
@@ -14,7 +14,7 @@ data class CrearFamiliaParams(
 
 @Singleton
 class CrearFamiliaUseCase  @Inject constructor(
-    private val familiaRepository: IFamiliaRepository
+    private val familiaRepository: FamiliaRepository
 ) : UseCase<CrearFamiliaParams, Long>() {
     override suspend fun execute(parameters: CrearFamiliaParams): Long {
         if (parameters.nombre.isBlank()) {

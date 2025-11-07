@@ -1,7 +1,5 @@
 package com.passioagogo.market.domain.usecase.subcategorias
 
-import com.passioagogo.market.data.repository.ICategoriaRepository
-import com.passioagogo.market.domain.bean.Categoria
 import com.passioagogo.market.domain.bean.Subcategoria
 import com.passioagogo.market.domain.repository.ISubcategoriaRepository
 import com.passioagogo.market.domain.state.PADomainState

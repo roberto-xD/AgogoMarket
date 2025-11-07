@@ -16,14 +16,23 @@ import com.passioagogo.market.data.local.entity.base.ProductoEntity
             onDelete = ForeignKey.CASCADE
         )
     ],
-    indices = [Index(value = ["productoId"])]
+    indices = [
+        Index(value = ["productoId"]),
+        Index(value = ["remoteId"], unique = true)
+    ]
 )
 data class ProductoImagenEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
+    val remoteId: String? = null,
     val productoId: Long,
+    val productoRemoteId: String? = null,  // Para sincronización
     val rutaImagen: String, // Ruta local del archivo
     val orden: Int = 0, // Para ordenar las imágenes
     val esPrincipal: Boolean = false,
-    val fechaCreacion: Long = System.currentTimeMillis()
+    val fechaCreacion: Long = System.currentTimeMillis(),
+    // Campos de sincronización
+    val isSynced: Boolean = false,
+    val isDeleted: Boolean = false,
+    val needsSync: Boolean = false
 )

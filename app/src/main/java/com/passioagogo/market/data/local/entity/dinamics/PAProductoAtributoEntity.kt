@@ -30,7 +30,14 @@ import com.passioagogo.market.data.local.entity.base.ProductoEntity
 data class ProductoAtributoEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
+    val remoteId: String? = null,
     val productoId: Long,
     val tipoAtributoId: Long,
-    val valor: String // Siempre como String, se convierte según tipoDato
+    val productoRemoteId: String? = null,  // Para sincronización
+    val tipoAtributoRemoteId: String? = null,  // Para sincronización
+    val valor: String, // Siempre como String, se convierte según tipoDato
+    // Campos de sincronización
+    val isSynced: Boolean = false,
+    val isDeleted: Boolean = false,
+    val needsSync: Boolean = false
 )

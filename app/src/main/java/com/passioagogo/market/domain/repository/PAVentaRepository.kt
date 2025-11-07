@@ -1,4 +1,4 @@
-package com.passioagogo.market.data.repository
+package com.passioagogo.market.domain.repository
 
 import com.passioagogo.market.domain.model.venta.ProductoVenta
 import com.passioagogo.market.domain.model.venta.Venta

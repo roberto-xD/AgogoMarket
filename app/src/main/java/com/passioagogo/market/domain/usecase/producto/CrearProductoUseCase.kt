@@ -20,19 +20,19 @@ class CrearProductoUseCase @Inject constructor(
         validarDatosProducto(parameters)
 
         // Verificar duplicados
-        if (parameters.skuInterno.isNotBlank()) {
-            productoRepository.obtenerProductoPorSku(parameters.skuInterno)?.let {
-                throw DomainException.SkuDuplicado(parameters.skuInterno)
-            }
-        }
+//        if (parameters.skuInterno.isNotBlank()) {
+//            productoRepository.obtenerProductoPorSku(parameters.skuInterno)?.let {
+//                throw DomainException.SkuDuplicado(parameters.skuInterno)
+//            }
+//        }
 
-        parameters.codigoBarras?.let { codigo ->
-            if (codigo.isNotBlank()) {
-                productoRepository.obtenerProductoPorCodigoBarras(codigo)?.let {
-                    throw DomainException.CodigoBarrasDuplicado(codigo)
-                }
-            }
-        }
+//        parameters.codigoBarras?.let { codigo ->
+//            if (codigo.isNotBlank()) {
+//                productoRepository.obtenerProductoPorCodigoBarras(codigo)?.let {
+//                    throw DomainException.CodigoBarrasDuplicado(codigo)
+//                }
+//            }
+//        }
 
         val producto = Producto(
             nombre = parameters.nombre,

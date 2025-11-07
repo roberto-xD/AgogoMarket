@@ -20,9 +20,17 @@ import androidx.room.PrimaryKey
 data class CategoriaEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
+    val remoteId: String? = null,
+    val userId: String? = null,
     val nombre: String, // BDSM, Lubricantes, etc.
     val descripcion: String?,
     val familiaId: Long,
+    val familiaRemoteId: String? = null,  // FK remoto (UUID) para Supabase
     val activo: Boolean = true,
-    val fechaCreacion: Long = System.currentTimeMillis()
+    val fechaCreacion: Long = System.currentTimeMillis(),
+    val updatedAt: Long? = null,
+    // Campos de sincronización
+    val isSynced: Boolean = false,
+    val isDeleted: Boolean = false,
+    val needsSync: Boolean = false
 )

@@ -22,14 +22,25 @@ import com.passioagogo.market.data.local.entity.base.ProductoEntity
             onDelete = ForeignKey.RESTRICT
         )
     ],
-    indices = [Index("ventaId"), Index("productoId")]
+    indices = [
+        Index("ventaId"),
+        Index("productoId"),
+        Index(value = ["remoteId"], unique = true)
+    ]
 )
 data class VentaProductoEntity(
     @PrimaryKey()
     val id: Long = 0,
+    val remoteId: String? = null,
     val ventaId: Long,
     val productoId: Long,
+    val ventaRemoteId: String? = null,  // Para sincronización
+    val productoRemoteId: String? = null,  // Para sincronización
     val cantidad: Int,
     val precioUnitario: Double,
-    val subtotal: Double
+    val subtotal: Double,
+
+    // Campos de sincronización
+    val isSynced: Boolean = false,
+    val needsSync: Boolean = false
 )

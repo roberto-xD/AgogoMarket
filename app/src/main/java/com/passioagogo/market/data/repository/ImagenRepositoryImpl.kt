@@ -1,4 +1,4 @@
-package com.passioagogo.market.data.implementation
+package com.passioagogo.market.data.repository
 
 import com.passioagogo.market.data.local.dao.ProductoImagenDao
 import com.passioagogo.market.data.local.entity.utils.ProductoImagenEntity

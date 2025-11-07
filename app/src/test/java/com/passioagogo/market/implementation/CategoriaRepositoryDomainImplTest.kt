@@ -2,7 +2,7 @@ package com.passioagogo.market.implementation
 
 import com.google.common.truth.Truth
 import com.passioagogo.market.data.local.dao.CategoriaDao
-import com.passioagogo.market.data.implementation.CategoriaRepositoryDomainImpl
+import com.passioagogo.market.data.repository.CategoriaRepositoryDomainImpl
 import com.passioagogo.market.testing.CoroutineTestRule
 import com.passioagogo.market.testing.TestData
 import com.passioagogo.market.testing.shouldBeSuccess

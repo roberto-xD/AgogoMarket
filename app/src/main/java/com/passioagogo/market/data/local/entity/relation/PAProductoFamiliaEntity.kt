@@ -30,5 +30,10 @@ import com.passioagogo.market.data.local.entity.base.ProductoEntity
 )
 data class ProductoFamiliaEntity(
     val productoId: Long,
-    val familiaId: Long
+    val familiaId: Long,
+    val productoRemoteId: String? = null,  // Para sincronización
+    val familiaRemoteId: String? = null,  // Para sincronización
+    // Campos de sincronización
+    val isSynced: Boolean = false,
+    val needsSync: Boolean = false
 )

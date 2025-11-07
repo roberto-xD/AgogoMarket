@@ -35,4 +35,27 @@ interface ProductoCategoriaDao {
 
     @Query("DELETE FROM producto_categorias WHERE productoId = :productoId AND categoriaId = :categoriaId")
     suspend fun eliminarProductoCategoria(productoId: Long, categoriaId: Long)
+
+    // ========== NUEVOS MÉTODOS PARA SINCRONIZACIÓN ==========
+
+    @Query("SELECT * FROM producto_categorias WHERE productoId = :productoId AND categoriaId = :categoriaId")
+    suspend fun obtenerRelacion(productoId: Long, categoriaId: Long): ProductoCategoriaEntity?
+
+    @Query("SELECT * FROM producto_categorias WHERE productoId = :productoId")
+    suspend fun obtenerRelacionesPorProducto(productoId: Long): List<ProductoCategoriaEntity>
+
+    @Query("SELECT * FROM producto_categorias")
+    suspend fun obtenerTodasLasRelaciones(): List<ProductoCategoriaEntity>
+
+    @Query("SELECT * FROM producto_categorias WHERE needsSync = 1")
+    suspend fun getRelacionesPendientesSync(): List<ProductoCategoriaEntity>
+
+    @Query("UPDATE producto_categorias SET productoRemoteId = :productoRemoteId, categoriaRemoteId = :categoriaRemoteId, isSynced = 1, needsSync = 0 WHERE productoId = :productoId AND categoriaId = :categoriaId")
+    suspend fun actualizarRemoteIds(productoId: Long, categoriaId: Long, productoRemoteId: String, categoriaRemoteId: String)
+
+    @Query("UPDATE producto_categorias SET isSynced = 1, needsSync = 0 WHERE productoId = :productoId AND categoriaId = :categoriaId")
+    suspend fun marcarComoSincronizada(productoId: Long, categoriaId: Long)
+
+    @Query("UPDATE producto_categorias SET needsSync = 1, isSynced = 0 WHERE productoId = :productoId")
+    suspend fun marcarRelacionesDeProductoComoPendientes(productoId: Long)
 }

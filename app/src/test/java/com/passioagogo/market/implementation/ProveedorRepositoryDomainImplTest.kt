@@ -4,7 +4,7 @@ import com.google.common.truth.Truth
 import com.passioagogo.market.data.local.dao.ProductoProveedorDao
 import com.passioagogo.market.data.local.dao.ProveedorDao
 import com.passioagogo.market.data.local.entity.utils.ProductoProveedorConNombre
-import com.passioagogo.market.data.implementation.ProveedorRepositoryDomainImpl
+import com.passioagogo.market.data.repository.ProveedorRepositoryDomainImpl
 import com.passioagogo.market.testing.CoroutineTestRule
 import com.passioagogo.market.testing.TestData
 import com.passioagogo.market.testing.shouldBeSuccess

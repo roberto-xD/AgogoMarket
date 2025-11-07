@@ -1,4 +1,4 @@
-package com.passioagogo.market.data.repository
+package com.passioagogo.market.domain.repository
 
 import com.passioagogo.market.domain.bean.Categoria
 import com.passioagogo.market.domain.state.PADomainState
@@ -11,4 +11,5 @@ interface ICategoriaRepository {
     suspend fun guardarCategoria(categoria: Categoria): PADomainState<Long>
     suspend fun actualizarCategoria(categoria: Categoria): PADomainState<Unit>
     suspend fun eliminarCategoria(id: Long): PADomainState<Unit>
+    suspend fun sincronizarConSupabase(): PADomainState<Unit>
 }

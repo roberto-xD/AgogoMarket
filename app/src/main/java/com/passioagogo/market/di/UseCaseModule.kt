@@ -1,19 +1,19 @@
 package com.passioagogo.market.di
 
 import com.google.gson.Gson
-import com.passioagogo.market.data.implementation.CategoriaRepositoryDomainImpl
-import com.passioagogo.market.data.implementation.FamiliaRepositoryDomainImpl
-import com.passioagogo.market.data.implementation.HistorialRepositoryImpl
-import com.passioagogo.market.data.implementation.ImagenRepositoryImpl
-import com.passioagogo.market.data.implementation.ProductoRepositoryDomainImpl
-import com.passioagogo.market.data.implementation.ProveedorRepositoryDomainImpl
-import com.passioagogo.market.data.implementation.SubcategoriaRepositoryDomainImpl
-import com.passioagogo.market.data.implementation.VentaRepositoryImpl
+import com.passioagogo.market.data.repository.CategoriaRepositoryDomainImpl
+import com.passioagogo.market.data.repository.FamiliaRepositoryDomainImpl
+import com.passioagogo.market.data.repository.HistorialRepositoryImpl
+import com.passioagogo.market.data.repository.ImagenRepositoryImpl
+import com.passioagogo.market.data.repository.ProductoRepositoryDomainImpl
+import com.passioagogo.market.data.repository.ProveedorRepositoryDomainImpl
+import com.passioagogo.market.data.repository.SubcategoriaRepositoryDomainImpl
+import com.passioagogo.market.data.repository.VentaRepositoryImpl
 import com.passioagogo.market.data.imports.GoogleSheetsImportService
 import com.passioagogo.market.data.imports.GoogleSheetsImportServiceImpl
-import com.passioagogo.market.data.repository.ICategoriaRepository
-import com.passioagogo.market.data.repository.VentaRepository
-import com.passioagogo.market.domain.repository.IFamiliaRepository
+import com.passioagogo.market.domain.repository.ICategoriaRepository
+import com.passioagogo.market.domain.repository.VentaRepository
+import com.passioagogo.market.domain.repository.FamiliaRepository
 import com.passioagogo.market.domain.repository.IHistorialRepository
 import com.passioagogo.market.domain.repository.IImagenRepository
 import com.passioagogo.market.domain.repository.IProductoRepository
@@ -137,7 +137,7 @@ object UseCaseModule {
 
     @Provides
     fun provideCrearFamiliaUseCase(
-        familiaRepository: IFamiliaRepository
+        familiaRepository: FamiliaRepository
     ): CrearFamiliaUseCase = CrearFamiliaUseCase(familiaRepository)
 
     @Provides
@@ -214,7 +214,7 @@ object UseCaseModule {
         crearCategoriaUseCase: CrearCategoriaConFamiliaUseCase,
         crearSubcategoriaUseCase: CrearSubcategoriaConCategoriaUseCase,
         productoRepository: IProductoRepository,
-        familiaRepository: IFamiliaRepository,
+        familiaRepository: FamiliaRepository,
         categoriaRepository: ICategoriaRepository,
         subcategoriaRepository: ISubcategoriaRepository,
     ) : ImportarProductosDesdeGoogleSheetsUseCase = ImportarProductosDesdeGoogleSheetsUseCase(
@@ -258,7 +258,7 @@ abstract class DomainRepositoryModule {
     @Binds
     abstract fun bindIFamiliaRepository(
         familiaRepositoryDomainImpl: FamiliaRepositoryDomainImpl
-    ): IFamiliaRepository
+    ): FamiliaRepository
 
     @Binds
     abstract fun bindSubcategoriaRepository(

@@ -11,7 +11,7 @@ import com.passioagogo.market.domain.repository.CatalogoRepository
 import javax.inject.Inject
 
 class CatalogoRepositoryImpl @Inject constructor(
-    private val productoDao: ProductoDao, // Ajusta según tus DAOs
+    private val productoDao: ProductoDao,
     private val familiaDao: FamiliaDao,
     private val categoriaDao: CategoriaDao,
     private val subcategoriaDao: SubcategoriaDao,

@@ -1,9 +1,9 @@
-package com.passioagogo.market.data.implementation
+package com.passioagogo.market.data.repository
 
 import com.passioagogo.market.data.local.dao.ProductoDao
 import com.passioagogo.market.data.local.dao.VentaDao
 import com.passioagogo.market.data.local.entity.venta.toDomain
-import com.passioagogo.market.data.repository.VentaRepository
+import com.passioagogo.market.domain.repository.VentaRepository
 import com.passioagogo.market.domain.model.venta.ProductoVenta
 import com.passioagogo.market.domain.model.venta.Venta
 import com.passioagogo.market.domain.model.venta.toEntity

@@ -31,7 +31,13 @@ import com.passioagogo.market.data.local.entity.base.ProveedorEntity
 data class ProductoProveedorEntity(
     val productoId: Long,
     val proveedorId: Long,
+    val productoRemoteId: String? = null,  // Para sincronización
+    val proveedorRemoteId: String? = null,  // Para sincronización
     val precioCompra: Double,
     val fechaUltimaCompra: Long?,
-    val activo: Boolean = true
+    val activo: Boolean = true,
+
+    // Campos de sincronización
+    val isSynced: Boolean = false,
+    val needsSync: Boolean = false
 )

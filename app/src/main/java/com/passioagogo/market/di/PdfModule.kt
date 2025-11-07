@@ -2,6 +2,11 @@ package com.passioagogo.market.di
 
 import android.content.Context
 import com.passioagogo.market.data.implementation.CatalogoRepositoryImpl
+import com.passioagogo.market.data.local.dao.CategoriaDao
+import com.passioagogo.market.data.local.dao.FamiliaDao
+import com.passioagogo.market.data.local.dao.ProductoAtributoDao
+import com.passioagogo.market.data.local.dao.ProductoDao
+import com.passioagogo.market.data.local.dao.SubcategoriaDao
 import com.passioagogo.market.domain.repository.CatalogoRepository
 import com.passioagogo.market.pdf.generator.PdfGenerator
 import dagger.Module
@@ -26,14 +31,18 @@ object PdfModule {
     @Provides
     @Singleton
     fun provideCatalogoRepository(
-
+        productoDao: ProductoDao,
+        familiaDao: FamiliaDao,
+        categoriaDao: CategoriaDao,
+        subcategoriaDao: SubcategoriaDao,
+        productoAtributoDao: ProductoAtributoDao
     ): CatalogoRepository {
         return CatalogoRepositoryImpl(
-            productoDao = TODO(),
-            familiaDao = TODO(),
-            categoriaDao = TODO(),
-            subcategoriaDao = TODO(),
-            atributoDao = TODO()
+            productoDao = productoDao,
+            familiaDao = familiaDao,
+            categoriaDao = categoriaDao,
+            subcategoriaDao = subcategoriaDao,
+            atributoDao = productoAtributoDao
         )
     }
 }
