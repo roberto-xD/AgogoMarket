@@ -4,15 +4,20 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.passioagogo.market.domain.state.onError
 import com.passioagogo.market.domain.state.onSuccess
+import com.passioagogo.market.domain.usecase.categorias.CrearCategoriaConFamiliaParams
+import com.passioagogo.market.domain.usecase.categorias.CrearCategoriaConFamiliaUseCase
 import com.passioagogo.market.domain.usecase.categorias.ObtenerCategoriasPorFamiliaIdUseCase
 import com.passioagogo.market.domain.usecase.categorias.ObtenerCategoriasUseCase
+import com.passioagogo.market.domain.usecase.familias.ObtenerFamiliasUseCase
 import com.passioagogo.market.domain.usecase.producto.BuscarProductosParams
 import com.passioagogo.market.domain.usecase.producto.BuscarProductosUseCase
 import com.passioagogo.market.domain.usecase.producto.ObtenerProductosStockBajoUseCase
 import com.passioagogo.market.domain.usecase.producto.ObtenerProductosUseCase
 import com.passioagogo.market.domain.usecase.producto.ObtenerProveedoresUseCase
+import com.passioagogo.market.domain.usecase.subcategorias.CrearSubcategoriaConCategoriaParams
+import com.passioagogo.market.domain.usecase.subcategorias.CrearSubcategoriaConCategoriaUseCase
 import com.passioagogo.market.domain.usecase.subcategorias.ObtenerSubcategoriaPorCategoriaUseCase
-import com.passioagogo.market.presentation.uiState.ProductosUiState
+import com.passioagogo.market.presentation.uiState.CatalogoUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -26,13 +31,16 @@ class DashboardViewModel @Inject constructor(
     private val obtenerProductosUseCase: ObtenerProductosUseCase,
     private val obtenerProductosStockBajoUseCase: ObtenerProductosStockBajoUseCase,
     private val buscarProductosUseCase: BuscarProductosUseCase,
+    private val obtenerFamiliasUseCase: ObtenerFamiliasUseCase,
     private val obtenerCategoriasUseCase: ObtenerCategoriasUseCase,
     private val obtenerProveedoresUseCase: ObtenerProveedoresUseCase,
     private val obtenerCategoriasPorFamiliaIdUseCase: ObtenerCategoriasPorFamiliaIdUseCase,
     private val obtenerSubcategoriaPorCategoriaUseCase: ObtenerSubcategoriaPorCategoriaUseCase,
+    private val crearCategoriaUseCase: CrearCategoriaConFamiliaUseCase,
+    private val crearSubcategoriaUseCase: CrearSubcategoriaConCategoriaUseCase,
 ) : ViewModel() {
-    private val _uiState = MutableStateFlow(ProductosUiState())
-    val uiState: StateFlow<ProductosUiState> = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow(CatalogoUiState())
+    val uiState: StateFlow<CatalogoUiState> = _uiState.asStateFlow()
 
     init {
         cargarDatosIniciales()
@@ -72,6 +80,13 @@ class DashboardViewModel @Inject constructor(
             obtenerProveedoresUseCase().onSuccess { proveedoresFlow ->
                 proveedoresFlow.collect { proveedores ->
                     _uiState.update { it.copy(proveedores = proveedores) }
+                }
+            }
+
+            //Cargar familias
+            obtenerFamiliasUseCase().onSuccess { familiasFlow ->
+                familiasFlow.collect { familias ->
+                    _uiState.update { it.copy(familias = familias) }
                 }
             }
         }
@@ -144,6 +159,38 @@ class DashboardViewModel @Inject constructor(
                         }
                     }
                 }
+        }
+    }
+
+    fun crearCategoriaConFamilia(
+        nombre: String,
+        descripcion: String,
+        familiaId: Long,
+    ) = viewModelScope.launch{
+        crearCategoriaUseCase(
+            parameters = CrearCategoriaConFamiliaParams(
+                familiaId = familiaId,
+                nombre = nombre,
+                descripcion = descripcion
+            )
+        ).onSuccess { idCreated ->
+            obtenerCategoriasPorFamiliaId(idCreated)
+        }
+    }
+
+    fun crearSubcategoriaConCategoria(
+        nombre: String,
+        descripcion: String,
+        categoriaId: Long,
+    ) = viewModelScope.launch{
+        crearSubcategoriaUseCase(
+            parameters = CrearSubcategoriaConCategoriaParams(
+                nombre = nombre,
+                descripcion = descripcion,
+                categoriaId = categoriaId
+            )
+        ).onSuccess { idCreated ->
+            obtenerSubcategoriasPorCategoria(idCreated)
         }
     }
 }

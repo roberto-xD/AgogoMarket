@@ -116,19 +116,5 @@ object TestData {
         cantidadInicial = 30,
         cantidadMinima = 5,
         proveedorPrincipalId = 1L,
-        color = "Verde"
-    )
-
-    val crearProductoParamsInvalidos = GuardarProductoParams(
-        nombre = "", // Nombre vacío - inválido
-        descripcion = null,
-        skuInterno = "",
-        codigoBarras = null,
-        precioCompra = -10.0, // Precio negativo - inválido
-        precioVenta = -5.0,
-        cantidadInicial = -1, // Cantidad negativa - inválida
-        cantidadMinima = -1,
-        proveedorPrincipalId = null,
-        color = null
     )
 }

@@ -1,5 +1,6 @@
 package com.passioagogo.market.data.repository
 
+import android.util.Log
 import com.passioagogo.market.data.local.dao.CategoriaDao
 import com.passioagogo.market.data.local.dao.ProductoAtributoDao
 import com.passioagogo.market.data.local.dao.ProductoCategoriaDao
@@ -80,12 +81,7 @@ class ProductoRepositoryDomainImpl @Inject constructor(
         val producto = Producto.fromEntity(productoEntity)
 
         val familia = productoFamiliaDao.obtenerFamiliaPorProducto(id)?.familiaId.orZero()
-
-        val categorias = productoCategoriaDao.obtenerCategoriasPorProducto(id)
-            .map { Categoria.fromEntity(it) }
-
-        val subcategorias = productoSubcategoriaDao.obtenerSubcategoriasPorProducto(id)
-            .map { Subcategoria.fromEntity(it) }
+//        val categoriaPrincipal = productoCategoriaDao.obtenerCategoriaPrincipalPorProducto(id)
 
         val proveedoresConPrecio = productoProveedorDao.obtenerProveedoresPorProducto(id)
             .mapNotNull { proveedorConNombre ->
@@ -128,9 +124,7 @@ class ProductoRepositoryDomainImpl @Inject constructor(
 
         return ProductoDetallado(
             producto = producto,
-            familia = familia,
-            categorias = categorias.map { it.id },
-            subcategorias = subcategorias.map { it.id },
+            idFamilia = familia,
             proveedores = proveedoresConPrecio,
             atributos = atributos,
             imagenes = imagenes
@@ -142,6 +136,7 @@ class ProductoRepositoryDomainImpl @Inject constructor(
             val id = productoDao.insertarProducto(producto.toEntity())
             PADomainState.Success(id)
         } catch (e: Exception) {
+            Log.i("tag_pg","error al guardar producto: $e")
             PADomainState.Error(e)
         }
     }
@@ -154,28 +149,16 @@ class ProductoRepositoryDomainImpl @Inject constructor(
             val productoId = productoDao.insertarProducto(entity)
 
             // Guardar relaciones
-            val productoFamilia = ProductoFamiliaEntity(
-                familiaId = productoDetallado.familia,
-                productoId = productoId
-            )
-            productoFamiliaDao.insertarProductoFamilia(productoFamilia)
-
-            val productosCategorias = productoDetallado.categorias.map { categoria ->
-                ProductoCategoriaEntity(
-                    productoId = productoId,
-                    categoriaId = categoria,
-                    esPrincipal = false
+            if(productoDetallado.idFamilia != 0L){
+                val productoFamilia = ProductoFamiliaEntity(
+                    familiaId = productoDetallado.idFamilia,
+                    productoId = productoId
                 )
+                productoFamiliaDao.insertarProductoFamilia(productoFamilia)
             }
-            productoCategoriaDao.insertarProductoCategorias(productosCategorias)
 
-//            val productosSubcategorias = productoDetallado.subcategorias.map { subcategoria ->
-//                ProductoSubcategoriaEntity(
-//                    productoId = productoId,
-//                    subcategoriaId = subcategoria
-//                )
-//            }
-//            productoSubcategoriaDao.insertarProductoSubcategorias(productosSubcategorias)
+
+
 
             // Guardar imágenes
             productoDetallado.imagenes.forEach { imagen ->
@@ -192,6 +175,7 @@ class ProductoRepositoryDomainImpl @Inject constructor(
 
             PADomainState.Success(productoId)
         } catch (e: Exception) {
+            Log.i("tag_pg","error al guardar producto detallado: $e")
             PADomainState.Error(e)
         }
     }
@@ -202,6 +186,7 @@ class ProductoRepositoryDomainImpl @Inject constructor(
             productoDao.actualizarProducto(entity)
             PADomainState.Success(Unit)
         } catch (e: Exception) {
+            Log.i("tag_pg","error al actualizar producto: $e")
             PADomainState.Error(e)
         }
     }
@@ -218,23 +203,23 @@ class ProductoRepositoryDomainImpl @Inject constructor(
 
             // Actualizar relaciones (eliminar y recrear)
             productoFamiliaDao.eliminarFamiliaDeProducto(productoId)
-            productoCategoriaDao.eliminarCategoriasDeProducto(productoId)
-            productoSubcategoriaDao.eliminarSubcategoriasDeProducto(productoId)
+//            productoCategoriaDao.eliminarCategoriasDeProducto(productoId)
+//            productoSubcategoriaDao.eliminarSubcategoriasDeProducto(productoId)
 
             val productoFamilia = ProductoFamiliaEntity(
-                familiaId = productoDetallado.familia,
+                familiaId = productoDetallado.idFamilia,
                 productoId = productoId
             )
             productoFamiliaDao.insertarProductoFamilia(productoFamilia)
 
-            val productosCategorias = productoDetallado.categorias.map { categoria ->
-                ProductoCategoriaEntity(
-                    productoId = productoId,
-                    categoriaId = categoria,
-                    esPrincipal = false
-                )
-            }
-            productoCategoriaDao.insertarProductoCategorias(productosCategorias)
+//            val productosCategorias = productoDetallado.categorias.map { categoria ->
+//                ProductoCategoriaEntity(
+//                    productoId = productoId,
+//                    categoriaId = categoria,
+//                    esPrincipal = false
+//                )
+//            }
+//            productoCategoriaDao.insertarProductoCategorias(productosCategorias)
 
 //            val productosSubcategorias = productoDetallado.subcategorias.map { subcategoria ->
 //                ProductoSubcategoriaEntity(
@@ -258,6 +243,7 @@ class ProductoRepositoryDomainImpl @Inject constructor(
 
             PADomainState.Success(Unit)
         } catch (e: Exception) {
+            Log.i("tag_pg","error al actualizar producto detallado: $e")
             PADomainState.Error(e)
         }
     }
@@ -267,6 +253,7 @@ class ProductoRepositoryDomainImpl @Inject constructor(
             productoDao.eliminarProducto(id)
             PADomainState.Success(Unit)
         } catch (e: Exception) {
+            Log.i("tag_pg","error al eliminar producto: $e")
             PADomainState.Error(e)
         }
     }
@@ -276,6 +263,7 @@ class ProductoRepositoryDomainImpl @Inject constructor(
             productoDao.actualizarStock(id, nuevaCantidad)
             PADomainState.Success(Unit)
         } catch (e: Exception) {
+            Log.i("tag_pg","error al actualizar stock: $e")
             PADomainState.Error(e)
         }
     }
@@ -297,6 +285,7 @@ class ProductoRepositoryDomainImpl @Inject constructor(
             productoDao.actualizarStock(id, nuevaCantidad)
             PADomainState.Success(Unit)
         } catch (e: Exception) {
+            Log.i("tag_pg","error al reducir stock: $e")
             PADomainState.Error(e)
         }
     }

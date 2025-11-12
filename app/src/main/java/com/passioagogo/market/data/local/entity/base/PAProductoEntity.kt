@@ -20,38 +20,28 @@ import com.passioagogo.market.data.local.entity.utils.ProductoImagenEntity
     ],
     indices = [
         Index(value = ["codigoBarras"], unique = true),
-        Index(value = ["skuInterno"], unique = true),
-        Index(value = ["proveedorPrincipalId"]),
-        Index(value = ["remoteId"], unique = true)
+        Index(value = ["skuInterno"]),
+        Index(value = ["proveedorPrincipalId"])
     ]
 )
 data class ProductoEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
-    val remoteId: String? = null,
-    val userId: String? = null,
     val nombre: String,
     val descripcion: String?,
     val codigoBarras: String?,
-    val skuInterno: String,
-    val precioCompra: Double = 0.0,
-    val precioVenta: Double = 0.0,
-    val cantidadActual: Int = 0,
-    val cantidadMinima: Int = 0,
-    val cantidadMaximaComprada: Int = 0,
+    val skuInterno: String?,
+    val precioCompra: Double ?= 0.0,
+    val precioVenta: Double ?= 0.0,
+    val cantidadActual: Int ?= 0,
+    val cantidadMinima: Int ?= 0,
+    val cantidadMaximaComprada: Int ?= 0,
     val proveedorPrincipalId: Long?,
-    val proveedorPrincipalRemoteId: String? = null,  // FK remoto
-    val color: String?, // Variante de color
     val fechaUltimaVenta: Long?,
     val fechaUltimaCompra: Long?,
     val activo: Boolean = true,
     val fechaCreacion: Long = System.currentTimeMillis(),
-    val fechaActualizacion: Long = System.currentTimeMillis(),
-    val updatedAt: Long? = null,
-
-    val isSynced: Boolean = false,
-    val isDeleted: Boolean = false,
-    val needsSync: Boolean = false
+    val fechaActualizacion: Long = System.currentTimeMillis()
 )
 
 data class ProductoConImagenes(

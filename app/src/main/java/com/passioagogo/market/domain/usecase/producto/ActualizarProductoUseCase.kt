@@ -7,6 +7,7 @@ import com.passioagogo.market.domain.repository.IProductoRepository
 import com.passioagogo.market.domain.state.DomainException
 import com.passioagogo.market.domain.state.PADomainState
 import com.passioagogo.market.domain.usecase.base.UseCase
+import com.passioagogo.market.ui.decorators.orZero
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -26,10 +27,10 @@ class ActualizarProductoUseCase @Inject constructor(
 
             val historial = HistorialPrecio(
                 productoId = parameters.id,
-                precioCompraAnterior = productoActual.precioCompra,
-                precioVentaAnterior = productoActual.precioVenta,
-                precioCompraNuevo = parameters.precioCompra,
-                precioVentaNuevo = parameters.precioVenta,
+                precioCompraAnterior = productoActual.precioCompra.orZero(),
+                precioVentaAnterior = productoActual.precioVenta.orZero(),
+                precioCompraNuevo = parameters.precioCompra.orZero(),
+                precioVentaNuevo = parameters.precioVenta.orZero(),
                 motivo = "Actualización manual"
             )
 

@@ -10,7 +10,4 @@ interface FamiliaRepository {
     suspend fun guardarFamilia(familia: Familia): PADomainState<Long>
     suspend fun actualizarFamilia(familia: Familia): PADomainState<Unit>
     suspend fun eliminarFamilia(id: Long): PADomainState<Unit>
-    // Sincronización
-    suspend fun sincronizarConSupabase(): PADomainState<Unit>
-    suspend fun forzarSincronizacion(): PADomainState<Unit>
 }

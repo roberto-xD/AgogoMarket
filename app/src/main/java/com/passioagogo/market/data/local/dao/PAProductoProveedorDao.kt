@@ -32,30 +32,4 @@ interface ProductoProveedorDao {
 
     @Query("UPDATE producto_proveedores SET activo = 0 WHERE productoId = :productoId AND proveedorId = :proveedorId")
     suspend fun eliminarProductoProveedor(productoId: Long, proveedorId: Long)
-
-    // ========== NUEVOS MÉTODOS PARA SINCRONIZACIÓN ==========
-
-    @Query("SELECT * FROM producto_proveedores WHERE productoId = :productoId AND proveedorId = :proveedorId")
-    suspend fun obtenerRelacion(productoId: Long, proveedorId: Long): ProductoProveedorEntity?
-
-    @Query("SELECT * FROM producto_proveedores WHERE productoId = :productoId")
-    suspend fun obtenerRelacionesPorProducto(productoId: Long): List<ProductoProveedorEntity>
-
-    @Query("SELECT * FROM producto_proveedores")
-    suspend fun obtenerTodasLasRelaciones(): List<ProductoProveedorEntity>
-
-    @Query("SELECT * FROM producto_proveedores WHERE needsSync = 1")
-    suspend fun getRelacionesPendientesSync(): List<ProductoProveedorEntity>
-
-    @Query("UPDATE producto_proveedores SET productoRemoteId = :productoRemoteId, proveedorRemoteId = :proveedorRemoteId, isSynced = 1, needsSync = 0 WHERE productoId = :productoId AND proveedorId = :proveedorId")
-    suspend fun actualizarRemoteIds(productoId: Long, proveedorId: Long, productoRemoteId: String, proveedorRemoteId: String)
-
-    @Query("UPDATE producto_proveedores SET isSynced = 1, needsSync = 0 WHERE productoId = :productoId AND proveedorId = :proveedorId")
-    suspend fun marcarComoSincronizada(productoId: Long, proveedorId: Long)
-
-    @Query("UPDATE producto_proveedores SET needsSync = 1, isSynced = 0 WHERE productoId = :productoId")
-    suspend fun marcarRelacionesDeProductoComoPendientes(productoId: Long)
-
-    @Query("UPDATE producto_proveedores SET needsSync = 1, isSynced = 0, precioCompra = :nuevoPrecio WHERE productoId = :productoId AND proveedorId = :proveedorId")
-    suspend fun actualizarPrecioYMarcarSync(productoId: Long, proveedorId: Long, nuevoPrecio: Double)
 }

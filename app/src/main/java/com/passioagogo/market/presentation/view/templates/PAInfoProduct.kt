@@ -21,23 +21,27 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.passioagogo.market.R
+import com.passioagogo.market.domain.bean.ProductoDetallado
+import com.passioagogo.market.presentation.uiState.CatalogoUiState
 import com.passioagogo.market.presentation.view.components.ImageView
 import com.passioagogo.market.presentation.view.components.PAContainer
 import com.passioagogo.market.presentation.view.components.PACustomAlertDialog
 import com.passioagogo.market.presentation.view.components.PADropDown
 import com.passioagogo.market.presentation.view.components.PATextInput
-import com.passioagogo.market.presentation.view.models.PAInfoModel
+import com.passioagogo.market.ui.decorators.toDoubleSafe
+import com.passioagogo.market.ui.decorators.toIntSafe
 import com.passioagogo.market.ui.utils.PAConstants.NEW_CATEGORY
 import com.passioagogo.market.ui.utils.PAConstants.NEW_SUBCATEGORY
 
 @Composable
 fun PAInfoProduct(
     modifier: Modifier = Modifier,
-    initialData: PAInfoModel,
+    initialData: ProductoDetallado,
+    catalogData: CatalogoUiState,
     createNew: (param : Pair<String, String>) -> Unit,
     onImageClick: () -> Unit,
     onScanClick: () -> Unit,
-    onDataChange: (PAInfoModel) -> Unit,
+    onDataChange: (ProductoDetallado) -> Unit,
 ){
 
     val details = remember { mutableStateOf(false) }
@@ -56,18 +60,18 @@ fun PAInfoProduct(
                     .padding(top = 20.dp),
             ) {
                 PATextInput(
-                    value = initialData.tittle,
+                    value = initialData.producto.nombre,
                     modifier = Modifier
                         .fillMaxWidth(),
                     maxLength = 30,
                     minLenght = 5,
                     placeHolder = stringResource(id = R.string.label_name),
                 ){
-                    onDataChange(initialData.copy(tittle = it))
+                    onDataChange(initialData.copy(producto = initialData.producto.copy(nombre = it)))
                 }
                 Row {
                     PATextInput(
-                        value = initialData.currentStock,
+                        value = initialData.producto.cantidadActual.toString(),
                         modifier = Modifier
                             .weight(1f)
                             .padding(end = 5.dp)
@@ -76,10 +80,10 @@ fun PAInfoProduct(
                         placeHolder = stringResource(id = R.string.label_actual_stock),
                         keyboardType = KeyboardType.Number
                     ){
-                        onDataChange(initialData.copy(currentStock = it))
+                        onDataChange(initialData.copy(producto = initialData.producto.copy(cantidadActual = it.toIntSafe())))
                     }
                     PATextInput(
-                        value = initialData.sellPrice,
+                        value = initialData.producto.precioVenta.toString(),
                         modifier = Modifier
                             .weight(1f)
                             .padding(start = 5.dp)
@@ -90,18 +94,18 @@ fun PAInfoProduct(
                         placeHolder = stringResource(id = R.string.label_sell_price),
                         keyboardType = KeyboardType.Number
                     ){
-                        onDataChange(initialData.copy(sellPrice = it))
+                        onDataChange(initialData.copy(producto = initialData.producto.copy(precioVenta = it.toDoubleSafe())))
                     }
                 }
                 PATextInput(
-                    value = initialData.codigoBarra,
+                    value = initialData.producto.codigoBarras.orEmpty(),
                     modifier = Modifier
                         .fillMaxWidth(),
                     placeHolder = stringResource(id = R.string.label_codigo_de_barras),
                     trailingIcon = R.drawable.barcode_reader,
                     onTrailingIconClick = onScanClick
                 ){
-                    onDataChange(initialData.copy(codigoBarra = it))
+                    onDataChange(initialData.copy(producto = initialData.producto.copy(codigoBarras = it)))
                 }
             }
         }
@@ -122,7 +126,7 @@ fun PAInfoProduct(
                 ){
                     ImageView(
                         modifier = Modifier.fillMaxSize(),
-                        imagePath = initialData.pathImageList.firstOrNull()?.rutaImagen,
+                        imagePath = initialData.imagenes.firstOrNull()?.rutaImagen,
                         onImageClick = onImageClick
                     )
                 }
@@ -132,27 +136,27 @@ fun PAInfoProduct(
                         .weight(1f)
                 ) {
                     PATextInput(
-                        value = initialData.sku,
+                        value = initialData.producto.skuInterno,
                         modifier = Modifier,
                         placeHolder = stringResource(id = R.string.label_sku),
                     ){
-                        onDataChange(initialData.copy(sku = it))
+                        onDataChange(initialData.copy(producto = initialData.producto.copy(skuInterno = it)))
                     }
                     PATextInput(
-                        value = initialData.buyPrice,
+                        value = initialData.producto.precioCompra.toString(),
                         modifier = Modifier,
                         maxLength = 4,
                         placeHolder = stringResource(id = R.string.label_buy_price),
                         keyboardType = KeyboardType.Number
                     ){
-                        onDataChange(initialData.copy(buyPrice = it))
+                        onDataChange(initialData.copy(producto = initialData.producto.copy(precioCompra = it.toDoubleSafe())))
                     }
                 }
 
             }
 
             PATextInput(
-                value = initialData.description,
+                value = initialData.producto.descripcion.orEmpty(),
                 modifier = Modifier
                     .fillMaxWidth(),
                 placeHolder = stringResource(id = R.string.label_description),
@@ -160,58 +164,59 @@ fun PAInfoProduct(
                 maxLines = 5,
                 maxLength = 50,
             ){
-                onDataChange(initialData.copy(description = it))
+                onDataChange(initialData.copy(producto = initialData.producto.copy(descripcion = it)))
             }
+
             PADropDown(
-                item = initialData.familyList.find { it.id == initialData.familyId }?.descripcion.orEmpty(),
-                items = initialData.familyList.map{it.descripcion},
+                item = catalogData.familias.find { it.id == initialData.idFamilia }?.descripcion.orEmpty(),
+                items = catalogData.familias.map{it.descripcion},
                 modifier = Modifier
                     .fillMaxWidth(),
                 placeHolder = stringResource(id = R.string.label_family),
             ){ seleccion ->
                 Log.i("tag","dropdown: $seleccion")
-                initialData.familyList.find { it.descripcion.equals(seleccion) }?.let { reasigned ->
+                catalogData.familias.find { it.descripcion.equals(seleccion) }?.let { reasigned ->
                     onDataChange(initialData.copy(
-                        familyId = reasigned.id,
+                        idFamilia = reasigned.id,
                     ))
                 }
             }
 
-            if(initialData.familyId != 0L){
+            if(initialData.idFamilia != 0L){
                 PADropDown(
                     modifier = Modifier
                         .fillMaxWidth(),
                     placeHolder = stringResource(id = R.string.label_categories),
-                    item = initialData.categoryList.find { it.id == initialData.categoryId }?.descripcion.orEmpty(),
-                    items = initialData.categoryList.map{it.descripcion.orEmpty()},
+                    item = catalogData.categorias.find { it.id == initialData.idCategoria }?.descripcion.orEmpty(),
+                    items = catalogData.categorias.map{it.descripcion.orEmpty()},
                     onAddNewClick = {
                         showNewCategoryDialog.value = true
                     }
                 ){ seleccion ->
                     Log.i("tag","dropdown: $seleccion")
-                    initialData.categoryList.find { it.descripcion.equals(seleccion) }?.let { reasigned ->
+                    catalogData.categorias.find { it.descripcion.equals(seleccion) }?.let { reasigned ->
                         onDataChange(initialData.copy(
-                            categoryId = reasigned.id,
+                            idCategoria = reasigned.id,
                         ))
                     }
                 }
             }
 
-            if(initialData.categoryId != 0L){
+            if(initialData.idCategoria != 0L){
                 PADropDown(
                     modifier = Modifier
                         .fillMaxWidth(),
                     placeHolder = stringResource(id = R.string.label_subcategories),
-                    item = initialData.subcategoryList.find { it.id == initialData.subcategoryId }?.descripcion.orEmpty(),
-                    items = initialData.subcategoryList.map{it.descripcion.orEmpty()},
+                    item = catalogData.subcategorias.find { it.id == initialData.idSubCategoria }?.descripcion.orEmpty(),
+                    items = catalogData.subcategorias.map{it.descripcion.orEmpty()},
                     onAddNewClick = {
                         showNewSubcategoryDialog.value = true
                     }
                 ){seleccion ->
                     Log.i("tag","dropdown: $seleccion")
-                    initialData.subcategoryList.find { it.descripcion.equals(seleccion) }?.let { reasigned ->
+                    catalogData.subcategorias.find { it.descripcion.equals(seleccion) }?.let { reasigned ->
                         onDataChange(initialData.copy(
-                            subcategoryId = reasigned.id,
+                            idSubCategoria = reasigned.id,
                         ))
                     }
                 }
@@ -225,13 +230,13 @@ fun PAInfoProduct(
         ) {
 
             PATextInput(
-                value = initialData.minStock,
+                value = initialData.producto.cantidadMinima.toString(),
                 modifier = Modifier
                     .fillMaxWidth(),
                 placeHolder = stringResource(id = R.string.label_reposition_quantity),
                 keyboardType = KeyboardType.Number
             ){
-                onDataChange(initialData.copy(minStock = it))
+                onDataChange(initialData.copy(producto = initialData.producto.copy(cantidadMinima = it.toIntSafe())))
             }
 
         }
@@ -262,7 +267,8 @@ private fun Preview(
 
 ){
     PAInfoProduct(
-        initialData = PAInfoModel(),
+        initialData = ProductoDetallado(),
+        catalogData = CatalogoUiState(),
         createNew = {},
         onScanClick = {},
         onImageClick = {}

@@ -3,7 +3,7 @@ package com.passioagogo.market.presentation.uiState
 import com.passioagogo.market.domain.bean.ProductoDetallado
 
 data class DetalleProductoUiState(
-    val productoDetallado: ProductoDetallado? = null,
+    val productoDetallado: ProductoDetallado = ProductoDetallado(),
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
     val mensajeExito: String? = null,

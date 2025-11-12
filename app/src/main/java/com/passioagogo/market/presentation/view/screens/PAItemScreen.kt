@@ -32,17 +32,16 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.passioagogo.market.R
+import com.passioagogo.market.domain.bean.ProductoDetallado
 import com.passioagogo.market.presentation.view.components.BarcodeScannerScreen
 import com.passioagogo.market.presentation.view.components.PABottomSheetContainer
 import com.passioagogo.market.presentation.view.components.PAImageItem
 import com.passioagogo.market.presentation.view.components.PAToolbar
 import com.passioagogo.market.presentation.view.components.skeleton.ProductFormSkeleton
-import com.passioagogo.market.presentation.view.models.PAInfoModel
 import com.passioagogo.market.presentation.view.templates.PAInfoProduct
 import com.passioagogo.market.presentation.viewModel.BackPressHandler
 import com.passioagogo.market.presentation.viewModel.imagenes.ImageGalleryViewModel
 import com.passioagogo.market.presentation.viewModel.products.DashboardViewModel
-import com.passioagogo.market.presentation.viewModel.products.DetailsViewModel
 import com.passioagogo.market.presentation.viewModel.products.DetalleProductoViewModel
 import com.passioagogo.market.ui.decorators.orZero
 import com.passioagogo.market.ui.utils.PAConstants.NEW_CATEGORY
@@ -53,7 +52,6 @@ import com.passioagogo.market.ui.utils.PAConstants.NEW_SUBCATEGORY
 fun ItemScreen(
     imageViewModel: ImageGalleryViewModel,
     detalleViewModel: DetalleProductoViewModel,
-    detailsViewModel: DetailsViewModel = hiltViewModel(),
     dashboardViewModel: DashboardViewModel = hiltViewModel(),
     navigateToBack: () -> Unit,
 ){
@@ -64,21 +62,12 @@ fun ItemScreen(
     val imagePaths = uiImageState.value.images
     val deleteImage = uiImageState.value.deleteImage
 
-    val familiaState = detailsViewModel.familias.collectAsState()
-    val familias = familiaState.value.toMutableList()
-
     val productosState = dashboardViewModel.uiState.collectAsState()
-    val categorias = productosState.value.categorias.toMutableList()
-    val subcategorias = productosState.value.subcategorias.toMutableList()
-    val proveedores = productosState.value.proveedores.toMutableList()
 
     val uiProductState = detalleViewModel.uiState.collectAsState()
-    val producto = uiProductState.value.productoDetallado
+    val currentProduct = uiProductState.value.productoDetallado
 
-    val currentProduct = remember { mutableStateOf(PAInfoModel()) }
     val showScanner = remember { mutableStateOf(false) }
-
-
     val snackbarHostState = remember { SnackbarHostState() }
 
     val filePickerLauncher = rememberLauncherForActivityResult(
@@ -86,7 +75,7 @@ fun ItemScreen(
     ) { uris ->
         if (uris.isNotEmpty()) {
             val show = if(uris.size < 5) uris else uris.subList(0,5)
-            imageViewModel.saveSharedImages(show, currentProduct.value.id)
+            imageViewModel.saveSharedImages(show, currentProduct.producto.id)
         }
     }
 
@@ -110,7 +99,6 @@ fun ItemScreen(
             onSecondPress = {
                 imageViewModel.clearPaths()
                 detalleViewModel.limpiarMensajes()
-                currentProduct.value = PAInfoModel()
                 navigateToBack()
             }
         )
@@ -128,40 +116,20 @@ fun ItemScreen(
         backClick()
     }
 
-    LaunchedEffect(producto) {
-        producto?.let { prod ->
-            Log.i("tag_pg","producto: $prod")
-            currentProduct.value = currentProduct.value.update(prod)
-        }
-
-    }
-    LaunchedEffect(familias) {
-        currentProduct.value = currentProduct.value.copy(
-            familyList = familias,
-        )
-    }
-    LaunchedEffect(categorias) {
-        Log.i("tag_pg","categorias: $categorias")
-        currentProduct.value = currentProduct.value.copy(
-            categoryList = categorias
-        )
-    }
-    LaunchedEffect(subcategorias) {
-        Log.i("tag_pg","categorias: $subcategorias")
-        currentProduct.value = currentProduct.value.copy(
-            subcategoryList = subcategorias
-        )
-    }
     LaunchedEffect(imagePaths) {
-        currentProduct.value = currentProduct.value.copy(
-            pathImageList = currentProduct.value.pathImageList + imagePaths
+        detalleViewModel.actualizarItem(
+            productoDetallado = currentProduct.copy(
+                imagenes = currentProduct.imagenes + imagePaths,
+            )
         )
-        showBottomSheet.value = currentProduct.value.pathImageList.isNotEmpty()
+        showBottomSheet.value = imagePaths.isNotEmpty()
     }
     LaunchedEffect(deleteImage) {
         deleteImage?.let {
-            currentProduct.value = currentProduct.value.copy(
-                pathImageList = currentProduct.value.pathImageList.filter { it.rutaImagen != deleteImage }
+            detalleViewModel.actualizarItem(
+                productoDetallado = currentProduct.copy(
+                    imagenes = currentProduct.imagenes.filter { it.rutaImagen != deleteImage },
+                )
             )
         }
     }
@@ -186,16 +154,16 @@ fun ItemScreen(
                 .background(MaterialTheme.colorScheme.surfaceBright),
             topBar = {
                 PAToolbar(
-                    centerText = if(currentProduct.value.id.orZero() == 0L){stringResource(R.string.label_new_item)} else{stringResource(R.string.label_update_item)},
+                    centerText = if(currentProduct.producto.id.orZero() == 0L){stringResource(R.string.label_new_item)} else{stringResource(R.string.label_update_item)},
                     leftIcon = R.drawable.arrow_back,
                     onLeftClick = {
                         backClick()
                     },
-                    rightText = if(currentProduct.value.id.orZero() == 0L){"Guardar"} else{"Actualizar"},
+                    rightText = if(currentProduct.producto.id.orZero() == 0L){"Guardar"} else{"Actualizar"},
                     onRightClick = {
                         Log.i("tag","onSaveClick")
-                        if(currentProduct.value.validateRules()){
-                            val data = currentProduct.value.toActualizaProductoParams()
+                        if(currentProduct.validateRules()){
+                            val data = currentProduct.toActualizaProductoParams()
                             Log.i("tag","$data")
                             if(data.id != 0L){
                                 Log.i("tag","actualizar")
@@ -222,31 +190,28 @@ fun ItemScreen(
                     .fillMaxSize()
             ) {
                 PAInfoProduct(
-                    initialData = currentProduct.value,
+                    initialData = currentProduct,
+                    catalogData = productosState.value,
                     createNew = {
                         when(it.first){
                             NEW_CATEGORY -> {
-                                detailsViewModel.crearCategoriaConFamilia(
+                                dashboardViewModel.crearCategoriaConFamilia(
                                     nombre = it.second,
                                     descripcion = "",
-                                    familiaId = currentProduct.value.familyId
-                                ).invokeOnCompletion {
-                                    dashboardViewModel.obtenerCategoriasPorFamiliaId(currentProduct.value.familyId)
-                                }
+                                    familiaId = currentProduct.idFamilia
+                                )
                             }
                             NEW_SUBCATEGORY -> {
-                                detailsViewModel.crearSubcategoriaConCategoria(
+                                dashboardViewModel.crearSubcategoriaConCategoria(
                                     nombre = it.second,
                                     descripcion = "",
-                                    categoriaId = currentProduct.value.categoryId
-                                ).invokeOnCompletion {
-                                    dashboardViewModel.obtenerSubcategoriasPorCategoria(currentProduct.value.categoryId)
-                                }
+                                    categoriaId = currentProduct.idCategoria
+                                )
                             }
                         }
                     },
                     onImageClick = {
-                        if(currentProduct.value.pathImageList.isEmpty()){
+                        if(currentProduct.imagenes.isEmpty()){
                             openPicker()
                         } else {
                             showBottomSheet.value = true
@@ -259,13 +224,14 @@ fun ItemScreen(
                             .show()
                     },
                 ){ updatedProduct ->
-                    if(updatedProduct.familyId != currentProduct.value.familyId){
-                        dashboardViewModel.obtenerCategoriasPorFamiliaId(updatedProduct.familyId)
+                    if(updatedProduct.idFamilia != currentProduct.idFamilia){
+                        dashboardViewModel.obtenerCategoriasPorFamiliaId(updatedProduct.idFamilia)
                     }
-                    if(updatedProduct.categoryId != currentProduct.value.categoryId){
-                        dashboardViewModel.obtenerSubcategoriasPorCategoria(updatedProduct.categoryId)
+                    if(updatedProduct.idCategoria != currentProduct.idCategoria){
+                        dashboardViewModel.obtenerSubcategoriasPorCategoria(updatedProduct.idCategoria)
                     }
-                    currentProduct.value = updatedProduct
+                    detalleViewModel.actualizarItem(updatedProduct)
+
                 }
             }
             PABottomSheetContainer(
@@ -280,19 +246,19 @@ fun ItemScreen(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     items(
-                        count = currentProduct.value.pathImageList.size,
+                        count = currentProduct.imagenes.size,
                     ){ item ->
                         PAImageItem(
-                            imagePath = currentProduct.value.pathImageList[item].rutaImagen,
+                            imagePath = currentProduct.imagenes[item].rutaImagen,
                             onDeleteClick = {
-                                imageViewModel.deleteImage(currentProduct.value.pathImageList[item])
+                                imageViewModel.deleteImage(currentProduct.imagenes[item])
                             }
                         )
                     }
                     item{
                         PAImageItem(
                             onImageClick = {
-                                if(currentProduct.value.pathImageList.size < 5){
+                                if(currentProduct.imagenes.size < 5){
                                     openPicker()
                                 } else{
                                     Toast
@@ -312,8 +278,12 @@ fun ItemScreen(
                 BarcodeScannerScreen(
                     onBarcodeScanned = { code ->
                         showScanner.value = false
-                        currentProduct.value = currentProduct.value.copy(
-                            codigoBarra = code
+                        detalleViewModel.actualizarItem(
+                            productoDetallado = currentProduct.copy(
+                                producto = currentProduct.producto.copy(
+                                    codigoBarras = code
+                                )
+                            )
                         )
                         Log.i("tag_pg", "Código escaneado: $code")
                     }

@@ -5,10 +5,10 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.passioagogo.market.domain.bean.ImagenProducto
 import com.passioagogo.market.domain.usecase.imagenes.DeleteImageUseCase
 import com.passioagogo.market.domain.usecase.imagenes.GetAllImagesUseCase
 import com.passioagogo.market.domain.usecase.imagenes.SaveSharedImageUseCase
-import com.passioagogo.market.presentation.view.models.PAImageModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,7 +18,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class ImageGalleryUiState(
-    val images: List<PAImageModel> = emptyList(),
+    val images: List<ImagenProducto> = emptyList(),
     val deleteImage: String? = null,
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
@@ -47,8 +47,8 @@ class ImageGalleryViewModel @Inject constructor(
             val success = results.filter { it.isSuccess }.map { result ->
                 result.fold(
                     onSuccess = {
-                        PAImageModel(
-                            idProduct = id ?: 0,
+                        ImagenProducto(
+                            productoId = id ?: 0,
                             rutaImagen = it,
                             orden = results.indexOf(result)
                         )
@@ -67,7 +67,7 @@ class ImageGalleryViewModel @Inject constructor(
         }
     }
 
-    fun deleteImage(imageModel: PAImageModel) {
+    fun deleteImage(imageModel: ImagenProducto) {
         viewModelScope.launch {
             deleteImageUseCase.execute(
                 imageModel = imageModel
@@ -102,9 +102,7 @@ class ImageGalleryViewModel @Inject constructor(
             getAllImagesUseCase.execute().let { images ->
                 _uiState.update {
                     it.copy(
-                        images = images?.map {
-                            it.toImageProductModel()
-                        } ?: emptyList()
+                        images = images ?: emptyList()
                     )
                 }
             }

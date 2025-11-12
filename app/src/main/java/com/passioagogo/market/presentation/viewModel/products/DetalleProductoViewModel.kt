@@ -3,6 +3,10 @@ package com.passioagogo.market.presentation.viewModel.products
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.passioagogo.market.domain.bean.AtributoProducto
+import com.passioagogo.market.domain.bean.ImagenProducto
+import com.passioagogo.market.domain.bean.ProductoDetallado
+import com.passioagogo.market.domain.bean.ProveedorConPrecio
 import com.passioagogo.market.domain.state.DomainException
 import com.passioagogo.market.domain.state.onError
 import com.passioagogo.market.domain.state.onSuccess
@@ -67,7 +71,7 @@ class DetalleProductoViewModel @Inject constructor(
             obtenerProductoDetalladoUseCase(id).onSuccess { productoDetallado ->
                 _uiState.update {
                     it.copy(
-                        productoDetallado = productoDetallado,
+                        productoDetallado = actualizarData(productoDetallado),
                         isLoading = false
                     )
                 }
@@ -109,9 +113,10 @@ class DetalleProductoViewModel @Inject constructor(
 
             crearProductoUseCase(datosProducto).onSuccess { nuevoId ->
                 Log.i("tag_pg","Producto creado exitosamente: $nuevoId")
+
                 _uiState.update {
                     it.copy(
-                        productoDetallado = it.productoDetallado?.copy(producto = it.productoDetallado.producto.copy(id = nuevoId)),
+                        productoDetallado = actualizarData(id = nuevoId),
                         isLoading = false,
                         mensajeExito = "Producto creado exitosamente"
                     )
@@ -150,7 +155,7 @@ class DetalleProductoViewModel @Inject constructor(
     }
 
     fun actualizarStock(nuevaCantidad: Int, tipoMovimiento: TipoMovimiento, motivo: String?) {
-        val productoId = _uiState.value.productoDetallado?.producto?.id ?: return
+        val productoId = _uiState.value.productoDetallado.producto.id
 
         viewModelScope.launch {
             val params = MovimientoStockParams(
@@ -272,11 +277,87 @@ class DetalleProductoViewModel @Inject constructor(
             }
         }
     }
+    fun actualizarItem(
+        productoDetallado: ProductoDetallado?
+    ){
+        _uiState.update {
+            it.copy(
+                productoDetallado = actualizarData(
+                    productoDetallado = productoDetallado
+                ),
+                errorMessage = null,
+                mensajeExito = null
+            )
+        }
+    }
+
+    private fun actualizarData(
+        id: Long ?= null,
+        nombre: String ?= null,
+        descripcion: String?= null,
+        imagenPrincipal: String?= null,
+        codigoBarras: String?= null,
+        skuInterno: String ?= null,
+        precioCompra: Double ?= null,
+        precioVenta: Double ?= null,
+        cantidadActual: Int ?= null,
+        idFamilia: Long ?= null,
+        idCategoria: Long ?= null,
+        idSubCategoria: Long ?= null,
+        proveedores: List<ProveedorConPrecio> ?= null,
+        atributos: List<AtributoProducto> ?= null,
+        imagenes: List<ImagenProducto> ?= null,
+    ) : ProductoDetallado {
+        val producto = _uiState.value.productoDetallado.producto.let {
+            it.copy(
+                id = id ?: it.id,
+                nombre = nombre ?: it.nombre,
+                descripcion = descripcion ?: it.descripcion,
+                imagenPrincipal = imagenPrincipal ?: it.imagenPrincipal,
+                codigoBarras = codigoBarras ?: it.codigoBarras,
+                skuInterno = skuInterno ?: it.skuInterno,
+                precioCompra = precioCompra ?: it.precioCompra,
+                precioVenta = precioVenta ?: it.precioVenta,
+                cantidadActual = cantidadActual ?: it.cantidadActual,
+            )
+        }
+        return _uiState.value.productoDetallado.let{
+            it.copy(
+                producto = producto,
+                idFamilia = idFamilia ?: it.idFamilia,
+                idCategoria = idCategoria ?: it.idCategoria,
+                idSubCategoria = idSubCategoria ?: it.idSubCategoria,
+                proveedores = proveedores ?: it.proveedores,
+                atributos = atributos ?: it.atributos,
+                imagenes = imagenes ?: it.imagenes
+            )
+        }
+    }
+
+    private fun actualizarData(productoDetallado: ProductoDetallado?) : ProductoDetallado{
+        return actualizarData(
+            id              = productoDetallado?.producto?.id,
+            nombre          = productoDetallado?.producto?.nombre,
+            descripcion     = productoDetallado?.producto?.descripcion,
+            imagenPrincipal = productoDetallado?.producto?.imagenPrincipal,
+            codigoBarras    = productoDetallado?.producto?.codigoBarras,
+            skuInterno      = productoDetallado?.producto?.skuInterno,
+            precioCompra    = productoDetallado?.producto?.precioCompra,
+            precioVenta     = productoDetallado?.producto?.precioVenta,
+            cantidadActual  = productoDetallado?.producto?.cantidadActual,
+            idFamilia       = productoDetallado?.idFamilia,
+            idCategoria     = productoDetallado?.idCategoria,
+            idSubCategoria  = productoDetallado?.idSubCategoria,
+            proveedores     = productoDetallado?.proveedores,
+            atributos       = productoDetallado?.atributos,
+            imagenes        = productoDetallado?.imagenes,
+        )
+    }
 
     fun limpiarMensajes() {
         _uiState.update {
             it.copy(
-                productoDetallado = null,
+                productoDetallado = ProductoDetallado(),
                 errorMessage = null,
                 mensajeExito = null
             )

@@ -11,5 +11,5 @@ interface ICategoriaRepository {
     suspend fun guardarCategoria(categoria: Categoria): PADomainState<Long>
     suspend fun actualizarCategoria(categoria: Categoria): PADomainState<Unit>
     suspend fun eliminarCategoria(id: Long): PADomainState<Unit>
-    suspend fun sincronizarConSupabase(): PADomainState<Unit>
+
 }

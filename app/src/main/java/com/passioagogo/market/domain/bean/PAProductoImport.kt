@@ -23,24 +23,6 @@ data class ProductoImport(
 ) {
     val esValido: Boolean
         get() = erroresValidacion.isEmpty()
-
-    fun toCrearProductoParams(): GuardarProductoParams {
-        return GuardarProductoParams(
-            nombre = nombre,
-            descripcion = descripcion,
-            skuInterno = skuInterno,
-            codigoBarras = codigoBarras,
-            precioCompra = precioCompra,
-            precioVenta = precioVenta,
-            cantidadInicial = cantidadActual,
-            cantidadMinima = cantidadMinima,
-            proveedorPrincipalId = proveedorPrincipalId,
-            color = color,
-            categorias = emptyList(), // Se pueden añadir después
-            subcategorias = emptyList(),
-            atributos = emptyMap()
-        )
-    }
 }
 
 data class EstructuraValidacion(

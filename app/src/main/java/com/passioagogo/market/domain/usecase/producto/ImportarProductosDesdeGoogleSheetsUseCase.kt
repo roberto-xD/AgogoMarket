@@ -306,13 +306,13 @@ class ImportarProductosDesdeGoogleSheetsUseCase @Inject constructor(
                 }
 
                 // Resolver IDs de relaciones
-                val categoriaIds = productoExtendido.categoriasNombres.mapNotNull { nombre ->
-                    categoriasIds[nombre]
-                }
+                val categoriaIds = productoExtendido.categoriasNombres.firstNotNullOfOrNull { nombre ->
+                        categoriasIds[nombre]
+                    }
 
-                val subcategoriaIds = productoExtendido.subcategoriasNombres.mapNotNull { nombre ->
-                    subcategoriasIds[nombre]
-                }
+                val subcategoriaIds = productoExtendido.subcategoriasNombres.firstNotNullOfOrNull { nombre ->
+                        subcategoriasIds[nombre]
+                    }
 
                 val familiaId = productoExtendido.familiasNombres.map { nombre ->
                     familiasIds[nombre]
@@ -321,8 +321,8 @@ class ImportarProductosDesdeGoogleSheetsUseCase @Inject constructor(
                 // Crear producto con relaciones
                 val params = productoExtendido.toCrearProductoParamsExtendido(
                     familiaId = familiaId,
-                    categoriaIds = categoriaIds,
-                    subcategoriaIds = subcategoriaIds
+                    categoriaId = categoriaIds,
+                    subcategoriaId = subcategoriaIds
                 )
 
                 when (val resultado = crearProductoUseCase(params)) {

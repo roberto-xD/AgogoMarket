@@ -1,12 +1,12 @@
 package com.passioagogo.market.domain.usecase.producto
 
+import com.passioagogo.market.domain.bean.ImagenProducto
 import com.passioagogo.market.domain.bean.Producto
 import com.passioagogo.market.domain.bean.ProductoDetallado
 import com.passioagogo.market.domain.repository.IProductoRepository
 import com.passioagogo.market.domain.state.DomainException
 import com.passioagogo.market.domain.state.PADomainState
 import com.passioagogo.market.domain.usecase.base.UseCase
-import com.passioagogo.market.presentation.view.models.PAImageModel
 import com.passioagogo.market.ui.decorators.orZero
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -15,20 +15,19 @@ import javax.inject.Singleton
 data class GuardarProductoParams(
     val id : Long = 0,
     val nombre: String = "",
-    val descripcion: String? = null,
+    val descripcion: String = "",
     val skuInterno: String = "",
-    val codigoBarras: String? = null,
+    val codigoBarras: String = "",
     val precioCompra: Double = 0.0,
     val precioVenta: Double = 0.0,
     val cantidadInicial: Int = 0,
     val cantidadMinima: Int = 0,
     val cantidadActual: Int = 0,
     val proveedorPrincipalId: Long? = null,
-    val color: String? = null,
-    val imagenes: List<PAImageModel> = emptyList(),
-    val familiaId: Long? = null,
-    val categorias: List<Long> = emptyList(),
-    val subcategorias: List<Long> = emptyList(),
+    val imagenes: List<ImagenProducto> = emptyList(),
+    val familiaId: Long = 0L,
+    val categoriaId: Long = 0L,
+    val subcategoriaId: Long = 0L,
     val atributos: Map<String, String> = emptyMap()
 )
 @Singleton
@@ -52,16 +51,13 @@ class ActualizarProductoDetalladoUseCase @Inject constructor(
             cantidadMinima = parameters.cantidadMinima,
             cantidadMaximaComprada = parameters.cantidadInicial,
             proveedorPrincipalId = parameters.proveedorPrincipalId,
-            color = parameters.color,
         )
         val productoDetallado = ProductoDetallado(
             producto = producto,
-            familia = parameters.familiaId.orZero(),
-            categorias = parameters.categorias,
-            subcategorias = parameters.subcategorias,
-            imagenes = parameters.imagenes.map {
-                it.toImagenProducto()
-            },
+            idFamilia = parameters.familiaId.orZero(),
+            idCategoria = parameters.categoriaId,
+            idSubCategoria = parameters.subcategoriaId,
+            imagenes = parameters.imagenes,
         )
 
         return when (val result = productoRepository.actualizarProductoDetallado(productoDetallado)) {

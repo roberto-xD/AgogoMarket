@@ -1,6 +1,7 @@
 package com.passioagogo.market.domain.bean
 
 import com.passioagogo.market.domain.usecase.producto.GuardarProductoParams
+import com.passioagogo.market.ui.decorators.orZero
 
 data class ProductoImportExtendido(
     val productoBase: ProductoImport,
@@ -15,23 +16,22 @@ data class ProductoImportExtendido(
 
     fun toCrearProductoParamsExtendido(
         familiaId: Long ?= null,
-        categoriaIds: List<Long> = emptyList(),
-        subcategoriaIds: List<Long> = emptyList()
+        categoriaId: Long ?= null,
+        subcategoriaId: Long ?= null,
     ): GuardarProductoParams {
         return GuardarProductoParams(
             nombre = productoBase.nombre,
-            descripcion = productoBase.descripcion,
+            descripcion = productoBase.descripcion.orEmpty(),
             skuInterno = productoBase.skuInterno,
-            codigoBarras = productoBase.codigoBarras,
+            codigoBarras = productoBase.codigoBarras.orEmpty(),
             precioCompra = productoBase.precioCompra,
             precioVenta = productoBase.precioVenta,
             cantidadInicial = productoBase.cantidadActual,
             cantidadMinima = productoBase.cantidadMinima,
-            proveedorPrincipalId = productoBase.proveedorPrincipalId,
-            color = productoBase.color,
-            familiaId = familiaId,
-            categorias = categoriaIds,
-            subcategorias = subcategoriaIds,
+            proveedorPrincipalId = productoBase.proveedorPrincipalId.orZero(),
+            familiaId = familiaId.orZero(),
+            categoriaId = categoriaId.orZero(),
+            subcategoriaId = subcategoriaId.orZero(),
             atributos = atributos
         )
     }
