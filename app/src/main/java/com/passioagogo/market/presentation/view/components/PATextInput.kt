@@ -61,7 +61,7 @@ internal fun PATextInput(
     onTrailingIconClick: (() -> Unit) ?= null,
     enabled: Boolean = true,
     minLenght: Int ?= null,
-    maxLength: Int = 35,
+    maxLength: Int = 5,
     onValueChange: (Double) -> Unit,
 ){
     MoneyTextField(

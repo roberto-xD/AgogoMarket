@@ -2,6 +2,7 @@ package com.passioagogo.market.presentation.view.components
 
 import android.R.attr.maxLines
 import android.R.attr.minLines
+import android.util.Log
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
@@ -51,6 +52,7 @@ import com.passioagogo.market.ui.theme.errorLight
 import com.passioagogo.market.ui.theme.onSurfaceLight
 import com.passioagogo.market.ui.theme.outlineLight
 import com.passioagogo.market.ui.theme.primaryLight
+import com.passioagogo.market.ui.utils.PAConstants.TAG_PG
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
@@ -170,12 +172,14 @@ fun MoneyTextField(
                     BasicTextField(
                         value = textValue,
                         onValueChange = { newValue ->
+                            Log.i(TAG_PG,"on change: $newValue")
                             // Permite solo números, punto y máximo 2 decimales
                             val filtered = newValue.filter { it.isDigit() || it == '.' }
 
                             // Valida formato decimal
                             val parts = filtered.split(".")
                             val isValid = when {
+                                parts[0].length > maxLength -> false // Más de 999 caracteres
                                 parts.size > 2 -> false // Más de un punto
                                 parts.size == 2 && parts[1].length > 2 -> false // Más de 2 decimales
                                 else -> true
@@ -188,7 +192,7 @@ fun MoneyTextField(
                                 onValueChange(doubleValue)
                             }
                         },
-                        modifier = modifier
+                        modifier = Modifier
                             .fillMaxWidth()
                             .focusRequester(focusRequester)
                             .onFocusChanged { focusState ->
@@ -209,32 +213,16 @@ fun MoneyTextField(
                             keyboardType = KeyboardType.Decimal
                         ),
                         decorationBox = { innerTextField ->
-                            Column(
-                                modifier = Modifier.height(20.dp)
-                            ) {
-                                AnimatedVisibility(
-                                    visible = isFocused && placeholder != null,
-                                    enter = fadeIn(),
-                                    exit = fadeOut()
-                                ) {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Text(
-                                            text = "$",
-                                            style = MaterialTheme.typography.bodyLarge,
-                                            color = if (textValue.isEmpty()) Color.Gray else Color.Black
-                                        )
-                                        Box {
-                                            if (textValue.isEmpty()) {
-                                                Text(
-                                                    text = "0.00",
-                                                    style = MaterialTheme.typography.bodyLarge,
-                                                    color = Color.Gray
-                                                )
-                                            }
-                                            innerTextField()
-                                        }
-                                    }
-                                }
+                            Row {
+                                Text(
+                                    text = if(isFocused && placeholder != null) "$" else "",
+                                    style = MaterialTheme.typography.bodyLarge.copy(
+                                        fontFamily = abelRegular,
+                                        fontSize = 14.sp,
+                                    ),
+                                    color = if (textValue.isEmpty()) Color.Gray else Color.Black
+                                )
+                                innerTextField()
                             }
                         },
                         enabled = enabled,

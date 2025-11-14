@@ -72,23 +72,31 @@ fun PAInfoProduct(
                 ){
                     onDataChange(initialData.copy(producto = initialData.producto.copy(nombre = it)))
                 }
-                PATextInput(
-                    value = initialData.producto.cantidadActual.toEditableString(),
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    maxLength = 4,
-                    placeHolder = stringResource(id = R.string.label_actual_stock),
-                    keyboardType = KeyboardType.Number
-                ){
-                    onDataChange(initialData.copy(producto = initialData.producto.copy(cantidadActual = it.toIntSafe())))
-                }
-                PATextInput(
-                    value = initialData.producto.precioVenta,
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    placeHolder = stringResource(id = R.string.label_sell_price),
-                ){
-                    onDataChange(initialData.copy(producto = initialData.producto.copy(precioVenta = it)))
+                Row(
+                    modifier = Modifier.height(IntrinsicSize.Min)
+                ) {
+                    PATextInput(
+                        value = initialData.producto.cantidadActual.toEditableString(),
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(end = 5.dp)
+                            .fillMaxWidth(),
+                        maxLength = 4,
+                        placeHolder = stringResource(id = R.string.label_actual_stock),
+                        keyboardType = KeyboardType.Number
+                    ){
+                        onDataChange(initialData.copy(producto = initialData.producto.copy(cantidadActual = it.toIntSafe())))
+                    }
+                    PATextInput(
+                        value = initialData.producto.precioVenta,
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(start = 5.dp)
+                            .fillMaxWidth(),
+                        placeHolder = stringResource(id = R.string.label_sell_price),
+                    ){
+                        onDataChange(initialData.copy(producto = initialData.producto.copy(precioVenta = it)))
+                    }
                 }
                 PATextInput(
                     value = initialData.producto.codigoBarras.orEmpty(),
