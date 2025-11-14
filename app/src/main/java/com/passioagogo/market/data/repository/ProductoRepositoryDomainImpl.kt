@@ -14,6 +14,7 @@ import com.passioagogo.market.data.local.dao.SubcategoriaDao
 import com.passioagogo.market.data.local.entity.relation.ProductoCategoriaEntity
 import com.passioagogo.market.data.local.entity.relation.ProductoFamiliaEntity
 import com.passioagogo.market.data.local.entity.utils.ProductoImagenEntity
+import com.passioagogo.market.ui.utils.PAConstants.TAG_PG
 import com.passioagogo.market.domain.bean.AtributoProducto
 import com.passioagogo.market.domain.bean.Categoria
 import com.passioagogo.market.domain.bean.ImagenProducto
@@ -136,7 +137,7 @@ class ProductoRepositoryDomainImpl @Inject constructor(
             val id = productoDao.insertarProducto(producto.toEntity())
             PADomainState.Success(id)
         } catch (e: Exception) {
-            Log.i("tag_pg","error al guardar producto: $e")
+            Log.i(TAG_PG,"error al guardar producto: $e")
             PADomainState.Error(e)
         }
     }
@@ -175,7 +176,7 @@ class ProductoRepositoryDomainImpl @Inject constructor(
 
             PADomainState.Success(productoId)
         } catch (e: Exception) {
-            Log.i("tag_pg","error al guardar producto detallado: $e")
+            Log.i(TAG_PG,"error al guardar producto detallado: $e")
             PADomainState.Error(e)
         }
     }
@@ -186,7 +187,7 @@ class ProductoRepositoryDomainImpl @Inject constructor(
             productoDao.actualizarProducto(entity)
             PADomainState.Success(Unit)
         } catch (e: Exception) {
-            Log.i("tag_pg","error al actualizar producto: $e")
+            Log.i(TAG_PG,"error al actualizar producto: $e")
             PADomainState.Error(e)
         }
     }
@@ -243,7 +244,7 @@ class ProductoRepositoryDomainImpl @Inject constructor(
 
             PADomainState.Success(Unit)
         } catch (e: Exception) {
-            Log.i("tag_pg","error al actualizar producto detallado: $e")
+            Log.i(TAG_PG,"error al actualizar producto detallado: $e")
             PADomainState.Error(e)
         }
     }
@@ -253,7 +254,7 @@ class ProductoRepositoryDomainImpl @Inject constructor(
             productoDao.eliminarProducto(id)
             PADomainState.Success(Unit)
         } catch (e: Exception) {
-            Log.i("tag_pg","error al eliminar producto: $e")
+            Log.i(TAG_PG,"error al eliminar producto: $e")
             PADomainState.Error(e)
         }
     }
@@ -263,7 +264,7 @@ class ProductoRepositoryDomainImpl @Inject constructor(
             productoDao.actualizarStock(id, nuevaCantidad)
             PADomainState.Success(Unit)
         } catch (e: Exception) {
-            Log.i("tag_pg","error al actualizar stock: $e")
+            Log.i(TAG_PG,"error al actualizar stock: $e")
             PADomainState.Error(e)
         }
     }
@@ -285,7 +286,7 @@ class ProductoRepositoryDomainImpl @Inject constructor(
             productoDao.actualizarStock(id, nuevaCantidad)
             PADomainState.Success(Unit)
         } catch (e: Exception) {
-            Log.i("tag_pg","error al reducir stock: $e")
+            Log.i(TAG_PG,"error al reducir stock: $e")
             PADomainState.Error(e)
         }
     }

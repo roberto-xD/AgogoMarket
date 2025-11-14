@@ -44,11 +44,38 @@ internal fun PATextInput(
         trailingIcon = trailingIcon,
         onTrailingIconClick = onTrailingIconClick,
         keyboardType = keyboardType,
-        isAmount = isAmount,
         maxLength = maxLength,
         minLenght = minLenght,
         minLines = minLines,
         maxLines = maxLines,
+    )
+}
+
+@Composable
+internal fun PATextInput(
+    value: Double,
+    modifier : Modifier = Modifier,
+    placeHolder : String ?= null,
+    label: String ?= null,
+    @DrawableRes trailingIcon : Int ? = null,
+    onTrailingIconClick: (() -> Unit) ?= null,
+    enabled: Boolean = true,
+    minLenght: Int ?= null,
+    maxLength: Int = 35,
+    onValueChange: (Double) -> Unit,
+){
+    MoneyTextField(
+        modifier = modifier
+            .padding(top = 3.dp),
+        value = value,
+        onValueChange = onValueChange,
+        label = label ?: placeHolder,
+        placeholder = placeHolder,
+        enabled = enabled,
+        trailingIcon = trailingIcon,
+        onTrailingIconClick = onTrailingIconClick,
+        maxLength = maxLength,
+        minLenght = minLenght,
     )
 }
 

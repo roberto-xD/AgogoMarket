@@ -3,6 +3,7 @@ package com.passioagogo.market.presentation.viewModel.products
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.passioagogo.market.ui.utils.PAConstants.TAG_PG
 import com.passioagogo.market.domain.bean.AtributoProducto
 import com.passioagogo.market.domain.bean.ImagenProducto
 import com.passioagogo.market.domain.bean.ProductoDetallado
@@ -76,7 +77,7 @@ class DetalleProductoViewModel @Inject constructor(
                     )
                 }
             }.onError { error ->
-                Log.i("tag_pg","error al cargar: $error")
+                Log.i(TAG_PG,"error al cargar: $error")
                 _uiState.update {
                     it.copy(
                         errorMessage = error.message,
@@ -90,14 +91,14 @@ class DetalleProductoViewModel @Inject constructor(
     fun actualizarProductoDetallado(datosProducto: GuardarProductoParams) {
         viewModelScope.launch {
             actualizarProductoDetalladoUseCase.invoke(datosProducto).onSuccess {
-                Log.i("tag", "Producto actualizado exitosamente")
+                Log.i(TAG_PG, "Producto actualizado exitosamente")
                 _uiState.update {
                     it.copy(
                         mensajeExito = "Producto actualizado exitosamente"
                     )
                 }
             }.onError { error ->
-                Log.i("tag", "error al actualizar: $error")
+                Log.i(TAG_PG, "error al actualizar: $error")
                 _uiState.update {
                     it.copy(
                         errorMessage = error.message ?: "Error desconocido"
@@ -112,7 +113,7 @@ class DetalleProductoViewModel @Inject constructor(
             _uiState.update { it.copy(isLoading = true) }
 
             crearProductoUseCase(datosProducto).onSuccess { nuevoId ->
-                Log.i("tag_pg","Producto creado exitosamente: $nuevoId")
+                Log.i(TAG_PG,"Producto creado exitosamente: $nuevoId")
 
                 _uiState.update {
                     it.copy(
@@ -123,7 +124,7 @@ class DetalleProductoViewModel @Inject constructor(
                 }
                 // Los datos se actualizarán automáticamente por el Flow
             }.onError { error ->
-                Log.i("tag_pg","error al crear: $error")
+                Log.i(TAG_PG,"error al crear: $error")
                 _uiState.update {
                     it.copy(
                         errorMessage = when (error) {
@@ -146,7 +147,7 @@ class DetalleProductoViewModel @Inject constructor(
                     it.copy(mensajeExito = "Producto eliminado exitosamente")
                 }
             }.onError { error ->
-                Log.i("tag_pg","error al eliminar: $error")
+                Log.i(TAG_PG,"error al eliminar: $error")
                 _uiState.update {
                     it.copy(errorMessage = error.message ?: "Error al eliminar producto")
                 }
@@ -172,7 +173,7 @@ class DetalleProductoViewModel @Inject constructor(
                     it.copy(mensajeExito = "Stock actualizado exitosamente")
                 }
             }.onError { error ->
-                Log.i("tag_pg","error al actualizar: $error")
+                Log.i(TAG_PG,"error al actualizar: $error")
                 _uiState.update {
                     it.copy(
                         errorMessage = when (error) {
@@ -198,7 +199,7 @@ class DetalleProductoViewModel @Inject constructor(
                     it.copy(mensajeExito = "Venta registrada exitosamente")
                 }
             }.onError { error ->
-                Log.i("tag_pg","error al registrar venta: $error")
+                Log.i(TAG_PG,"error al registrar venta: $error")
                 _uiState.update {
                     it.copy(errorMessage = error.message ?: "Error al registrar venta")
                 }
@@ -222,7 +223,7 @@ class DetalleProductoViewModel @Inject constructor(
                     it.copy(mensajeExito = "Compra registrada exitosamente")
                 }
             }.onError { error ->
-                Log.i("tag_pg","error al registrar compra: $error")
+                Log.i(TAG_PG,"error al registrar compra: $error")
                 _uiState.update {
                     it.copy(errorMessage = error.message ?: "Error al registrar compra")
                 }
@@ -270,7 +271,7 @@ class DetalleProductoViewModel @Inject constructor(
                     it.copy(mensajeExito = "Imagen agregada exitosamente")
                 }
             }.onError { error ->
-                Log.i("tag_pg","error al agregar imagen: $error")
+                Log.i(TAG_PG,"error al agregar imagen: $error")
                 _uiState.update {
                     it.copy(errorMessage = error.message ?: "Error al agregar imagen")
                 }

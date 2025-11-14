@@ -34,7 +34,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.passioagogo.market.R
-import com.passioagogo.market.domain.PAConstants.TAG_PG
+import com.passioagogo.market.ui.utils.PAConstants.TAG_PG
 import com.passioagogo.market.presentation.view.components.ClienteSection
 import com.passioagogo.market.presentation.view.components.FechaActualSection
 import com.passioagogo.market.presentation.view.components.PAContainer

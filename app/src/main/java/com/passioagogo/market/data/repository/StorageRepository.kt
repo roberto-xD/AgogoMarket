@@ -2,12 +2,14 @@ package com.passioagogo.market.data.repository
 
 import android.content.Context
 import android.net.Uri
+import android.util.Log
+import com.passioagogo.market.ui.utils.PAConstants.TAG_PG
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.storage.Storage
 import io.github.jan.supabase.storage.storage
+import javax.inject.Inject
 
-class StorageRepository(
-    private val supabaseClient: SupabaseClient,
+class StorageRepository @Inject constructor(
     private val context: Context,
     private val storage: Storage
 ) {
@@ -43,8 +45,10 @@ class StorageRepository(
     suspend fun deleteImage(fileName: String): Result<Unit> {
         return try {
             storage.from(bucketName).delete(fileName)
+            Log.i(TAG_PG,"borrado exitoso")
             Result.success(Unit)
         } catch (e: Exception) {
+            Log.i(TAG_PG,"borrado fallido: $e")
             Result.failure(e)
         }
     }

@@ -42,6 +42,7 @@ import com.google.mlkit.vision.barcode.BarcodeScannerOptions
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
+import com.passioagogo.market.ui.utils.PAConstants.TAG_PG
 import java.util.concurrent.Executors
 
 @OptIn(ExperimentalPermissionsApi::class)
@@ -136,15 +137,14 @@ private fun CameraPreview(
                         imageAnalysis
                     )
                 } catch (e: Exception) {
-                    Log.e("tag_pg", "Error al iniciar cámara", e)
+                    Log.e(TAG_PG, "Error al iniciar cámara", e)
                 }
             }, ContextCompat.getMainExecutor(ctx))
 
             previewView
         },
         modifier = Modifier
-            .fillMaxWidth()
-            .fillMaxHeight(0.3f)
+            .fillMaxSize()
     )
 
     // Overlay para indicar área de escaneo
@@ -208,7 +208,7 @@ private class BarcodeAnalyzer(
                     }
                 }
                 .addOnFailureListener { e ->
-                    Log.e("tag_pg", "Error al escanear", e)
+                    Log.e(TAG_PG, "Error al escanear", e)
                 }
                 .addOnCompleteListener {
                     imageProxy.close()

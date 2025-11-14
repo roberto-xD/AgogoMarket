@@ -21,14 +21,17 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.passioagogo.market.R
+import com.passioagogo.market.ui.utils.PAConstants.TAG_PG
 import com.passioagogo.market.domain.bean.ProductoDetallado
 import com.passioagogo.market.presentation.uiState.CatalogoUiState
 import com.passioagogo.market.presentation.view.components.ImageView
+import com.passioagogo.market.presentation.view.components.MoneyTextField
 import com.passioagogo.market.presentation.view.components.PAContainer
 import com.passioagogo.market.presentation.view.components.PACustomAlertDialog
 import com.passioagogo.market.presentation.view.components.PADropDown
 import com.passioagogo.market.presentation.view.components.PATextInput
 import com.passioagogo.market.ui.decorators.toDoubleSafe
+import com.passioagogo.market.ui.decorators.toEditableString
 import com.passioagogo.market.ui.decorators.toIntSafe
 import com.passioagogo.market.ui.utils.PAConstants.NEW_CATEGORY
 import com.passioagogo.market.ui.utils.PAConstants.NEW_SUBCATEGORY
@@ -69,33 +72,23 @@ fun PAInfoProduct(
                 ){
                     onDataChange(initialData.copy(producto = initialData.producto.copy(nombre = it)))
                 }
-                Row {
-                    PATextInput(
-                        value = initialData.producto.cantidadActual.toString(),
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(end = 5.dp)
-                            .fillMaxWidth(),
-                        maxLength = 4,
-                        placeHolder = stringResource(id = R.string.label_actual_stock),
-                        keyboardType = KeyboardType.Number
-                    ){
-                        onDataChange(initialData.copy(producto = initialData.producto.copy(cantidadActual = it.toIntSafe())))
-                    }
-                    PATextInput(
-                        value = initialData.producto.precioVenta.toString(),
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(start = 5.dp)
-                            .fillMaxWidth(),
-                        maxLength = 4,
-                        minLenght = 1,
-                        isAmount = true,
-                        placeHolder = stringResource(id = R.string.label_sell_price),
-                        keyboardType = KeyboardType.Number
-                    ){
-                        onDataChange(initialData.copy(producto = initialData.producto.copy(precioVenta = it.toDoubleSafe())))
-                    }
+                PATextInput(
+                    value = initialData.producto.cantidadActual.toEditableString(),
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    maxLength = 4,
+                    placeHolder = stringResource(id = R.string.label_actual_stock),
+                    keyboardType = KeyboardType.Number
+                ){
+                    onDataChange(initialData.copy(producto = initialData.producto.copy(cantidadActual = it.toIntSafe())))
+                }
+                PATextInput(
+                    value = initialData.producto.precioVenta,
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    placeHolder = stringResource(id = R.string.label_sell_price),
+                ){
+                    onDataChange(initialData.copy(producto = initialData.producto.copy(precioVenta = it)))
                 }
                 PATextInput(
                     value = initialData.producto.codigoBarras.orEmpty(),
@@ -143,13 +136,11 @@ fun PAInfoProduct(
                         onDataChange(initialData.copy(producto = initialData.producto.copy(skuInterno = it)))
                     }
                     PATextInput(
-                        value = initialData.producto.precioCompra.toString(),
+                        value = initialData.producto.precioCompra,
                         modifier = Modifier,
-                        maxLength = 4,
                         placeHolder = stringResource(id = R.string.label_buy_price),
-                        keyboardType = KeyboardType.Number
                     ){
-                        onDataChange(initialData.copy(producto = initialData.producto.copy(precioCompra = it.toDoubleSafe())))
+                        onDataChange(initialData.copy(producto = initialData.producto.copy(precioCompra = it)))
                     }
                 }
 
@@ -174,7 +165,7 @@ fun PAInfoProduct(
                     .fillMaxWidth(),
                 placeHolder = stringResource(id = R.string.label_family),
             ){ seleccion ->
-                Log.i("tag","dropdown: $seleccion")
+                Log.i(TAG_PG,"dropdown: $seleccion")
                 catalogData.familias.find { it.descripcion.equals(seleccion) }?.let { reasigned ->
                     onDataChange(initialData.copy(
                         idFamilia = reasigned.id,
@@ -193,7 +184,7 @@ fun PAInfoProduct(
                         showNewCategoryDialog.value = true
                     }
                 ){ seleccion ->
-                    Log.i("tag","dropdown: $seleccion")
+                    Log.i(TAG_PG,"dropdown: $seleccion")
                     catalogData.categorias.find { it.descripcion.equals(seleccion) }?.let { reasigned ->
                         onDataChange(initialData.copy(
                             idCategoria = reasigned.id,
@@ -213,7 +204,7 @@ fun PAInfoProduct(
                         showNewSubcategoryDialog.value = true
                     }
                 ){seleccion ->
-                    Log.i("tag","dropdown: $seleccion")
+                    Log.i(TAG_PG,"dropdown: $seleccion")
                     catalogData.subcategorias.find { it.descripcion.equals(seleccion) }?.let { reasigned ->
                         onDataChange(initialData.copy(
                             idSubCategoria = reasigned.id,
@@ -246,7 +237,7 @@ fun PAInfoProduct(
         tittle = "Añadir nueva categoría",
         showDialog = showNewCategoryDialog
     ){
-        Log.i("tag_pg","categoria para crear: $it")
+        Log.i(TAG_PG,"categoria para crear: $it")
         showNewCategoryDialog.value = false
         createNew(Pair(NEW_CATEGORY,it))
     }
@@ -255,7 +246,7 @@ fun PAInfoProduct(
         tittle = "Añadir nueva subcategoría",
         showDialog = showNewSubcategoryDialog
     ){
-        Log.i("tag_pg","subcategoria para crear: $it")
+        Log.i(TAG_PG,"subcategoria para crear: $it")
         showNewSubcategoryDialog.value = false
         createNew(Pair(NEW_SUBCATEGORY,it))
     }

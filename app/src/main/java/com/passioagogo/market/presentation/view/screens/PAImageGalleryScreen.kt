@@ -29,6 +29,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.passioagogo.market.ui.utils.PAConstants.TAG_PG
 import com.passioagogo.market.presentation.view.components.PAImageItem
 import com.passioagogo.market.presentation.viewModel.imagenes.ImageGalleryViewModel
 
@@ -47,7 +48,7 @@ fun ImageGalleryScreen(
 
     LaunchedEffect(Unit) {
         viewModel.loadImages()
-        Log.i("tag_pg","paths: ${uiState.images.map { it.rutaImagen }}")
+        Log.i(TAG_PG,"paths: ${uiState.images.map { it.rutaImagen }}")
     }
 
     LaunchedEffect(uiState.errorMessage) {

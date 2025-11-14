@@ -30,9 +30,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import com.passioagogo.market.R
-import com.passioagogo.market.domain.bean.ProductoDetallado
+import com.passioagogo.market.ui.utils.PAConstants.TAG_PG
 import com.passioagogo.market.presentation.view.components.BarcodeScannerScreen
 import com.passioagogo.market.presentation.view.components.PABottomSheetContainer
 import com.passioagogo.market.presentation.view.components.PAImageItem
@@ -52,7 +51,7 @@ import com.passioagogo.market.ui.utils.PAConstants.NEW_SUBCATEGORY
 fun ItemScreen(
     imageViewModel: ImageGalleryViewModel,
     detalleViewModel: DetalleProductoViewModel,
-    dashboardViewModel: DashboardViewModel = hiltViewModel(),
+    dashboardViewModel: DashboardViewModel,
     navigateToBack: () -> Unit,
 ){
     val context = LocalContext.current
@@ -62,7 +61,7 @@ fun ItemScreen(
     val imagePaths = uiImageState.value.images
     val deleteImage = uiImageState.value.deleteImage
 
-    val productosState = dashboardViewModel.uiState.collectAsState()
+    val catalogoUiState = dashboardViewModel.uiState.collectAsState().value
 
     val uiProductState = detalleViewModel.uiState.collectAsState()
     val currentProduct = uiProductState.value.productoDetallado
@@ -161,15 +160,15 @@ fun ItemScreen(
                     },
                     rightText = if(currentProduct.producto.id.orZero() == 0L){"Guardar"} else{"Actualizar"},
                     onRightClick = {
-                        Log.i("tag","onSaveClick")
+                        Log.i(TAG_PG,"onSaveClick")
                         if(currentProduct.validateRules()){
                             val data = currentProduct.toActualizaProductoParams()
-                            Log.i("tag","$data")
+                            Log.i(TAG_PG,"$data")
                             if(data.id != 0L){
-                                Log.i("tag","actualizar")
+                                Log.i(TAG_PG,"actualizar")
                                 detalleViewModel.actualizarProductoDetallado(data)
                             }else {
-                                Log.i("tag","crear")
+                                Log.i(TAG_PG,"crear")
                                 detalleViewModel.crearProductoDetallado(data)
                             }
                         } else {
@@ -191,7 +190,7 @@ fun ItemScreen(
             ) {
                 PAInfoProduct(
                     initialData = currentProduct,
-                    catalogData = productosState.value,
+                    catalogData = catalogoUiState,
                     createNew = {
                         when(it.first){
                             NEW_CATEGORY -> {
@@ -273,7 +272,7 @@ fun ItemScreen(
 
             PABottomSheetContainer(
                 showBottomSheet = showScanner,
-                showFullScreen = true,
+                showFullScreen = false,
             ) {
                 BarcodeScannerScreen(
                     onBarcodeScanned = { code ->
@@ -285,7 +284,7 @@ fun ItemScreen(
                                 )
                             )
                         )
-                        Log.i("tag_pg", "Código escaneado: $code")
+                        Log.i(TAG_PG, "Código escaneado: $code")
                     }
                 )
             }

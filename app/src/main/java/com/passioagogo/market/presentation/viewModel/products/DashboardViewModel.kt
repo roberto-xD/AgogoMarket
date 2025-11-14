@@ -1,7 +1,9 @@
 package com.passioagogo.market.presentation.viewModel.products
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.passioagogo.market.ui.utils.PAConstants.TAG_PG
 import com.passioagogo.market.domain.state.onError
 import com.passioagogo.market.domain.state.onSuccess
 import com.passioagogo.market.domain.usecase.categorias.CrearCategoriaConFamiliaParams
@@ -43,11 +45,19 @@ class DashboardViewModel @Inject constructor(
     val uiState: StateFlow<CatalogoUiState> = _uiState.asStateFlow()
 
     init {
+        Log.i(TAG_PG,"DashboardViewModel init")
         cargarDatosIniciales()
     }
 
     private fun cargarDatosIniciales() {
         viewModelScope.launch {
+            //Cargar familias
+            obtenerFamiliasUseCase().onSuccess { familiasFlow ->
+                familiasFlow.collect { familias ->
+                    Log.i(TAG_PG,"familias: $familias")
+                    _uiState.update { it.copy(familias = familias) }
+                }
+            }
             // Cargar productos
             obtenerProductosUseCase().onSuccess { productosFlow ->
                 productosFlow.collect { productos ->
@@ -80,13 +90,6 @@ class DashboardViewModel @Inject constructor(
             obtenerProveedoresUseCase().onSuccess { proveedoresFlow ->
                 proveedoresFlow.collect { proveedores ->
                     _uiState.update { it.copy(proveedores = proveedores) }
-                }
-            }
-
-            //Cargar familias
-            obtenerFamiliasUseCase().onSuccess { familiasFlow ->
-                familiasFlow.collect { familias ->
-                    _uiState.update { it.copy(familias = familias) }
                 }
             }
         }

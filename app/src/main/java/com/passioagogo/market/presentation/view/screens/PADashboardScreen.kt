@@ -21,7 +21,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.passioagogo.market.domain.PAConstants.TAG_PG
+import com.passioagogo.market.ui.utils.PAConstants.TAG_PG
 import com.passioagogo.market.presentation.navigation.Routes
 import com.passioagogo.market.presentation.view.components.PADrawerSheet
 import com.passioagogo.market.presentation.view.components.ProductCard
@@ -35,12 +35,12 @@ import com.passioagogo.market.ui.decorators.shimmerEffect
 @Composable
 fun DashboardScreen(
     detalleViewModel: DetalleProductoViewModel,
-    productViewModel: DashboardViewModel = hiltViewModel(),
+    dashboardViewModel: DashboardViewModel = hiltViewModel(),
     navigateToProductScreen: () -> Unit,
     navigate: (route: String) -> Unit,
 ) {
     val context = LocalContext.current
-    val product = productViewModel.uiState.collectAsState()
+    val product = dashboardViewModel.uiState.collectAsState()
 
     val columstate = rememberLazyGridState()
     val isAtBottom = columstate.canScrollForward.not()
@@ -56,7 +56,7 @@ fun DashboardScreen(
     }
 
     LaunchedEffect(Unit) {
-        productViewModel.buscarProductos("")
+        dashboardViewModel.buscarProductos("")
     }
 
     PADrawerSheet(
@@ -67,7 +67,7 @@ fun DashboardScreen(
         search = {
             searchState.value = searchState.value.not()
             if(searchState.value.not()){
-                productViewModel.buscarProductos("")
+                dashboardViewModel.buscarProductos("")
             }
         }
     ) {     padding ->
@@ -77,7 +77,7 @@ fun DashboardScreen(
             if (searchState.value) {
                 SearchInput {
                     Log.i(TAG_PG,"keyboard search press: $it")
-                    productViewModel.buscarProductos(it)
+                    dashboardViewModel.buscarProductos(it)
                 }
             }
             if (product.value.productos.size != 0) {

@@ -5,8 +5,9 @@ import com.google.firebase.Firebase
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.QuerySnapshot
 import com.google.firebase.firestore.firestore
-import com.passioagogo.market.domain.PAConstants.COLLECTION_PRODUCTS
+import com.passioagogo.market.ui.utils.PAConstants.TAG_PG
 import com.passioagogo.market.domain.state.PADomainState
+import com.passioagogo.market.ui.utils.PAConstants.COLLECTION_PRODUCTS
 import javax.inject.Inject
 
 class PAGetProductInfoUseCase @Inject constructor() {
@@ -30,7 +31,7 @@ class PAGetProductInfoUseCase @Inject constructor() {
                     response(PADomainState.Success(result))
                 }
                 .addOnFailureListener { exception ->
-                    Log.i("tag fail","$exception")
+                    Log.i(TAG_PG,"$exception")
 
                 }
         } ?: run {
@@ -40,7 +41,7 @@ class PAGetProductInfoUseCase @Inject constructor() {
                     response(PADomainState.Success(result))
                 }
                 .addOnFailureListener { exception ->
-                    Log.i("tag fail","$exception")
+                    Log.i(TAG_PG,"$exception")
 
                 }
         }

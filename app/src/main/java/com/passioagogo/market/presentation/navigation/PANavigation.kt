@@ -13,12 +13,14 @@ import com.passioagogo.market.presentation.view.screens.ItemScreen
 import com.passioagogo.market.presentation.view.screens.RegistrarVentaScreen
 import com.passioagogo.market.presentation.view.screens.SearchScreen
 import com.passioagogo.market.presentation.viewModel.imagenes.ImageGalleryViewModel
+import com.passioagogo.market.presentation.viewModel.products.DashboardViewModel
 import com.passioagogo.market.presentation.viewModel.products.DetalleProductoViewModel
 
 
 @Composable
 fun PANavigation(
     startDestination: String,
+    dashboardViewModel: DashboardViewModel,
     imageViewModel: ImageGalleryViewModel,
     detalleViewModel: DetalleProductoViewModel,
 ){
@@ -46,6 +48,7 @@ fun PANavigation(
         ) {
             DashboardScreen(
                 detalleViewModel = detalleViewModel,
+                dashboardViewModel = dashboardViewModel,
                 navigateToProductScreen = {
                     navController.navigate(Routes.ItemDetail.Name)
                 },
@@ -62,6 +65,7 @@ fun PANavigation(
             ItemScreen(
                 detalleViewModel = detalleViewModel,
                 imageViewModel = imageViewModel,
+                dashboardViewModel = dashboardViewModel,
                 navigateToBack = ::onBack
             )
         }

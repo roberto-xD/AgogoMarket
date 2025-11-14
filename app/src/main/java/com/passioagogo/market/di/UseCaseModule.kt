@@ -26,6 +26,7 @@ import com.passioagogo.market.domain.usecase.compras.CrearProveedorUseCase
 import com.passioagogo.market.domain.usecase.compras.GestionarStockUseCase
 import com.passioagogo.market.domain.usecase.compras.RegistrarCompraUseCase
 import com.passioagogo.market.domain.usecase.familias.CrearFamiliaUseCase
+import com.passioagogo.market.domain.usecase.familias.ObtenerFamiliasUseCase
 import com.passioagogo.market.domain.usecase.metricas.ObtenerMetricasInventarioUseCase
 import com.passioagogo.market.domain.usecase.producto.ActualizarProductoUseCase
 import com.passioagogo.market.domain.usecase.producto.BuscarProductosUseCase
@@ -120,6 +121,10 @@ object UseCaseModule {
     // CASOS DE USO - CATEGORÍAS
     // ===========================================
 
+    @Provides
+    fun provideObtenerFamiliasUseCase(
+        familiaRepository: FamiliaRepository
+    ): ObtenerFamiliasUseCase = ObtenerFamiliasUseCase(familiaRepository)
     @Provides
     fun provideObtenerCategoriasUseCase(
         categoriaRepository: ICategoriaRepository

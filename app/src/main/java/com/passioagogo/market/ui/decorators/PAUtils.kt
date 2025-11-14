@@ -37,3 +37,7 @@ fun String?.toIntSafe() : Int{
         0
     }
 }
+
+fun Int.toEditableString(): String {
+    return if (this == 0) "" else this.toString()
+}

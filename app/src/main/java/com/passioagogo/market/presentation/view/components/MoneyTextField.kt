@@ -1,5 +1,7 @@
 package com.passioagogo.market.presentation.view.components
 
+import android.R.attr.maxLines
+import android.R.attr.minLines
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
@@ -37,13 +39,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.passioagogo.market.R
 import com.passioagogo.market.ui.theme.abelRegular
 import com.passioagogo.market.ui.theme.errorLight
 import com.passioagogo.market.ui.theme.onSurfaceLight
@@ -52,21 +54,28 @@ import com.passioagogo.market.ui.theme.primaryLight
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
-fun PAOutlinedTextField(
+fun MoneyTextField(
     modifier: Modifier = Modifier,
-    value: String,
+    value: Double,
     enabled: Boolean = true,
     label: String ?= null,
-    placeholder: String ?= null,
+    placeholder: String? = null,
     @DrawableRes trailingIcon : Int ? = null,
     onTrailingIconClick: (() -> Unit) ?= null,
-    keyboardType: KeyboardType = KeyboardType.Text,
-    minLines: Int = 1,
-    maxLines: Int = 1,
     minLenght: Int ?= null,
     maxLength: Int = 999,
-    onValueChange: ((String) -> Unit) ?= null,
+    onValueChange: (Double) -> Unit,
 ) {
+    // Estado local para mantener el texto mientras se edita
+    var textValue by remember(value) {
+        mutableStateOf(
+            if (value == 0.0) "" else {
+                // Formatea con 2 decimales si ya tiene valor
+                String.format("%.2f", value)
+            }
+        )
+    }
+
     val focusRequester = remember { FocusRequester() }
     var isFocused by remember { mutableStateOf(false) }
     val status = remember { mutableStateOf< InputStatus>(InputStatus.REPOSO) }
@@ -92,7 +101,7 @@ fun PAOutlinedTextField(
         // Container para el label que mantiene el espacio
         Box(modifier = Modifier.height(15.dp)) {
             AnimatedContent(
-                targetState = isFocused || value.isNotEmpty(),
+                targetState = isFocused,
                 transitionSpec = {
                     if (targetState) {
                         // Aparece el label
@@ -141,7 +150,7 @@ fun PAOutlinedTextField(
                     // Placeholder
                     Column {
                         AnimatedVisibility(
-                            visible = value.isEmpty() && !isFocused && placeholder != null,
+                            visible = value == 0.0 && !isFocused && placeholder != null,
                             enter = fadeIn(),
                             exit = fadeOut()
                         ) {
@@ -159,42 +168,78 @@ fun PAOutlinedTextField(
                     }
                     // TextField principal
                     BasicTextField(
-                        value = value,
+                        value = textValue,
                         onValueChange = { newValue ->
-                            minLenght?.let{
-                                if (newValue.length >= it){
-                                    status.value = InputStatus.REPOSO
-                                }else{
-                                    status.value = InputStatus.ERROR
-                                }
+                            // Permite solo números, punto y máximo 2 decimales
+                            val filtered = newValue.filter { it.isDigit() || it == '.' }
+
+                            // Valida formato decimal
+                            val parts = filtered.split(".")
+                            val isValid = when {
+                                parts.size > 2 -> false // Más de un punto
+                                parts.size == 2 && parts[1].length > 2 -> false // Más de 2 decimales
+                                else -> true
                             }
 
-                            if (newValue.length <= maxLength){
-                                onValueChange?.invoke(
-                                    when(keyboardType){
-                                        KeyboardType.Number -> newValue.filter { it.isDigit() }
-                                        else -> newValue
-                                    }
-                                )
+                            if (isValid) {
+                                textValue = filtered
+                                // Convierte a Double y notifica cambio
+                                val doubleValue = filtered.toDoubleOrNull() ?: 0.0
+                                onValueChange(doubleValue)
                             }
                         },
-                        modifier = Modifier
+                        modifier = modifier
                             .fillMaxWidth()
                             .focusRequester(focusRequester)
-                            .onFocusChanged { isFocused = it.isFocused },
+                            .onFocusChanged { focusState ->
+                                isFocused = focusState.isFocused
+                                // Formatea al perder el foco
+                                if (!focusState.isFocused && textValue.isNotEmpty()) {
+                                    val doubleValue = textValue.toDoubleOrNull() ?: 0.0
+                                    textValue = String.format("%.2f", doubleValue)
+                                }
+                            },
                         textStyle = MaterialTheme.typography.bodyLarge.copy(
                             fontFamily = abelRegular,
                             fontSize = 14.sp,
                             color = onSurfaceLight
                         ),
                         cursorBrush = SolidColor(primaryLight),
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Decimal
+                        ),
                         decorationBox = { innerTextField ->
-                            innerTextField()
+                            Column(
+                                modifier = Modifier.height(20.dp)
+                            ) {
+                                AnimatedVisibility(
+                                    visible = isFocused && placeholder != null,
+                                    enter = fadeIn(),
+                                    exit = fadeOut()
+                                ) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Text(
+                                            text = "$",
+                                            style = MaterialTheme.typography.bodyLarge,
+                                            color = if (textValue.isEmpty()) Color.Gray else Color.Black
+                                        )
+                                        Box {
+                                            if (textValue.isEmpty()) {
+                                                Text(
+                                                    text = "0.00",
+                                                    style = MaterialTheme.typography.bodyLarge,
+                                                    color = Color.Gray
+                                                )
+                                            }
+                                            innerTextField()
+                                        }
+                                    }
+                                }
+                            }
                         },
                         enabled = enabled,
-                        minLines = minLines,
-                        maxLines = maxLines,
-                        keyboardOptions = KeyboardOptions(keyboardType = keyboardType)
+                        minLines = 1,
+                        maxLines = 1,
                     )
                 }
                 trailingIcon?.let {
@@ -218,18 +263,10 @@ fun PAOutlinedTextField(
 
 @Composable
 @Preview
-private fun Cuac (){
-    val value = remember { mutableStateOf("") }
-    PAOutlinedTextField(
-        value = value.value,
-        onValueChange = {
-            value.value = it
-        },
-        trailingIcon = R.drawable.barcode_scann,
-        label = "Cuac",
-        placeholder = "placeholder",
-        maxLength = 8,
-        onTrailingIconClick = {},
-        keyboardType = KeyboardType.Number
+private fun preview(){
+    MoneyTextField(
+        value = 0.0,
+        placeholder = "Precio de venta",
+        onValueChange = {}
     )
 }

@@ -7,9 +7,11 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import com.passioagogo.market.ui.utils.PAConstants.TAG_PG
 import com.passioagogo.market.presentation.navigation.PANavigation
 import com.passioagogo.market.presentation.navigation.Routes
 import com.passioagogo.market.presentation.viewModel.imagenes.ImageGalleryViewModel
+import com.passioagogo.market.presentation.viewModel.products.DashboardViewModel
 import com.passioagogo.market.presentation.viewModel.products.DetalleProductoViewModel
 import com.passioagogo.market.ui.theme.PassioAgogoMarketTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -19,6 +21,7 @@ class PAMain : ComponentActivity() {
 
     private val imageGalleryViewModel: ImageGalleryViewModel by viewModels()
     private val detalleViewModel: DetalleProductoViewModel by viewModels()
+    private val dashboardViewModel: DashboardViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -27,6 +30,7 @@ class PAMain : ComponentActivity() {
             PassioAgogoMarketTheme {
                 PANavigation(
                     startDestination = getStartDestination(),
+                    dashboardViewModel = dashboardViewModel,
                     imageViewModel = imageGalleryViewModel,
                     detalleViewModel = detalleViewModel,
                 )
@@ -43,7 +47,7 @@ class PAMain : ComponentActivity() {
 
     fun getStartDestination(): String{
         val uris = intent.handleSharedImages().orEmpty()
-        Log.i("tag","uris vacias: ${uris.isEmpty()}")
+        Log.i(TAG_PG,"uris vacias: ${uris.isEmpty()}")
         if(uris.isEmpty()){
             return Routes.Dashboard.Name
         }else {

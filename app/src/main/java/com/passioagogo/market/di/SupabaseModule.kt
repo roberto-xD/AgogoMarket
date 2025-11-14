@@ -71,10 +71,8 @@ object SupabaseModule {
     @Singleton
     fun provideStorageRepository(
         @ApplicationContext context: Context,
-        supabaseClient: SupabaseClient,
         storage: Storage
     ): StorageRepository = StorageRepository(
-        supabaseClient = supabaseClient,
         context = context,
         storage = storage
     )
