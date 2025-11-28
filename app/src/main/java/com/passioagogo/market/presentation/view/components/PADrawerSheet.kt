@@ -138,7 +138,7 @@ fun PADrawerSheet(
                         onClick = { navigate.invoke(Routes.SellProcess.Name) }
                     )
 
-                    /*HorizontalDivider()
+                    HorizontalDivider()
                     NavigationDrawerItem(
                         label = { Text(text = "Iniciar sesión") },
                         selected = false,
@@ -149,7 +149,7 @@ fun PADrawerSheet(
                             )
                         },
                         onClick = { navigate.invoke(Routes.Login.Name) }
-                    )*/
+                    )
                 }
             }
         }

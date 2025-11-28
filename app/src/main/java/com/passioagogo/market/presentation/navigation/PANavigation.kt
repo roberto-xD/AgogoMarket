@@ -12,6 +12,8 @@ import com.passioagogo.market.presentation.view.screens.ImportacionScreen
 import com.passioagogo.market.presentation.view.screens.ItemScreen
 import com.passioagogo.market.presentation.view.screens.RegistrarVentaScreen
 import com.passioagogo.market.presentation.view.screens.SearchScreen
+import com.passioagogo.market.presentation.view.screens.auth.LoginScreen
+import com.passioagogo.market.presentation.view.screens.auth.SignUpScreen
 import com.passioagogo.market.presentation.viewModel.imagenes.ImageGalleryViewModel
 import com.passioagogo.market.presentation.viewModel.products.DashboardViewModel
 import com.passioagogo.market.presentation.viewModel.products.DetalleProductoViewModel
@@ -72,7 +74,26 @@ fun PANavigation(
         composable(
             route = Routes.Login.Name
         ) {
+            LoginScreen(
+                onNavigateToHome = {
 
+                },
+                onNavigateToSignUp = {
+                    navController.navigate(Routes.Singup.Name)
+                }
+            )
+        }
+        composable(
+            route = Routes.Singup.Name
+        ){
+            SignUpScreen(
+                onNavigateToHome = {
+
+                },
+                onNavigateBack = {
+                    navController.popBackStack()
+                }
+            )
         }
 
         composable(

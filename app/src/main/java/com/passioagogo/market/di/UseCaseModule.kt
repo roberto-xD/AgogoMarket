@@ -11,6 +11,8 @@ import com.passioagogo.market.data.repository.SubcategoriaRepositoryDomainImpl
 import com.passioagogo.market.data.repository.VentaRepositoryImpl
 import com.passioagogo.market.data.imports.GoogleSheetsImportService
 import com.passioagogo.market.data.imports.GoogleSheetsImportServiceImpl
+import com.passioagogo.market.data.repository.AuthRepositoryImpl
+import com.passioagogo.market.domain.repository.AuthRepository
 import com.passioagogo.market.domain.repository.ICategoriaRepository
 import com.passioagogo.market.domain.repository.VentaRepository
 import com.passioagogo.market.domain.repository.FamiliaRepository
@@ -19,6 +21,8 @@ import com.passioagogo.market.domain.repository.IImagenRepository
 import com.passioagogo.market.domain.repository.IProductoRepository
 import com.passioagogo.market.domain.repository.IProveedorRepository
 import com.passioagogo.market.domain.repository.ISubcategoriaRepository
+import com.passioagogo.market.domain.usecase.auth.SignInWithEmailUseCase
+import com.passioagogo.market.domain.usecase.auth.SignInWithGoogleUseCase
 import com.passioagogo.market.domain.usecase.categorias.CrearCategoriaConFamiliaUseCase
 import com.passioagogo.market.domain.usecase.categorias.ObtenerCategoriasPorFamiliaIdUseCase
 import com.passioagogo.market.domain.usecase.categorias.ObtenerCategoriasUseCase
@@ -240,6 +244,18 @@ object UseCaseModule {
             httpClient = provideOkHttpClient(),
             gson = Gson()
         )
+
+//    @Provides
+//    fun provideSignInWithEmailUseCase(
+//        repository: AuthRepository
+//    ): SignInWithEmailUseCase = SignInWithEmailUseCase(repository)
+//
+//    @Provides
+//    fun provideSignInWithGoogleUseCase(
+//        repository: AuthRepository
+//    ): SignInWithGoogleUseCase = SignInWithGoogleUseCase(repository)
+
+
 }
 
 // ===========================================
@@ -289,4 +305,10 @@ abstract class DomainRepositoryModule {
     abstract fun bindVentaRepository(
         impl: VentaRepositoryImpl
     ): VentaRepository
+
+    @Binds
+    abstract fun bindAuthRepository(
+        impl: AuthRepositoryImpl
+    ): AuthRepository
+
 }
