@@ -2,7 +2,10 @@ package com.passioagogo.market.di
 
 import android.content.Context
 import com.passioagogo.market.BuildConfig
+import com.passioagogo.market.data.remote.implementation.FamiliaRemoteRepositoryImpl
+import com.passioagogo.market.data.remote.repository.FamiliaRemoteRepository
 import com.passioagogo.market.data.repository.StorageRepository
+import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -76,4 +79,15 @@ object SupabaseModule {
         context = context,
         storage = storage
     )
+}
+
+@Module
+@InstallIn(SingletonComponent::class)
+abstract class FamiliaRemoteModule {
+
+    @Binds
+    @Singleton
+    abstract fun bindFamiliaRemoteRepository(
+        impl: FamiliaRemoteRepositoryImpl
+    ): FamiliaRemoteRepository
 }

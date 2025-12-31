@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.crashlytics)
     id ("kotlin-kapt")
     id ("dagger.hilt.android.plugin")
+    id("org.jetbrains.kotlin.plugin.serialization")
 }
 
 android {
@@ -175,6 +176,8 @@ dependencies {
     implementation("io.github.jan-tennert.supabase:realtime-kt")
     implementation("io.github.jan-tennert.supabase:storage-kt")
     implementation("io.ktor:ktor-client-android:2.3.7")
+
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
 }
 kapt {
     correctErrorTypes = true

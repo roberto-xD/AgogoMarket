@@ -4,12 +4,9 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class FamiliaDto(
+data class FamiliaRemoteDto(
     @SerialName("id")
-    val id: String,  // UUID de Supabase
-
-    @SerialName("user_id")
-    val userId: String,
+    val id: String,
 
     @SerialName("nombre")
     val nombre: String,
@@ -20,17 +17,12 @@ data class FamiliaDto(
     @SerialName("activo")
     val activo: Boolean,
 
-    @SerialName("fecha_creacion")
-    val fechaCreacion: String,  // ISO 8601
-
-    @SerialName("updated_at")
-    val updatedAt: String? = null
+    @SerialName("fechaCreacion")
+    val fechaCreacion: String,
 )
 
 @Serializable
 data class CreateFamiliaDto(
-    @SerialName("user_id")
-    val userId: String,
 
     @SerialName("nombre")
     val nombre: String,

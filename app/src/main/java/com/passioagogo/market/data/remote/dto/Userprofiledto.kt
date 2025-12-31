@@ -5,6 +5,7 @@ import com.passioagogo.market.domain.model.auth.UserRole
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
+
 @Serializable
 data class UserProfileDto(
     @SerialName("id")

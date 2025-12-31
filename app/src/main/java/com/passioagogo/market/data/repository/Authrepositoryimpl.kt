@@ -1,5 +1,6 @@
 package com.passioagogo.market.data.repository
 
+import android.util.Log
 import com.passioagogo.market.domain.model.auth.AuthResult
 import com.passioagogo.market.domain.model.auth.AuthState
 import com.passioagogo.market.domain.model.auth.User
@@ -7,6 +8,7 @@ import com.passioagogo.market.domain.model.auth.UserRole
 import com.passioagogo.market.domain.repository.AuthRepository
 import com.passioagogo.market.data.remote.dto.UserProfileDto
 import com.passioagogo.market.data.remote.dto.toDomain
+import com.passioagogo.market.ui.utils.PAConstants.TAG_PG
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.gotrue.SessionStatus
 import io.github.jan.supabase.gotrue.auth
@@ -140,6 +142,7 @@ class AuthRepositoryImpl @Inject constructor(
                 lastSignInAt = null
             )
         } catch (e: Exception) {
+            Log.i(TAG_PG,"error login: $e")
             null
         }
     }
