@@ -4,6 +4,13 @@ import com.passioagogo.market.data.remote.dto.FamiliaRemoteDto
 import com.passioagogo.market.data.remote.repository.FamiliaRemoteRepository
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.from
+import io.github.jan.supabase.realtime.PostgresAction
+import io.github.jan.supabase.realtime.channel
+import io.github.jan.supabase.realtime.postgresChangeFlow
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 class FamiliaRemoteRepositoryImpl @Inject constructor(
@@ -48,5 +55,29 @@ class FamiliaRemoteRepositoryImpl @Inject constructor(
             .delete {
                 filter { eq("id", id) }
             }
+    }
+
+    override fun observeAll(): Flow<List<FamiliaRemoteDto>> = callbackFlow {
+        val initial = supabaseClient.from(table).select().decodeList<FamiliaRemoteDto>()
+        send(initial)
+        val channel = supabaseClient.channel("familias-channel")
+        val changeFlow = channel.postgresChangeFlow<PostgresAction>(schema = "public"){
+            table = "familias"
+        }
+        channel.subscribe()
+        changeFlow.collect { action ->
+            when (action) {
+                is PostgresAction.Insert -> {
+                    val updated = supabaseClient.from(table).select().decodeList<FamiliaRemoteDto>()
+                    send(updated)
+                }
+                is PostgresAction.Update -> { /* registro actualizado */ }
+                is PostgresAction.Delete -> { /* registro eliminado */ }
+                is PostgresAction.Select -> { /* select */ }
+            }
+        }
+        awaitClose {
+            launch { channel.unsubscribe() }
+        }
     }
 }

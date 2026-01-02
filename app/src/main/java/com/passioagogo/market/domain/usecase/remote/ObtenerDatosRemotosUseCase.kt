@@ -13,12 +13,8 @@ class ObtenerDatosRemotosUseCase @Inject constructor(
 ) : NoParamsUseCase<Unit>(){
 
     override suspend fun execute(): Unit {
-        remoteRepositoryImpl.getAll()
-            .onSuccess {
+        remoteRepositoryImpl.observeAll().collect {
 
-            }
-            .onFailure {
-
-            }
+        }
     }
 }
