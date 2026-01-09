@@ -23,17 +23,10 @@ import androidx.room.PrimaryKey
 data class SubcategoriaEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
-    val remoteId: String? = null,
-    val userId: String? = null,
     val nombre: String,
     val descripcion: String?,
     val categoriaId: Long,
-    val categoriaRemoteId: String? = null,  // FK remota
     val activo: Boolean = true,
     val fechaCreacion: Long = System.currentTimeMillis(),
     val updatedAt: Long? = null,
-
-    val isSynced: Boolean = false,
-    val isDeleted: Boolean = false,
-    val needsSync: Boolean = false
 )

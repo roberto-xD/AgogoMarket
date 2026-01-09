@@ -1,6 +1,5 @@
 package com.passioagogo.market.domain.usecase.remote
 
-import com.passioagogo.market.data.remote.dto.FamiliaRemoteDto
 import com.passioagogo.market.data.remote.implementation.FamiliaRemoteRepositoryImpl
 import com.passioagogo.market.domain.usecase.base.NoParamsUseCase
 import kotlinx.coroutines.flow.Flow

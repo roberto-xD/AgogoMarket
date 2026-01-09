@@ -11,8 +11,6 @@ import androidx.room.PrimaryKey
 data class ProveedorEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
-    val remoteId: String? = null,
-    val userId: String? = null,
     val nombre: String,
     val contacto: String?,
     val telefono: String?,
@@ -21,8 +19,4 @@ data class ProveedorEntity(
     val activo: Boolean = true,
     val fechaCreacion: Long = System.currentTimeMillis(),
     val updatedAt: Long? = null,
-
-    val isSynced: Boolean = false,
-    val isDeleted: Boolean = false,
-    val needsSync: Boolean = false
 )
