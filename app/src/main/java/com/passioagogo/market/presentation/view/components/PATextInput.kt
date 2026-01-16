@@ -26,7 +26,6 @@ internal fun PATextInput(
     onTrailingIconClick: (() -> Unit) ?= null,
     enabled: Boolean = true,
     keyboardType : KeyboardType = KeyboardType.Text,
-    isAmount: Boolean = false,
     minLines: Int = 1,
     maxLines: Int = 1,
     minLenght: Int ?= null,

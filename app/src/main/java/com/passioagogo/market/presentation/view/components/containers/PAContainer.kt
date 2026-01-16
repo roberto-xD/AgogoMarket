@@ -1,4 +1,4 @@
-package com.passioagogo.market.presentation.view.components
+package com.passioagogo.market.presentation.view.components.containers
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

@@ -18,7 +18,6 @@ import com.passioagogo.market.data.local.entity.base.ProductoEntity
     ],
     indices = [
         Index(value = ["productoId"]),
-        Index(value = ["remoteId"], unique = true)
     ]
 )
 data class ProductoImagenEntity(
@@ -31,8 +30,4 @@ data class ProductoImagenEntity(
     val orden: Int = 0, // Para ordenar las imágenes
     val esPrincipal: Boolean = false,
     val fechaCreacion: Long = System.currentTimeMillis(),
-    // Campos de sincronización
-    val isSynced: Boolean = false,
-    val isDeleted: Boolean = false,
-    val needsSync: Boolean = false
 )

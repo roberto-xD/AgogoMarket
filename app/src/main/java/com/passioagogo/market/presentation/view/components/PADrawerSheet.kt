@@ -31,8 +31,8 @@ import kotlinx.coroutines.launch
 @Composable
 fun PADrawerSheet(
     isOpend: Boolean = false,
-    addItem: () -> Unit,
-    search: () -> Unit,
+    toolbarRigth: (() -> Unit)? = null,
+    toolbarCenter: (() -> Unit)? = null,
     navigate: (route: String) -> Unit,
     content: @Composable (PaddingValues) -> Unit
 ) {
@@ -90,7 +90,7 @@ fun PADrawerSheet(
                                 contentDescription = null
                             )
                         },
-                        onClick = addItem
+                        onClick = {navigate.invoke(Routes.ItemDetail.Name)}
                     )
 
                     HorizontalDivider()
@@ -166,8 +166,8 @@ fun PADrawerSheet(
                             }
                         }
                     },
-                    onRightClick = addItem,
-                    onCenterClick = search
+                    onRightClick = toolbarRigth,
+                    onCenterClick = toolbarCenter
                 )
             },
             content = { paddingValues ->
@@ -182,9 +182,9 @@ fun PADrawerSheet(
 private fun Preview() {
     PADrawerSheet(
         isOpend = true,
-        addItem = {},
         navigate = {},
         content = {},
-        search = {}
+        toolbarCenter = {},
+        toolbarRigth = {}
     )
 }

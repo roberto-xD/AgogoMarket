@@ -69,7 +69,7 @@ class ProveedorRepositoryDomainImpl @Inject constructor(
 
     override suspend fun eliminarProveedor(id: Long): PADomainState<Unit> {
         return try {
-            proveedorDao.eliminarPermanentemente(id)
+            proveedorDao.eliminarProveedor(id)
             PADomainState.Success(Unit)
         } catch (e: Exception) {
             PADomainState.Error(e)

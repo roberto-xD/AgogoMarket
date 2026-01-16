@@ -5,8 +5,7 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 
 @Entity(
-    tableName = "proveedores",
-    indices = [Index(value = ["remoteId"], unique = true)]
+    tableName = "proveedores"
 )
 data class ProveedorEntity(
     @PrimaryKey(autoGenerate = true)

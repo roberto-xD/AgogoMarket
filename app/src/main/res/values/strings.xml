@@ -29,4 +29,11 @@
     <string name="label_client_delivery_instructions">Instrucciones de entrega</string>
     <string name="label_cliente_delivery_detail">Detalles adicionales...</string>
     <string name="label_payment_method">Método de Pago</string>
+    <string name="label_provider_name">Nombre del proveedor</string>
+    <string name="label_provider_contact">Contacto</string>
+    <string name="label_provider_phone">Teléfono</string>
+    <string name="label_provider_address">Dirección</string>
+    <string name="label_provider_email">Correo</string>
+    <string name="label_provider_national">Nacional</string>
+    <string name="label_provider_international">Internacional</string>
 </resources>

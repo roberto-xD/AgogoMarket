@@ -17,7 +17,6 @@ import androidx.room.PrimaryKey
     ],
     indices = [
         Index(value = ["categoriaId"]),
-        Index(value = ["remoteId"], unique = true)
     ]
 )
 data class SubcategoriaEntity(

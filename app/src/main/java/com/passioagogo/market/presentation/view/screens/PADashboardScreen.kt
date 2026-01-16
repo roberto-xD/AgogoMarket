@@ -60,11 +60,8 @@ fun DashboardScreen(
     }
 
     PADrawerSheet(
-        addItem = {
-            navigate(Routes.ItemDetail.Name)
-        },
         navigate = navigate,
-        search = {
+        toolbarCenter = {
             searchState.value = searchState.value.not()
             if(searchState.value.not()){
                 dashboardViewModel.buscarProductos("")

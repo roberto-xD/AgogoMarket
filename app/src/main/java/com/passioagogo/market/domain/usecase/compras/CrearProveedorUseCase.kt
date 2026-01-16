@@ -4,23 +4,16 @@ import com.passioagogo.market.domain.bean.Proveedor
 import com.passioagogo.market.domain.repository.IProveedorRepository
 import com.passioagogo.market.domain.state.PADomainState
 import com.passioagogo.market.domain.usecase.base.UseCase
+import com.passioagogo.market.presentation.view.components.ProveedorModel
 import javax.inject.Inject
 import javax.inject.Singleton
-
-data class CrearProveedorParams(
-    val nombre: String,
-    val contacto: String?,
-    val telefono: String?,
-    val email: String?,
-    val direccion: String?
-)
 
 @Singleton
 class CrearProveedorUseCase @Inject constructor(
     private val proveedorRepository: IProveedorRepository
-) : UseCase<CrearProveedorParams, Long>() {
+) : UseCase<ProveedorModel, Long>() {
 
-    override suspend fun execute(parameters: CrearProveedorParams): Long {
+    override suspend fun execute(parameters: ProveedorModel): Long {
         if (parameters.nombre.isBlank()) {
             throw IllegalArgumentException("El nombre del proveedor no puede estar vacío")
         }

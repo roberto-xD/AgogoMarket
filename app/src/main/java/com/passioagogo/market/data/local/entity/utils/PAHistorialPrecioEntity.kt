@@ -18,7 +18,6 @@ import com.passioagogo.market.data.local.entity.base.ProductoEntity
     ],
     indices = [
         Index(value = ["productoId"]),
-        Index(value = ["remoteId"], unique = true)
     ]
 )
 data class HistorialPrecioEntity(
@@ -33,8 +32,4 @@ data class HistorialPrecioEntity(
     val precioVentaNuevo: Double,
     val motivo: String?, // "Actualización manual", "Cambio de proveedor", etc.
     val fechaCambio: Long = System.currentTimeMillis(),
-    // Campos de sincronización
-    val isSynced: Boolean = false,
-    val isDeleted: Boolean = false,
-    val needsSync: Boolean = false
 )

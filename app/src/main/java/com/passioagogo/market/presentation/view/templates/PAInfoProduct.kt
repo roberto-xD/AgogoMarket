@@ -25,12 +25,10 @@ import com.passioagogo.market.ui.utils.PAConstants.TAG_PG
 import com.passioagogo.market.domain.bean.ProductoDetallado
 import com.passioagogo.market.presentation.uiState.CatalogoUiState
 import com.passioagogo.market.presentation.view.components.ImageView
-import com.passioagogo.market.presentation.view.components.MoneyTextField
-import com.passioagogo.market.presentation.view.components.PAContainer
+import com.passioagogo.market.presentation.view.components.containers.PAContainer
 import com.passioagogo.market.presentation.view.components.PACustomAlertDialog
 import com.passioagogo.market.presentation.view.components.PADropDown
 import com.passioagogo.market.presentation.view.components.PATextInput
-import com.passioagogo.market.ui.decorators.toDoubleSafe
 import com.passioagogo.market.ui.decorators.toEditableString
 import com.passioagogo.market.ui.decorators.toIntSafe
 import com.passioagogo.market.ui.utils.PAConstants.NEW_CATEGORY

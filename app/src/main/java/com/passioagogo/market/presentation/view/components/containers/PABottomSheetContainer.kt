@@ -1,4 +1,4 @@
-package com.passioagogo.market.presentation.view.components
+package com.passioagogo.market.presentation.view.components.containers
 
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet

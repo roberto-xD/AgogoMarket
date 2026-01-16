@@ -6,7 +6,6 @@ import androidx.room.PrimaryKey
 
 @Entity(
     tableName = "tipos_atributos",
-    indices = [Index(value = ["remoteId"], unique = true)]
 )
 data class TipoAtributoEntity(
     @PrimaryKey(autoGenerate = true)
@@ -17,9 +16,4 @@ data class TipoAtributoEntity(
     val tipoDato: String = "TEXT", // TEXT, NUMBER, BOOLEAN, DATE
     val activo: Boolean = true,
     val fechaCreacion: Long = System.currentTimeMillis(),
-
-    // Campos de sincronización
-    val isSynced: Boolean = false,
-    val isDeleted: Boolean = false,
-    val needsSync: Boolean = false
 )

@@ -33,7 +33,7 @@ import androidx.compose.ui.unit.dp
 import com.passioagogo.market.R
 import com.passioagogo.market.ui.utils.PAConstants.TAG_PG
 import com.passioagogo.market.presentation.view.components.BarcodeScannerScreen
-import com.passioagogo.market.presentation.view.components.PABottomSheetContainer
+import com.passioagogo.market.presentation.view.components.containers.PABottomSheetContainer
 import com.passioagogo.market.presentation.view.components.PAImageItem
 import com.passioagogo.market.presentation.view.components.PAToolbar
 import com.passioagogo.market.presentation.view.components.skeleton.ProductFormSkeleton

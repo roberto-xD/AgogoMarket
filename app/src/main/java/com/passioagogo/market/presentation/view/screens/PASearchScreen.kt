@@ -9,11 +9,8 @@ fun SearchScreen(
     navigate: (route: String) -> Unit,
 ){
     PADrawerSheet(
-        addItem = {
-
-        },
         navigate = navigate,
-        search = {}
+        toolbarCenter = {}
     ) {
 
     }
