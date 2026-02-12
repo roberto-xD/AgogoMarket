@@ -24,6 +24,9 @@ android.nonTransitiveRClass=true
 android.suppressUnsupportedCompileSdk=35
 kapt.use.worker.api=false
 kapt.incremental.apt=false
-SUPABASE_URL=https://jncqljztlcqszvahwwkc.supabase.co
-SUPABASE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpuY3Fsanp0bGNxc3p2YWh3d2tjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQyNTA2MTEsImV4cCI6MjA3OTgyNjYxMX0.IeU_h27RU2udOdq2qGzRKQUpRFViqjMNwDDh7IMYDXM
-GOOGLE_ID = tu-google-client-id.apps.googleusercontent.com
+
+# --- Credenciales (NO subir valores reales a git) ---
+# Copia este archivo como gradle.properties y reemplaza con tus valores reales
+SUPABASE_URL=https://tu-proyecto.supabase.co
+SUPABASE_KEY=tu-supabase-anon-key
+GOOGLE_ID=tu-google-client-id.apps.googleusercontent.com
