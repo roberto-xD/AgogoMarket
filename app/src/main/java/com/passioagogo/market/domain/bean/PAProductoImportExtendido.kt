@@ -15,9 +15,9 @@ data class ProductoImportExtendido(
     }
 
     fun toCrearProductoParamsExtendido(
-        familiaId: Long ?= null,
-        categoriaId: Long ?= null,
-        subcategoriaId: Long ?= null,
+        familiaId: Long? = null,
+        categoriaId: Long? = null,
+        subcategoriaId: Long? = null,
     ): GuardarProductoParams {
         return GuardarProductoParams(
             nombre = productoBase.nombre,

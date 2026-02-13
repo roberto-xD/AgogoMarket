@@ -57,16 +57,16 @@ fun PAOutlinedTextField(
     modifier: Modifier = Modifier,
     value: String,
     enabled: Boolean = true,
-    label: String ?= null,
-    placeholder: String ?= null,
-    @DrawableRes trailingIcon : Int ? = null,
-    onTrailingIconClick: (() -> Unit) ?= null,
+    label: String? = null,
+    placeholder: String? = null,
+    @DrawableRes trailingIcon : Int? = null,
+    onTrailingIconClick: (() -> Unit)? = null,
     keyboardType: KeyboardType = KeyboardType.Text,
     minLines: Int = 1,
     maxLines: Int = 1,
-    minLenght: Int ?= null,
+    minLenght: Int? = null,
     maxLength: Int = 999,
-    onValueChange: ((String) -> Unit) ?= null,
+    onValueChange: ((String) -> Unit)? = null,
 ) {
     val focusRequester = remember { FocusRequester() }
     var isFocused by remember { mutableStateOf(false) }

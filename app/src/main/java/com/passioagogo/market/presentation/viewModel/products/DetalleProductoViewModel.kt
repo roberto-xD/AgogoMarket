@@ -293,21 +293,21 @@ class DetalleProductoViewModel @Inject constructor(
     }
 
     private fun actualizarData(
-        id: Long ?= null,
-        nombre: String ?= null,
-        descripcion: String?= null,
-        imagenPrincipal: String?= null,
-        codigoBarras: String?= null,
-        skuInterno: String ?= null,
-        precioCompra: Double ?= null,
-        precioVenta: Double ?= null,
-        cantidadActual: Int ?= null,
-        idFamilia: Long ?= null,
-        idCategoria: Long ?= null,
-        idSubCategoria: Long ?= null,
-        proveedores: List<ProveedorConPrecio> ?= null,
-        atributos: List<AtributoProducto> ?= null,
-        imagenes: List<ImagenProducto> ?= null,
+        id: Long? = null,
+        nombre: String? = null,
+        descripcion: String? = null,
+        imagenPrincipal: String? = null,
+        codigoBarras: String? = null,
+        skuInterno: String? = null,
+        precioCompra: Double? = null,
+        precioVenta: Double? = null,
+        cantidadActual: Int? = null,
+        idFamilia: Long? = null,
+        idCategoria: Long? = null,
+        idSubCategoria: Long? = null,
+        proveedores: List<ProveedorConPrecio>? = null,
+        atributos: List<AtributoProducto>? = null,
+        imagenes: List<ImagenProducto>? = null,
     ) : ProductoDetallado {
         val producto = _uiState.value.productoDetallado.producto.let {
             it.copy(

@@ -26,11 +26,11 @@ import com.passioagogo.market.R
 @Composable
 internal fun PADropDown(
     modifier : Modifier = Modifier,
-    placeHolder : String ?= null,
+    placeHolder : String? = null,
     item: String,
-    items: List<String> ?= null,
-    onAddNewClick: (()->Unit) ?= null,
-    onSelectValue: ((String) -> Unit) ?= null,
+    items: List<String>? = null,
+    onAddNewClick: (() -> Unit)? = null,
+    onSelectValue: ((String) -> Unit)? = null,
 ){
     val isExpanded = remember{
         mutableStateOf(false)

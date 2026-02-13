@@ -14,10 +14,10 @@ import com.passioagogo.market.R
 
 data class ProveedorModel(
     val nombre: String = "",
-    val contacto: String ?= null,
-    val telefono: String ?= null,
-    val email: String ?= null,
-    val direccion: String ?= null,
+    val contacto: String? = null,
+    val telefono: String? = null,
+    val email: String? = null,
+    val direccion: String? = null,
     val nacional: Boolean = true
 )
 
