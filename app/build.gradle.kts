@@ -34,6 +34,7 @@ android {
 
         buildConfigField("String", "SUPABASE_URL", "\"${project.findProperty("SUPABASE_URL") ?: ""}\"")
         buildConfigField("String", "SUPABASE_KEY", "\"${project.findProperty("SUPABASE_KEY") ?: ""}\"")
+        buildConfigField("String", "GOOGLE_ID", "\"${project.findProperty("GOOGLE_ID") ?: ""}\"")
     }
 
     buildTypes {
