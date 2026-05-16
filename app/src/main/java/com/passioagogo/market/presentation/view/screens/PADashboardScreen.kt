@@ -72,10 +72,15 @@ fun DashboardScreen(
             modifier = Modifier.padding(padding)
         ) {
             if (searchState.value) {
-                SearchInput {
-                    Log.i(TAG_PG,"keyboard search press: $it")
-                    dashboardViewModel.buscarProductos(it)
-                }
+                SearchInput(
+                    doSearch =  {
+                        Log.i(TAG_PG,"keyboard search press: $it")
+                        dashboardViewModel.buscarProductos(it)
+                    },
+                    openScan = {
+
+                    }
+                )
             }
             if (product.value.productos.size != 0) {
                 LazyVerticalGrid(

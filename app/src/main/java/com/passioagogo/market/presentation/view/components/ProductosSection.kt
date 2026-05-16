@@ -108,9 +108,14 @@ fun ProductosSection(
             }
 
             if(showInputSearch.value){
-                SearchInput {
-                    searchInput(it)
-                }
+                SearchInput(
+                    doSearch =  {
+                        searchInput(it)
+                    },
+                    openScan = {
+                        showScanner.value = true
+                    }
+                )
             }
 
             if (errorStock != null) {
