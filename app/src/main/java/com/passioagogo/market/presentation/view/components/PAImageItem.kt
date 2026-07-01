@@ -36,9 +36,9 @@ import java.io.File
 @Composable
 fun PAImageItem(
     modifier: Modifier = Modifier,
-    imagePath: String ?= null,
-    onImageClick: (() -> Unit) ?= null,
-    onDeleteClick: (() -> Unit) ?= null,
+    imagePath: String? = null,
+    onImageClick: (() -> Unit)? = null,
+    onDeleteClick: (() -> Unit)? = null,
 ) {
     val showDeleteDialog = remember { mutableStateOf(false) }
 

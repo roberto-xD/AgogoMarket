@@ -58,6 +58,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
+import com.passioagogo.market.BuildConfig
 import com.passioagogo.market.presentation.viewModel.auth.LoginEvent
 import com.passioagogo.market.presentation.viewModel.auth.LoginViewModel
 
@@ -243,7 +244,7 @@ fun LoginScreen(
                 OutlinedButton(
                     onClick = {
                         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                            .requestIdToken("")
+                            .requestIdToken(BuildConfig.GOOGLE_ID)
                             .requestEmail()
                             .build()
                         val googleSignInClient = GoogleSignIn.getClient(context, gso)

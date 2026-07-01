@@ -28,10 +28,10 @@ fun PAToolbar(
     onLeftClick: () -> Unit,
     @DrawableRes rightIcon: Int = R.drawable.edit_square,
     rightText: String? = null,
-    onRightClick: (() -> Unit) ?= null,
+    onRightClick: (() -> Unit)? = null,
     @DrawableRes centerIcon: Int = R.drawable.branding_passion_20,
-    centerText: String ?= null,
-    onCenterClick: (() -> Unit) ?= null,
+    centerText: String? = null,
+    onCenterClick: (() -> Unit)? = null,
 ) {
     TopAppBar(
         title = {

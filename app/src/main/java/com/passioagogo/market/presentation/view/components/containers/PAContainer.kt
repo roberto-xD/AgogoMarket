@@ -27,7 +27,7 @@ import com.passioagogo.market.ui.theme.secondaryLight
 fun PAContainer(
     modifier: Modifier = Modifier,
     isOpen: Boolean = true,
-    containerTittle: String ?= null,
+    containerTittle: String? = null,
     content: @Composable () -> Unit,
 ){
     val checked = remember {

@@ -29,7 +29,8 @@ class ProveedoresViewModel @Inject constructor(
     ){
         _uiState.update {
             it.copy(
-                proveedorModel = proveedor
+                proveedorModel = proveedor,
+                erroresValidacion = emptyMap()
             )
         }
     }
@@ -37,12 +38,32 @@ class ProveedoresViewModel @Inject constructor(
     fun guardarProveedor(
         proveedorModel : ProveedorModel
     ) = viewModelScope.launch {
+        val errores = proveedorModel.validar()
+        if (errores.isNotEmpty()) {
+            _uiState.update {
+                it.copy(erroresValidacion = errores)
+            }
+            return@launch
+        }
+
+        _uiState.update { it.copy(isLoading = true, erroresValidacion = emptyMap()) }
+
         crearProveedorUseCase.invoke(proveedorModel)
             .onSuccess {
-
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        mensajeExito = "Proveedor guardado exitosamente"
+                    )
+                }
             }
-            .onError {
-
+            .onError { error ->
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        errorMessage = error.message ?: "Error al guardar proveedor"
+                    )
+                }
             }
     }
 
@@ -60,4 +81,5 @@ data class ProveedorUiState(
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
     val mensajeExito: String? = null,
+    val erroresValidacion: Map<String, String> = emptyMap(),
 )

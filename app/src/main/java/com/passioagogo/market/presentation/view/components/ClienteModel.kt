@@ -11,9 +11,9 @@ import com.passioagogo.market.R
 
 data class ClienteModel(
     val nombre: String = "Público en general",
-    val telefono: String ?= null,
-    val direccion: String ?= null,
-    val instruccionesEntrega: String ?= null,
+    val telefono: String? = null,
+    val direccion: String? = null,
+    val instruccionesEntrega: String? = null,
 )
 
 @Composable
