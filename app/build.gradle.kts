@@ -169,15 +169,15 @@ dependencies {
     implementation("com.itextpdf:itext7-core:7.2.5")
     implementation("com.itextpdf:html2pdf:4.0.5")
 
-    // Supabase
-    implementation(platform("io.github.jan-tennert.supabase:bom:2.0.0"))
+    // Supabase v3
+    implementation(platform("io.github.jan-tennert.supabase:bom:3.2.2"))
     implementation("io.github.jan-tennert.supabase:postgrest-kt")
-    implementation("io.github.jan-tennert.supabase:gotrue-kt")
+    implementation("io.github.jan-tennert.supabase:auth-kt")
     implementation("io.github.jan-tennert.supabase:realtime-kt")
     implementation("io.github.jan-tennert.supabase:storage-kt")
-    implementation("io.ktor:ktor-client-android:2.3.7")
+    implementation(libs.ktor.client.android)
 
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
 }
 kapt {
     correctErrorTypes = true

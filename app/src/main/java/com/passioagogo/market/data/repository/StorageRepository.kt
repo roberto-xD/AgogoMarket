@@ -20,7 +20,7 @@ class StorageRepository @Inject constructor(
         imageBytes: ByteArray
     ): Result<String> {
         return try {
-            storage.from(bucketName).upload(path = fileName, data = imageBytes, upsert = true)
+            storage.from(bucketName).upload(path = fileName, data = imageBytes) { upsert = true }
             val publicUrl = storage.from(bucketName).publicUrl(fileName)
             Result.success(publicUrl)
         } catch (e: Exception) {

@@ -7,5 +7,5 @@ plugins {
     alias(libs.plugins.crashlytics) apply false
     alias(libs.plugins.ksp) apply false
     alias(libs.plugins.hiltPlugin) apply false
-    id("org.jetbrains.kotlin.plugin.serialization") version "1.9.22" apply false
+    id("org.jetbrains.kotlin.plugin.serialization") version "2.1.20" apply false
 }

@@ -10,11 +10,11 @@ import com.passioagogo.market.data.remote.dto.UserProfileDto
 import com.passioagogo.market.data.remote.dto.toDomain
 import com.passioagogo.market.ui.utils.PAConstants.TAG_PG
 import io.github.jan.supabase.SupabaseClient
-import io.github.jan.supabase.gotrue.SessionStatus
-import io.github.jan.supabase.gotrue.auth
-import io.github.jan.supabase.gotrue.providers.Google
-import io.github.jan.supabase.gotrue.providers.builtin.Email
-import io.github.jan.supabase.gotrue.providers.builtin.IDToken
+import io.github.jan.supabase.auth.auth
+import io.github.jan.supabase.auth.providers.Google
+import io.github.jan.supabase.auth.providers.builtin.Email
+import io.github.jan.supabase.auth.providers.builtin.IDToken
+import io.github.jan.supabase.auth.status.SessionStatus
 import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -37,8 +37,8 @@ class AuthRepositoryImpl @Inject constructor(
                 }
             }
             is SessionStatus.NotAuthenticated -> AuthState.Unauthenticated
-            is SessionStatus.LoadingFromStorage -> AuthState.Loading
-            is SessionStatus.NetworkError -> AuthState.Error("Error de conexión: ${status}")
+            is SessionStatus.Initializing -> AuthState.Loading
+            is SessionStatus.RefreshFailure -> AuthState.Error("Error de conexión: ${status.cause}")
         }
     }
 

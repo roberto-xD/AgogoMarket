@@ -50,6 +50,8 @@ runtime = "1.9.1"
 foundationLayout = "1.9.1"
 foundation = "1.9.1"
 ktorVersion = "3.0.3"
+supabaseVersion = "3.2.2"
+serializationVersion = "1.7.3"
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hiltNavigationCompose" }

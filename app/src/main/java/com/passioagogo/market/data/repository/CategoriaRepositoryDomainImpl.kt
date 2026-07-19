@@ -6,8 +6,7 @@ import com.passioagogo.market.data.local.dao.FamiliaDao
 import com.passioagogo.market.domain.bean.Categoria
 import com.passioagogo.market.domain.repository.ICategoriaRepository
 import com.passioagogo.market.domain.state.PADomainState
-import io.github.jan.supabase.gotrue.Auth
-import io.github.jan.supabase.postgrest.Postgrest
+
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
