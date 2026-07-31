@@ -77,107 +77,62 @@ android {
 }
 
 dependencies {
-    implementation(libs.androidx.navigation.runtime.ktx)
-    implementation(libs.androidx.navigation.compose)
-    implementation(libs.firebase.auth)
+    // ---------- Compose / Android base ----------
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
-    implementation(libs.firebase.database)
-    implementation(libs.googleid)
-    implementation(libs.material3)
-    implementation(libs.androidx.runtime)
-    implementation(libs.androidx.foundation.layout)
-    implementation(libs.androidx.foundation)
-
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(platform(libs.androidx.compose.bom))
-    androidTestImplementation(libs.androidx.ui.test.junit4)
+    implementation(libs.androidx.navigation.compose)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
-    kapt(libs.room.compiler)
-    implementation(libs.androidx.room.ktx)
-    implementation(platform(libs.firebase.bom))
-    implementation(libs.firebase.firestore)
-    implementation(libs.firebase.ui.auth)
-    implementation(libs.facebook.android.sdk)
-    implementation(libs.androidx.lifecycle.viewmodel.compose)
-    implementation(libs.firebase.crashlytics)
-    implementation(libs.androidx.lifecycle.viewmodel.compose)
-    implementation(libs.androidx.hilt.navigation.compose)
+    // ---------- Hilt ----------
     implementation(libs.hilt.android)
+    implementation(libs.androidx.hilt.navigation.compose)
     kapt(libs.hilt.compiler)
 
-    implementation(libs.firebase.crashlytics)
-    implementation(libs.firebase.analytics)
-    implementation(libs.gson)
-    implementation (libs.converter.gson)
-    implementation(libs.coil.compose)
-    implementation(libs.barcode.scanning)
-    implementation (libs.androidx.room.ktx)
+    // ---------- Room (caché de catálogo) ----------
+    implementation(libs.androidx.room.ktx)
+    kapt(libs.room.compiler)
 
+    // ---------- Supabase 3.x + Ktor OkHttp ----------
+    implementation(platform(libs.supabase.bom))
+    implementation(libs.supabase.auth)
+    implementation(libs.supabase.postgrest)
+    implementation(libs.supabase.storage)
+    implementation(libs.ktor.client.okhttp)
+    implementation(libs.kotlinx.serialization.json)
     implementation(libs.okhttp)
 
-    testImplementation(libs.bundles.testing)
-    testImplementation (libs.androidx.room.testing)
-    testImplementation(libs.hilt.android.testing)
+    // ---------- Firebase (analytics + crashlytics) ----------
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.analytics)
+    implementation(libs.firebase.crashlytics)
 
-    testImplementation(libs.junit)
-    testImplementation (libs.kotlinx.coroutines.test)
-    testImplementation (libs.turbine)
-    testImplementation(libs.mockk)
-    testImplementation(libs.truth)
-    testImplementation (libs.junit.jupiter.api)
-    testImplementation(kotlin("test"))
+    // ---------- Utilidades ----------
+    implementation(libs.coil.compose)
 
-    implementation (libs.poi)
-
-    implementation(libs.bundles.firebase)
-    implementation(libs.google.firebase.firestore)
-    implementation(libs.google.firebase.auth)
-
-    implementation(libs.play.services.auth)
-
-    implementation("com.github.bumptech.glide:compose:1.0.0-beta01")
-
-    // Google Sheets API
-    implementation(libs.google.api.client)
-    implementation(libs.google.api.client.android)
-    implementation("com.google.apis:google-api-services-sheets:v4-rev20230227-2.0.0")
-    implementation("com.google.apis:google-api-services-drive:v3-rev20220815-2.0.0")
-
-    // OAuth2 para Google
-    implementation(libs.google.auth.library.oauth2.http)
-
-    implementation("com.google.accompanist:accompanist-permissions:0.32.0")
-
-    implementation("com.google.mlkit:barcode-scanning:17.2.0")
-
-    // CameraX para la vista de cámara
+    // ---------- Punto de venta (escáner, fase posterior) ----------
+    implementation(libs.barcode.scanning)
     val cameraxVersion = "1.3.0"
     implementation("androidx.camera:camera-camera2:$cameraxVersion")
     implementation("androidx.camera:camera-lifecycle:$cameraxVersion")
     implementation("androidx.camera:camera-view:$cameraxVersion")
 
-    implementation("com.itextpdf:itext7-core:7.2.5")
-    implementation("com.itextpdf:html2pdf:4.0.5")
-
-    // Supabase
-    implementation(platform("io.github.jan-tennert.supabase:bom:2.0.0"))
-    implementation("io.github.jan-tennert.supabase:postgrest-kt")
-    implementation("io.github.jan-tennert.supabase:gotrue-kt")
-    implementation("io.github.jan-tennert.supabase:realtime-kt")
-    implementation("io.github.jan-tennert.supabase:storage-kt")
-    implementation("io.ktor:ktor-client-android:2.3.7")
-
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
+    // ---------- Testing ----------
+    testImplementation(libs.bundles.testing)
+    testImplementation(libs.androidx.room.testing)
+    testImplementation(libs.junit.jupiter.api)
+    testImplementation(kotlin("test"))
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(platform(libs.androidx.compose.bom))
+    androidTestImplementation(libs.androidx.ui.test.junit4)
 }
 kapt {
     correctErrorTypes = true
