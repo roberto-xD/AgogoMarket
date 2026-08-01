@@ -13,6 +13,7 @@ import io.github.jan.supabase.postgrest.Postgrest
 import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.storage.Storage
 import io.github.jan.supabase.storage.storage
+import io.ktor.client.plugins.HttpTimeout
 import javax.inject.Qualifier
 import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineDispatcher
@@ -39,6 +40,15 @@ object CoreModule {
         install(Auth)
         install(Postgrest)
         install(Storage)
+        // Sin esto, una conexión que no responde puede quedar suspendida
+        // indefinidamente en lugar de fallar con excepción diagnosticable
+        httpConfig {
+            install(HttpTimeout) {
+                connectTimeoutMillis = 10_000
+                requestTimeoutMillis = 20_000
+                socketTimeoutMillis = 20_000
+            }
+        }
     }
 
     @Provides
