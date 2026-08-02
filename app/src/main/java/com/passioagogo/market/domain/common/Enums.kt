@@ -46,6 +46,13 @@ enum class OrderStatus {
 }
 
 @Serializable
+enum class PurchaseStatus {
+    @SerialName("pendiente") PENDIENTE,
+    @SerialName("recibida") RECIBIDA,
+    @SerialName("cancelada") CANCELADA,
+}
+
+@Serializable
 enum class PaymentMethod {
     @SerialName("efectivo") EFECTIVO,
     @SerialName("transferencia") TRANSFERENCIA,
