@@ -76,19 +76,9 @@ data class NewPaymentDto(
 // ============ 12 · RPCs ============
 
 @Serializable
-data class PrecioVigenteParams(@SerialName("p_variant") val variantId: String)
-
-@Serializable
 data class PrecioVigenteDto(
     @SerialName("variant_id") val variantId: String,
     @SerialName("precio_lista") val precioLista: Double,
     @SerialName("precio_final") val precioFinal: Double,
     @SerialName("promotion_id") val promotionId: String? = null,
-)
-
-@Serializable
-data class AgregarItemParams(
-    @SerialName("p_order") val orderId: String,
-    @SerialName("p_variant") val variantId: String,
-    @SerialName("p_cantidad") val cantidad: Int,
 )

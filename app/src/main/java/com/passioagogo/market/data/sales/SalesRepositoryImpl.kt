@@ -5,12 +5,10 @@ import com.passioagogo.market.core.result.DataError
 import com.passioagogo.market.core.result.DataResult
 import com.passioagogo.market.core.result.map
 import com.passioagogo.market.core.result.safeSupabaseCall
-import com.passioagogo.market.data.sales.remote.dto.AgregarItemParams
 import com.passioagogo.market.data.sales.remote.dto.NewOrderDto
 import com.passioagogo.market.data.sales.remote.dto.NewPaymentDto
 import com.passioagogo.market.data.sales.remote.dto.OrderDto
 import com.passioagogo.market.data.sales.remote.dto.PrecioVigenteDto
-import com.passioagogo.market.data.sales.remote.dto.PrecioVigenteParams
 import com.passioagogo.market.domain.common.OrderStatus
 import com.passioagogo.market.domain.sales.CheckoutRequest
 import com.passioagogo.market.domain.sales.Order
@@ -26,6 +24,8 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 
 private fun OrderDto.toDomain() = Order(
     id = id, folio = folio, customerId = customerId, locationId = locationId,
@@ -70,7 +70,10 @@ class SalesRepositoryImpl @Inject constructor(
     override suspend fun getPrecioVigente(variantId: String): DataResult<PrecioVigente> =
         withContext(io) {
             safeSupabaseCall {
-                postgrest.rpc(RPC_PRECIO, PrecioVigenteParams(variantId))
+                postgrest.rpc(
+                    RPC_PRECIO,
+                    buildJsonObject { put("p_variant", variantId) },
+                )
                     .decodeList<PrecioVigenteDto>()
                     .first()
             }.map { it.toDomain() }
@@ -107,7 +110,11 @@ class SalesRepositoryImpl @Inject constructor(
                 val added = safeSupabaseCall {
                     postgrest.rpc(
                         RPC_AGREGAR,
-                        AgregarItemParams(order.id, line.variantId, line.cantidad),
+                        buildJsonObject {
+                            put("p_order", order.id)
+                            put("p_variant", line.variantId)
+                            put("p_cantidad", line.cantidad)
+                        },
                     )
                 }
                 if (added is DataResult.Error) {
