@@ -29,3 +29,25 @@ enum class UserRole {
     @SerialName("vendedor") VENDEDOR,
     @SerialName("cliente") CLIENTE,
 }
+
+@Serializable
+enum class OrderType {
+    @SerialName("mostrador") MOSTRADOR,
+    @SerialName("envio") ENVIO,
+}
+
+@Serializable
+enum class OrderStatus {
+    @SerialName("pendiente") PENDIENTE,
+    @SerialName("confirmado") CONFIRMADO,
+    @SerialName("en_transito") EN_TRANSITO,
+    @SerialName("entregado") ENTREGADO,
+    @SerialName("cancelado") CANCELADO,
+}
+
+@Serializable
+enum class PaymentMethod {
+    @SerialName("efectivo") EFECTIVO,
+    @SerialName("transferencia") TRANSFERENCIA,
+    @SerialName("tarjeta") TARJETA,
+}

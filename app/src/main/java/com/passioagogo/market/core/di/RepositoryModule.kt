@@ -6,6 +6,8 @@ import com.passioagogo.market.data.inventory.LocationRepositoryImpl
 import com.passioagogo.market.domain.catalog.CatalogRepository
 import com.passioagogo.market.domain.inventory.InventoryRepository
 import com.passioagogo.market.domain.inventory.LocationRepository
+import com.passioagogo.market.data.sales.SalesRepositoryImpl
+import com.passioagogo.market.domain.sales.SalesRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -27,4 +29,8 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindInventoryRepository(impl: InventoryRepositoryImpl): InventoryRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindSalesRepository(impl: SalesRepositoryImpl): SalesRepository
 }
