@@ -6,7 +6,9 @@ import com.passioagogo.market.data.inventory.LocationRepositoryImpl
 import com.passioagogo.market.domain.catalog.CatalogRepository
 import com.passioagogo.market.domain.inventory.InventoryRepository
 import com.passioagogo.market.domain.inventory.LocationRepository
+import com.passioagogo.market.data.auth.SupabaseAuthRepository
 import com.passioagogo.market.data.sales.SalesRepositoryImpl
+import com.passioagogo.market.domain.auth.AuthRepository
 import com.passioagogo.market.domain.sales.SalesRepository
 import dagger.Binds
 import dagger.Module
@@ -33,4 +35,8 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindSalesRepository(impl: SalesRepositoryImpl): SalesRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindAuthRepository(impl: SupabaseAuthRepository): AuthRepository
 }
