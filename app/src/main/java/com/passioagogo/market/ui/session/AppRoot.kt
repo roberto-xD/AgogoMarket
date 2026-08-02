@@ -25,7 +25,7 @@ import com.passioagogo.market.domain.auth.AuthRepository
 import com.passioagogo.market.domain.auth.SessionState
 import com.passioagogo.market.ui.auth.LoginScreen
 import com.passioagogo.market.ui.common.toMessage
-import com.passioagogo.market.ui.home.HomeScreen
+import com.passioagogo.market.ui.navigation.AppScaffold
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.launch
@@ -52,7 +52,7 @@ fun AppRoot(viewModel: SessionViewModel = hiltViewModel()) {
     when (val state = session) {
         SessionState.Initializing -> LoadingScreen()
         SessionState.NotAuthenticated -> LoginScreen()
-        is SessionState.Authenticated -> HomeScreen(
+        is SessionState.Authenticated -> AppScaffold(
             session = state,
             onSignOut = viewModel::onSignOut,
         )
