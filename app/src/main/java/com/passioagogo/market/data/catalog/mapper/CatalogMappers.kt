@@ -69,9 +69,13 @@ fun ProductVariantEntity.toDomain() = ProductVariant(
     precioVenta = precioVenta, costo = costo, activo = activo,
 )
 
-fun ProductWithVariantsLocal.toDomain() = ProductWithVariants(
+fun ProductWithVariantsLocal.toDomain(
+    includeInactiveVariants: Boolean = false,
+) = ProductWithVariants(
     product = product.toDomain(),
-    variants = variants.filter { it.activo }.map { it.toDomain() },
+    variants = variants
+        .filter { includeInactiveVariants || it.activo }
+        .map { it.toDomain() },
 )
 
 // ---------- DTO → Dominio (respuestas de escritura) ----------

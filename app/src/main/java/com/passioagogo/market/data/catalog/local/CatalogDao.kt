@@ -23,6 +23,10 @@ interface CatalogDao {
     fun observeProducts(): Flow<List<ProductWithVariantsLocal>>
 
     @Transaction
+    @Query("SELECT * FROM products ORDER BY nombre")
+    fun observeAllProducts(): Flow<List<ProductWithVariantsLocal>>
+
+    @Transaction
     @Query("SELECT * FROM products WHERE categoryId = :categoryId AND activo = 1 ORDER BY nombre")
     fun observeProductsByCategory(categoryId: String): Flow<List<ProductWithVariantsLocal>>
 

@@ -35,6 +35,9 @@ import com.passioagogo.market.domain.auth.SessionState
 import androidx.navigation.navArgument
 import androidx.navigation.NavType
 import androidx.navigation.compose.navigation
+import com.passioagogo.market.ui.admin.catalog.AdminHomeScreen
+import com.passioagogo.market.ui.admin.catalog.CatalogAdminScreen
+import com.passioagogo.market.ui.admin.catalog.ProductEditScreen
 import com.passioagogo.market.ui.inventory.InventoryHomeScreen
 import com.passioagogo.market.ui.inventory.transfers.CreateTransferScreen
 import com.passioagogo.market.ui.inventory.transfers.TransferDetailScreen
@@ -153,8 +156,34 @@ fun AppScaffold(
                         )
                     }
                 }
-                composable(AppDestination.ADMIN.route) {
-                    PlaceholderScreen("Administración en construcción")
+                navigation(
+                    route = AppDestination.ADMIN.route,
+                    startDestination = "admin/home",
+                ) {
+                    composable("admin/home") {
+                        AdminHomeScreen(
+                            onOpenCatalog = { navController.navigate("admin/catalog") },
+                        )
+                    }
+                    composable("admin/catalog") {
+                        CatalogAdminScreen(
+                            onOpenProduct = { id ->
+                                navController.navigate("admin/product/" + id)
+                            },
+                            onNewProduct = { navController.navigate("admin/product_new") },
+                        )
+                    }
+                    composable(
+                        route = "admin/product/{productId}",
+                        arguments = listOf(
+                            navArgument("productId") { type = NavType.StringType }
+                        ),
+                    ) {
+                        ProductEditScreen()
+                    }
+                    composable("admin/product_new") {
+                        ProductEditScreen()
+                    }
                 }
             }
         }

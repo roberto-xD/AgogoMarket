@@ -75,6 +75,9 @@ interface CatalogRepository {
 
     fun observeCategories(includeInactive: Boolean = false): Flow<List<Category>>
     fun observeProducts(): Flow<List<ProductWithVariants>>
+
+    /** Todos los productos y variantes, incluidos inactivos (administración). */
+    fun observeAllProducts(): Flow<List<ProductWithVariants>>
     fun observeProductsByCategory(categoryId: String): Flow<List<ProductWithVariants>>
     fun observeProduct(productId: String): Flow<ProductWithVariants?>
     fun searchProducts(query: String): Flow<List<ProductWithVariants>>

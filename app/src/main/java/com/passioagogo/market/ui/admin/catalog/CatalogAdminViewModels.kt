@@ -1,0 +1,369 @@
+package com.passioagogo.market.ui.admin.catalog
+
+import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.passioagogo.market.core.result.DataResult
+import com.passioagogo.market.domain.catalog.CatalogRepository
+import com.passioagogo.market.domain.catalog.Category
+import com.passioagogo.market.domain.catalog.CategoryDraft
+import com.passioagogo.market.domain.catalog.Product
+import com.passioagogo.market.domain.catalog.ProductDraft
+import com.passioagogo.market.domain.catalog.ProductVariant
+import com.passioagogo.market.domain.catalog.ProductWithVariants
+import com.passioagogo.market.domain.catalog.VariantDraft
+import com.passioagogo.market.ui.common.toMessage
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.jsonPrimitive
+
+// ---------- attributes jsonb ⇆ texto "clave: valor" ----------
+
+fun JsonObject.toAttributesText(): String =
+    entries.joinToString("\n") { (k, v) -> "$k: ${v.jsonPrimitive.content}" }
+
+fun String.toAttributesJson(): JsonObject = JsonObject(
+    lines()
+        .mapNotNull { line ->
+            val idx = line.indexOf(':')
+            if (idx <= 0) null
+            else {
+                val key = line.take(idx).trim()
+                val value = line.drop(idx + 1).trim()
+                if (key.isEmpty()) null else key to JsonPrimitive(value)
+            }
+        }
+        .toMap()
+)
+
+// ============ Lista (productos + categorías) ============
+
+data class CatalogAdminUiState(
+    val products: List<ProductWithVariants> = emptyList(),
+    val categories: List<Category> = emptyList(),
+    val query: String = "",
+    val showInactive: Boolean = false,
+    val isRefreshing: Boolean = false,
+    val errorMessage: String? = null,
+    /** Categoría en edición en el diálogo (null = diálogo cerrado). */
+    val editingCategory: Category? = null,
+    val showCategoryDialog: Boolean = false,
+    val isSavingCategory: Boolean = false,
+) {
+    val filteredProducts: List<ProductWithVariants>
+        get() {
+            val base = if (showInactive) products else products.filter { it.product.activo }
+            if (query.isBlank()) return base
+            val q = query.trim().lowercase()
+            return base.filter { pw ->
+                pw.product.nombre.lowercase().contains(q) ||
+                    (pw.product.marca?.lowercase()?.contains(q) == true) ||
+                    pw.variants.any { it.sku.lowercase().contains(q) }
+            }
+        }
+
+    val visibleCategories: List<Category>
+        get() = if (showInactive) categories else categories.filter { it.activo }
+}
+
+@HiltViewModel
+class CatalogAdminViewModel @Inject constructor(
+    private val catalogRepository: CatalogRepository,
+) : ViewModel() {
+
+    private val _uiState = MutableStateFlow(CatalogAdminUiState())
+    val uiState: StateFlow<CatalogAdminUiState> = _uiState.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            catalogRepository.observeAllProducts().collect { products ->
+                _uiState.update { it.copy(products = products) }
+            }
+        }
+        viewModelScope.launch {
+            catalogRepository.observeCategories(includeInactive = true).collect { cats ->
+                _uiState.update { it.copy(categories = cats) }
+            }
+        }
+        refresh()
+    }
+
+    fun onQueryChange(value: String) = _uiState.update { it.copy(query = value) }
+    fun onToggleInactive(show: Boolean) = _uiState.update { it.copy(showInactive = show) }
+
+    fun refresh() {
+        _uiState.update { it.copy(isRefreshing = true, errorMessage = null) }
+        viewModelScope.launch {
+            val result = catalogRepository.refreshCatalog()
+            _uiState.update {
+                it.copy(
+                    isRefreshing = false,
+                    errorMessage = (result as? DataResult.Error)?.error?.toMessage(),
+                )
+            }
+        }
+    }
+
+    // ---------- Categorías (diálogo) ----------
+
+    fun onNewCategory() =
+        _uiState.update { it.copy(showCategoryDialog = true, editingCategory = null) }
+
+    fun onEditCategory(category: Category) =
+        _uiState.update { it.copy(showCategoryDialog = true, editingCategory = category) }
+
+    fun onDismissCategoryDialog() =
+        _uiState.update { it.copy(showCategoryDialog = false, editingCategory = null) }
+
+    fun onSaveCategory(
+        nombre: String,
+        descripcion: String?,
+        parentId: String?,
+        activo: Boolean,
+    ) {
+        val editing = _uiState.value.editingCategory
+        _uiState.update { it.copy(isSavingCategory = true, errorMessage = null) }
+        viewModelScope.launch {
+            val result = if (editing == null) {
+                catalogRepository.createCategory(
+                    CategoryDraft(nombre = nombre, parentId = parentId, descripcion = descripcion)
+                )
+            } else {
+                catalogRepository.updateCategory(
+                    editing.copy(
+                        nombre = nombre,
+                        descripcion = descripcion,
+                        parentId = parentId,
+                        activo = activo,
+                    )
+                )
+            }
+            _uiState.update {
+                when (result) {
+                    is DataResult.Success -> it.copy(
+                        isSavingCategory = false,
+                        showCategoryDialog = false,
+                        editingCategory = null,
+                    )
+                    is DataResult.Error -> it.copy(
+                        isSavingCategory = false,
+                        errorMessage = result.error.toMessage(),
+                    )
+                }
+            }
+        }
+    }
+}
+
+// ============ Edición de producto ============
+
+data class VariantDialogState(
+    /** null = creando */
+    val editing: ProductVariant? = null,
+    val sku: String = "",
+    val precio: String = "",
+    val costo: String = "",
+    val attributesText: String = "",
+    val activo: Boolean = true,
+) {
+    val canSave: Boolean
+        get() = sku.isNotBlank() && precio.toDoubleOrNull() != null &&
+            (costo.isBlank() || costo.toDoubleOrNull() != null)
+}
+
+data class ProductEditUiState(
+    /** null hasta que se crea (modo alta). */
+    val productId: String? = null,
+    val nombre: String = "",
+    val descripcion: String = "",
+    val marca: String = "",
+    val categoryId: String? = null,
+    val attributesText: String = "",
+    val activo: Boolean = true,
+    val categories: List<Category> = emptyList(),
+    val variants: List<ProductVariant> = emptyList(),
+    val isLoading: Boolean = true,
+    val isSaving: Boolean = false,
+    val errorMessage: String? = null,
+    val variantDialog: VariantDialogState? = null,
+) {
+    val isNew: Boolean get() = productId == null
+    val canSave: Boolean get() = !isSaving && nombre.isNotBlank() && categoryId != null
+}
+
+@HiltViewModel
+class ProductEditViewModel @Inject constructor(
+    private val catalogRepository: CatalogRepository,
+    savedStateHandle: SavedStateHandle,
+) : ViewModel() {
+
+    private val initialProductId: String? = savedStateHandle["productId"]
+
+    private val _uiState = MutableStateFlow(ProductEditUiState())
+    val uiState: StateFlow<ProductEditUiState> = _uiState.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            val categories = catalogRepository
+                .observeCategories(includeInactive = false).first()
+            _uiState.update { it.copy(categories = categories) }
+
+            if (initialProductId != null) {
+                val loaded = catalogRepository.observeProduct(initialProductId).first()
+                if (loaded != null) {
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            productId = loaded.product.id,
+                            nombre = loaded.product.nombre,
+                            descripcion = loaded.product.descripcion.orEmpty(),
+                            marca = loaded.product.marca.orEmpty(),
+                            categoryId = loaded.product.categoryId,
+                            attributesText = loaded.product.attributes.toAttributesText(),
+                            activo = loaded.product.activo,
+                        )
+                    }
+                } else {
+                    _uiState.update {
+                        it.copy(isLoading = false, errorMessage = "Producto no encontrado")
+                    }
+                }
+            } else {
+                _uiState.update { it.copy(isLoading = false) }
+            }
+
+            // Variantes en vivo desde el caché (refleja altas/ediciones)
+            initialProductId?.let { observeVariants(it) }
+        }
+    }
+
+    private fun observeVariants(productId: String) {
+        viewModelScope.launch {
+            catalogRepository.observeAllProducts().collect { products ->
+                val variants = products
+                    .firstOrNull { it.product.id == productId }?.variants ?: emptyList()
+                _uiState.update { it.copy(variants = variants) }
+            }
+        }
+    }
+
+    fun onNombreChange(v: String) = _uiState.update { it.copy(nombre = v) }
+    fun onDescripcionChange(v: String) = _uiState.update { it.copy(descripcion = v) }
+    fun onMarcaChange(v: String) = _uiState.update { it.copy(marca = v) }
+    fun onCategorySelected(id: String) = _uiState.update { it.copy(categoryId = id) }
+    fun onAttributesChange(v: String) = _uiState.update { it.copy(attributesText = v) }
+    fun onActivoChange(v: Boolean) = _uiState.update { it.copy(activo = v) }
+
+    fun onSaveProduct() {
+        val state = _uiState.value
+        if (!state.canSave) return
+        _uiState.update { it.copy(isSaving = true, errorMessage = null) }
+        viewModelScope.launch {
+            val result = if (state.isNew) {
+                catalogRepository.createProduct(
+                    ProductDraft(
+                        nombre = state.nombre.trim(),
+                        descripcion = state.descripcion.ifBlank { null },
+                        categoryId = state.categoryId!!,
+                        marca = state.marca.ifBlank { null },
+                        attributes = state.attributesText.toAttributesJson(),
+                    )
+                )
+            } else {
+                catalogRepository.updateProduct(
+                    Product(
+                        id = state.productId!!,
+                        nombre = state.nombre.trim(),
+                        descripcion = state.descripcion.ifBlank { null },
+                        categoryId = state.categoryId!!,
+                        marca = state.marca.ifBlank { null },
+                        attributes = state.attributesText.toAttributesJson(),
+                        imagenes = emptyList(), // gestión de imágenes: fase posterior
+                        activo = state.activo,
+                    )
+                )
+            }
+            _uiState.update {
+                when (result) {
+                    is DataResult.Success -> {
+                        val id = result.data.id
+                        if (it.isNew) observeVariants(id)
+                        it.copy(isSaving = false, productId = id)
+                    }
+                    is DataResult.Error ->
+                        it.copy(isSaving = false, errorMessage = result.error.toMessage())
+                }
+            }
+        }
+    }
+
+    // ---------- Variantes ----------
+
+    fun onNewVariant() = _uiState.update { it.copy(variantDialog = VariantDialogState()) }
+
+    fun onEditVariant(variant: ProductVariant) = _uiState.update {
+        it.copy(
+            variantDialog = VariantDialogState(
+                editing = variant,
+                sku = variant.sku,
+                precio = variant.precioVenta.toString(),
+                costo = variant.costo.toString(),
+                attributesText = variant.attributes.toAttributesText(),
+                activo = variant.activo,
+            )
+        )
+    }
+
+    fun onDismissVariantDialog() = _uiState.update { it.copy(variantDialog = null) }
+
+    fun onVariantDialogChange(dialog: VariantDialogState) =
+        _uiState.update { it.copy(variantDialog = dialog) }
+
+    fun onSaveVariant() {
+        val state = _uiState.value
+        val dialog = state.variantDialog ?: return
+        val productId = state.productId ?: return
+        if (!dialog.canSave) return
+        _uiState.update { it.copy(isSaving = true, errorMessage = null) }
+        viewModelScope.launch {
+            val editing = dialog.editing
+            val result = if (editing == null) {
+                catalogRepository.createVariant(
+                    VariantDraft(
+                        productId = productId,
+                        sku = dialog.sku.trim(),
+                        attributes = dialog.attributesText.toAttributesJson(),
+                        precioVenta = dialog.precio.toDouble(),
+                        costo = dialog.costo.toDoubleOrNull() ?: 0.0,
+                    )
+                )
+            } else {
+                catalogRepository.updateVariant(
+                    editing.copy(
+                        sku = dialog.sku.trim(),
+                        attributes = dialog.attributesText.toAttributesJson(),
+                        precioVenta = dialog.precio.toDouble(),
+                        costo = dialog.costo.toDoubleOrNull() ?: 0.0,
+                        activo = dialog.activo,
+                    )
+                )
+            }
+            _uiState.update {
+                when (result) {
+                    is DataResult.Success ->
+                        it.copy(isSaving = false, variantDialog = null)
+                    is DataResult.Error ->
+                        it.copy(isSaving = false, errorMessage = result.error.toMessage())
+                }
+            }
+        }
+    }
+}

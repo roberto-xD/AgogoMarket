@@ -59,6 +59,11 @@ class CatalogRepositoryImpl @Inject constructor(
     override fun observeProducts(): Flow<List<ProductWithVariants>> =
         dao.observeProducts().map { list -> list.map { it.toDomain() } }
 
+    override fun observeAllProducts(): Flow<List<ProductWithVariants>> =
+        dao.observeAllProducts().map { list ->
+            list.map { it.toDomain(includeInactiveVariants = true) }
+        }
+
     override fun observeProductsByCategory(categoryId: String): Flow<List<ProductWithVariants>> =
         dao.observeProductsByCategory(categoryId).map { list -> list.map { it.toDomain() } }
 
