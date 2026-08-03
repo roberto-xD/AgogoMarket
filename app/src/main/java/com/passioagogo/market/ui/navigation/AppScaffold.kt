@@ -39,6 +39,7 @@ import com.passioagogo.market.ui.admin.catalog.AdminHomeScreen
 import com.passioagogo.market.ui.admin.catalog.CatalogAdminScreen
 import com.passioagogo.market.ui.admin.catalog.ProductEditScreen
 import com.passioagogo.market.ui.inventory.InventoryHomeScreen
+import com.passioagogo.market.ui.pos.PosScreen
 import com.passioagogo.market.ui.inventory.transfers.CreateTransferScreen
 import com.passioagogo.market.ui.inventory.transfers.TransferDetailScreen
 
@@ -117,12 +118,10 @@ fun AppScaffold(
             }
             NavHost(
                 navController = navController,
-                // Arranque temporal en Inventario (única sección construida);
-                // pasará a VENDER cuando exista el POS
-                startDestination = AppDestination.INVENTARIO.route,
+                startDestination = AppDestination.VENDER.route,
             ) {
                 composable(AppDestination.VENDER.route) {
-                    PlaceholderScreen("Punto de venta en construcción")
+                    PosScreen()
                 }
                 composable(AppDestination.PEDIDOS.route) {
                     PlaceholderScreen("Pedidos en construcción")
