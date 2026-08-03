@@ -24,7 +24,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.NavHost
@@ -39,6 +38,8 @@ import com.passioagogo.market.ui.admin.catalog.AdminHomeScreen
 import com.passioagogo.market.ui.admin.catalog.CatalogAdminScreen
 import com.passioagogo.market.ui.admin.catalog.ProductEditScreen
 import com.passioagogo.market.ui.inventory.InventoryHomeScreen
+import com.passioagogo.market.ui.orders.OrderDetailScreen
+import com.passioagogo.market.ui.orders.OrdersListScreen
 import com.passioagogo.market.ui.pos.PosScreen
 import com.passioagogo.market.ui.inventory.transfers.CreateTransferScreen
 import com.passioagogo.market.ui.inventory.transfers.TransferDetailScreen
@@ -123,8 +124,25 @@ fun AppScaffold(
                 composable(AppDestination.VENDER.route) {
                     PosScreen()
                 }
-                composable(AppDestination.PEDIDOS.route) {
-                    PlaceholderScreen("Pedidos en construcción")
+                navigation(
+                    route = AppDestination.PEDIDOS.route,
+                    startDestination = "pedidos/home",
+                ) {
+                    composable("pedidos/home") {
+                        OrdersListScreen(
+                            onOpenOrder = { id ->
+                                navController.navigate("pedidos/order/" + id)
+                            },
+                        )
+                    }
+                    composable(
+                        route = "pedidos/order/{orderId}",
+                        arguments = listOf(
+                            navArgument("orderId") { type = NavType.StringType }
+                        ),
+                    ) {
+                        OrderDetailScreen(onBack = { navController.popBackStack() })
+                    }
                 }
                 navigation(
                     route = AppDestination.INVENTARIO.route,
@@ -207,16 +225,4 @@ private fun VendedorSinTiendaBanner() {
             modifier = Modifier.padding(12.dp),
         )
     }
-}
-
-@Composable
-private fun PlaceholderScreen(text: String) {
-    Text(
-        text = text,
-        style = MaterialTheme.typography.bodyLarge,
-        textAlign = TextAlign.Center,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(48.dp),
-    )
 }
