@@ -32,7 +32,12 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.passioagogo.market.domain.auth.SessionState
-import com.passioagogo.market.ui.inventory.InventoryScreen
+import androidx.navigation.navArgument
+import androidx.navigation.NavType
+import androidx.navigation.compose.navigation
+import com.passioagogo.market.ui.inventory.InventoryHomeScreen
+import com.passioagogo.market.ui.inventory.transfers.CreateTransferScreen
+import com.passioagogo.market.ui.inventory.transfers.TransferDetailScreen
 
 enum class AppDestination(
     val route: String,
@@ -119,8 +124,34 @@ fun AppScaffold(
                 composable(AppDestination.PEDIDOS.route) {
                     PlaceholderScreen("Pedidos en construcción")
                 }
-                composable(AppDestination.INVENTARIO.route) {
-                    InventoryScreen(session = session)
+                navigation(
+                    route = AppDestination.INVENTARIO.route,
+                    startDestination = "inventario/home",
+                ) {
+                    composable("inventario/home") {
+                        InventoryHomeScreen(
+                            session = session,
+                            onOpenTransfer = { id ->
+                                navController.navigate("inventario/transfer/" + id)
+                            },
+                            onCreateTransfer = {
+                                navController.navigate("inventario/transfer_new")
+                            },
+                        )
+                    }
+                    composable(
+                        route = "inventario/transfer/{transferId}",
+                        arguments = listOf(
+                            navArgument("transferId") { type = NavType.StringType }
+                        ),
+                    ) {
+                        TransferDetailScreen(onBack = { navController.popBackStack() })
+                    }
+                    composable("inventario/transfer_new") {
+                        CreateTransferScreen(
+                            onCreated = { navController.popBackStack() },
+                        )
+                    }
                 }
                 composable(AppDestination.ADMIN.route) {
                     PlaceholderScreen("Administración en construcción")
