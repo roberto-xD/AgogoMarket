@@ -40,7 +40,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.passioagogo.market.domain.common.PaymentMethod
 import com.passioagogo.market.domain.sales.Order
@@ -111,6 +116,17 @@ fun PosScreen(viewModel: PosViewModel = hiltViewModel()) {
                         .padding(horizontal = 16.dp, vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
+                    item.portada?.let { url ->
+                        AsyncImage(
+                            model = url,
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(RoundedCornerShape(6.dp)),
+                        )
+                        Spacer(Modifier.padding(horizontal = 4.dp))
+                    }
                     Column(Modifier.weight(1f)) {
                         Text(item.producto, style = MaterialTheme.typography.bodyLarge)
                         Text(

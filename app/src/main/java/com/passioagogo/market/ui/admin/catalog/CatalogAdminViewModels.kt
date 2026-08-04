@@ -1,9 +1,12 @@
 package com.passioagogo.market.ui.admin.catalog
 
+import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.passioagogo.market.core.images.ImageCompressor
 import com.passioagogo.market.core.result.DataResult
+import com.passioagogo.market.data.catalog.ProductImageRepository
 import com.passioagogo.market.domain.catalog.CatalogRepository
 import com.passioagogo.market.domain.catalog.Category
 import com.passioagogo.market.domain.catalog.CategoryDraft
@@ -188,6 +191,8 @@ data class ProductEditUiState(
     val categoryId: String? = null,
     val attributesText: String = "",
     val activo: Boolean = true,
+    val imagenes: List<String> = emptyList(),
+    val isUploadingImages: Boolean = false,
     val categories: List<Category> = emptyList(),
     val variants: List<ProductVariant> = emptyList(),
     val isLoading: Boolean = true,
@@ -202,6 +207,8 @@ data class ProductEditUiState(
 @HiltViewModel
 class ProductEditViewModel @Inject constructor(
     private val catalogRepository: CatalogRepository,
+    private val productImageRepository: ProductImageRepository,
+    private val imageCompressor: ImageCompressor,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
@@ -229,6 +236,7 @@ class ProductEditViewModel @Inject constructor(
                             categoryId = loaded.product.categoryId,
                             attributesText = loaded.product.attributes.toAttributesText(),
                             activo = loaded.product.activo,
+                            imagenes = loaded.product.imagenes,
                         )
                     }
                 } else {
@@ -286,7 +294,7 @@ class ProductEditViewModel @Inject constructor(
                         categoryId = state.categoryId!!,
                         marca = state.marca.ifBlank { null },
                         attributes = state.attributesText.toAttributesJson(),
-                        imagenes = emptyList(), // gestión de imágenes: fase posterior
+                        imagenes = state.imagenes,
                         activo = state.activo,
                     )
                 )
@@ -363,6 +371,80 @@ class ProductEditViewModel @Inject constructor(
                     is DataResult.Error ->
                         it.copy(isSaving = false, errorMessage = result.error.toMessage())
                 }
+            }
+        }
+    }
+
+    // ---------- Imágenes ----------
+
+    fun onImagesPicked(uris: List<Uri>) {
+        val productId = _uiState.value.productId ?: return
+        if (uris.isEmpty()) return
+        _uiState.update { it.copy(isUploadingImages = true, errorMessage = null) }
+        viewModelScope.launch {
+            val nuevas = mutableListOf<String>()
+            var error: String? = null
+            for (uri in uris.take(5)) {
+                val bytes = imageCompressor.compress(uri)
+                if (bytes == null) {
+                    error = "No se pudo procesar una de las imágenes"
+                    continue
+                }
+                when (val result = productImageRepository.upload(productId, bytes)) {
+                    is DataResult.Success -> nuevas += result.data
+                    is DataResult.Error -> error = result.error.toMessage()
+                }
+            }
+            if (nuevas.isNotEmpty()) {
+                persistImagenes(_uiState.value.imagenes + nuevas, uploadError = error)
+            } else {
+                _uiState.update { it.copy(isUploadingImages = false, errorMessage = error) }
+            }
+        }
+    }
+
+    fun onRemoveImage(url: String) {
+        viewModelScope.launch {
+            productImageRepository.delete(url) // best-effort
+            persistImagenes(_uiState.value.imagenes - url)
+        }
+    }
+
+    fun onSetPrincipal(url: String) {
+        val current = _uiState.value.imagenes
+        if (current.firstOrNull() == url) return
+        viewModelScope.launch {
+            persistImagenes(listOf(url) + (current - url))
+        }
+    }
+
+    /** Guarda la lista de imágenes en el producto y sincroniza el estado. */
+    private suspend fun persistImagenes(imagenes: List<String>, uploadError: String? = null) {
+        val state = _uiState.value
+        val productId = state.productId ?: return
+        val result = catalogRepository.updateProduct(
+            Product(
+                id = productId,
+                nombre = state.nombre.trim(),
+                descripcion = state.descripcion.ifBlank { null },
+                categoryId = state.categoryId ?: return,
+                marca = state.marca.ifBlank { null },
+                attributes = state.attributesText.toAttributesJson(),
+                imagenes = imagenes,
+                activo = state.activo,
+            )
+        )
+        _uiState.update {
+            when (result) {
+                is DataResult.Success -> it.copy(
+                    isUploadingImages = false,
+                    imagenes = result.data.imagenes,
+                    errorMessage = uploadError,
+                )
+                is DataResult.Error -> it.copy(
+                    isUploadingImages = false,
+                    errorMessage = result.error.toMessage(),
+                )
             }
         }
     }

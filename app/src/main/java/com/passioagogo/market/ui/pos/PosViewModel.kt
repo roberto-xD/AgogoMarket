@@ -33,6 +33,7 @@ data class PosItem(
     val sku: String,
     val atributos: String,
     val precioLista: Double,
+    val portada: String? = null,
 )
 
 data class CartEntry(
@@ -128,6 +129,7 @@ class PosViewModel @Inject constructor(
                                     "$k: ${value.jsonPrimitive.content}"
                                 },
                             precioLista = v.precioVenta,
+                            portada = pw.product.imagenes.firstOrNull(),
                         )
                     }
                 }

@@ -1,6 +1,8 @@
 package com.passioagogo.market.core.di
 
 import com.passioagogo.market.data.catalog.CatalogRepositoryImpl
+import com.passioagogo.market.data.catalog.ProductImageRepository
+import com.passioagogo.market.data.catalog.ProductImageRepositoryImpl
 import com.passioagogo.market.data.inventory.InventoryRepositoryImpl
 import com.passioagogo.market.data.inventory.LocationRepositoryImpl
 import com.passioagogo.market.domain.catalog.CatalogRepository
@@ -27,6 +29,12 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindCatalogRepository(impl: CatalogRepositoryImpl): CatalogRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindProductImageRepository(
+        impl: ProductImageRepositoryImpl,
+    ): ProductImageRepository
 
     @Binds
     @Singleton
