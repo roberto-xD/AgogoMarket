@@ -10,6 +10,9 @@ import com.passioagogo.market.data.sales.remote.dto.NewPaymentDto
 import com.passioagogo.market.data.sales.remote.dto.OrderDto
 import com.passioagogo.market.data.sales.remote.dto.PrecioVigenteDto
 import com.passioagogo.market.domain.common.OrderStatus
+import com.passioagogo.market.domain.common.OrderType
+import com.passioagogo.market.domain.common.PaymentMethod
+import com.passioagogo.market.domain.sales.ShippingOrderDraft
 import com.passioagogo.market.domain.sales.CheckoutRequest
 import com.passioagogo.market.domain.sales.Order
 import com.passioagogo.market.domain.sales.OrderItem
@@ -30,7 +33,9 @@ import kotlinx.serialization.json.put
 private fun OrderDto.toDomain() = Order(
     id = id, folio = folio, customerId = customerId, locationId = locationId,
     tipo = tipo, estado = estado, costoEnvio = costoEnvio, subtotal = subtotal,
-    descuento = descuento, total = total, notas = notas, createdBy = createdBy,
+    descuento = descuento, total = total,
+    shippingAddressId = shippingAddressId, numeroGuia = numeroGuia,
+    paqueteria = paqueteria, notas = notas, createdBy = createdBy,
     confirmedAt = confirmedAt, createdAt = createdAt,
     items = items.map {
         OrderItem(
@@ -209,6 +214,122 @@ class SalesRepositoryImpl @Inject constructor(
                 filter { eq("id", id) }
             }.decodeSingle<OrderDto>()
         }.map { it.toDomain() }
+    }
+
+    override suspend fun createShippingOrder(draft: ShippingOrderDraft): DataResult<Order> =
+        withContext(io) {
+            val userId = auth.currentUserOrNull()?.id
+                ?: return@withContext DataResult.Error(DataError.Unauthorized)
+            if (draft.lines.isEmpty()) {
+                return@withContext DataResult.Error(DataError.Business("El envío no tiene artículos"))
+            }
+
+            // 1) Pedido de envío en 'pendiente'
+            val created = safeSupabaseCall {
+                postgrest.from(ORDERS).insert(
+                    NewOrderDto(
+                        locationId = draft.locationId,
+                        tipo = OrderType.ENVIO,
+                        customerId = draft.customerId,
+                        shippingAddressId = draft.shippingAddressId,
+                        costoEnvio = draft.costoEnvio,
+                        notas = draft.notas,
+                        createdBy = userId,
+                    )
+                ) { select() }.decodeSingle<OrderDto>()
+            }
+            val order = when (created) {
+                is DataResult.Error -> return@withContext created
+                is DataResult.Success -> created.data
+            }
+
+            // 2) Líneas con precio congelado en servidor
+            for (line in draft.lines) {
+                val added = safeSupabaseCall {
+                    postgrest.rpc(
+                        RPC_AGREGAR,
+                        buildJsonObject {
+                            put("p_order", order.id)
+                            put("p_variant", line.variantId)
+                            put("p_cantidad", line.cantidad)
+                        },
+                    )
+                }
+                if (added is DataResult.Error) {
+                    tryCancel(order.id)
+                    return@withContext added
+                }
+            }
+
+            // 3) Confirmar: snapshot de dirección + descuento de stock (triggers)
+            val confirmed = safeSupabaseCall {
+                postgrest.from(ORDERS).update({
+                    set("estado", OrderStatus.CONFIRMADO)
+                }) {
+                    select(ORDER_COLUMNS)
+                    filter { eq("id", order.id) }
+                }.decodeSingle<OrderDto>()
+            }
+            when (confirmed) {
+                is DataResult.Error -> {
+                    tryCancel(order.id)
+                    confirmed
+                }
+                is DataResult.Success -> DataResult.Success(confirmed.data.toDomain())
+            }
+        }
+
+    override suspend fun shipOrder(
+        id: String,
+        paqueteria: String,
+        numeroGuia: String,
+    ): DataResult<Order> = withContext(io) {
+        safeSupabaseCall {
+            postgrest.from(ORDERS).update({
+                set("estado", OrderStatus.EN_TRANSITO)
+                set("paqueteria", paqueteria)
+                set("numero_guia", numeroGuia)
+            }) {
+                select(ORDER_COLUMNS)
+                filter { eq("id", id) }
+            }.decodeSingle<OrderDto>()
+        }.map { it.toDomain() }
+    }
+
+    override suspend fun deliverOrder(id: String): DataResult<Order> = withContext(io) {
+        safeSupabaseCall {
+            postgrest.from(ORDERS).update({
+                set("estado", OrderStatus.ENTREGADO)
+            }) {
+                select(ORDER_COLUMNS)
+                filter { eq("id", id) }
+            }.decodeSingle<OrderDto>()
+        }.map { it.toDomain() }
+    }
+
+    override suspend fun addPayment(
+        orderId: String,
+        monto: Double,
+        metodo: PaymentMethod,
+        referencia: String?,
+    ): DataResult<Order> = withContext(io) {
+        val userId = auth.currentUserOrNull()?.id
+            ?: return@withContext DataResult.Error(DataError.Unauthorized)
+        val inserted = safeSupabaseCall {
+            postgrest.from(PAYMENTS).insert(
+                NewPaymentDto(
+                    orderId = orderId,
+                    monto = monto,
+                    metodo = metodo,
+                    referencia = referencia?.ifBlank { null },
+                    receivedBy = userId,
+                )
+            )
+        }
+        when (inserted) {
+            is DataResult.Error -> inserted
+            is DataResult.Success -> getOrder(orderId)
+        }
     }
 
     /** Limpieza best-effort: cancela el pedido pendiente tras un fallo. */

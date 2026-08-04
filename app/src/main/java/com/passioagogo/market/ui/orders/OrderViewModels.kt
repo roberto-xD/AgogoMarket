@@ -8,6 +8,7 @@ import com.passioagogo.market.domain.auth.AuthRepository
 import com.passioagogo.market.domain.auth.SessionState
 import com.passioagogo.market.domain.catalog.CatalogRepository
 import com.passioagogo.market.domain.common.OrderStatus
+import com.passioagogo.market.domain.common.PaymentMethod
 import com.passioagogo.market.domain.inventory.Location
 import com.passioagogo.market.domain.inventory.LocationRepository
 import com.passioagogo.market.domain.sales.Order
@@ -122,8 +123,13 @@ data class OrderDetailUiState(
     val isLoading: Boolean = true,
     val isCancelling: Boolean = false,
     val showCancelConfirm: Boolean = false,
+    val showShipDialog: Boolean = false,
+    val showPaymentDialog: Boolean = false,
     val errorMessage: String? = null,
-)
+) {
+    val saldo: Double
+        get() = order?.let { o -> o.total - o.payments.sumOf { it.monto } } ?: 0.0
+}
 
 @HiltViewModel
 class OrderDetailViewModel @Inject constructor(
@@ -152,6 +158,53 @@ class OrderDetailViewModel @Inject constructor(
     }
 
     fun onAskCancel() = _uiState.update { it.copy(showCancelConfirm = true) }
+    fun onOpenShipDialog() = _uiState.update { it.copy(showShipDialog = true) }
+    fun onDismissShipDialog() = _uiState.update { it.copy(showShipDialog = false) }
+    fun onOpenPaymentDialog() = _uiState.update { it.copy(showPaymentDialog = true) }
+    fun onDismissPaymentDialog() = _uiState.update { it.copy(showPaymentDialog = false) }
+
+    fun onShip(paqueteria: String, guia: String) {
+        _uiState.update {
+            it.copy(isCancelling = true, showShipDialog = false, errorMessage = null)
+        }
+        viewModelScope.launch {
+            when (val r = salesRepository.shipOrder(orderId, paqueteria, guia)) {
+                is DataResult.Success ->
+                    _uiState.update { it.copy(isCancelling = false, order = r.data) }
+                is DataResult.Error -> _uiState.update {
+                    it.copy(isCancelling = false, errorMessage = r.error.toMessage())
+                }
+            }
+        }
+    }
+
+    fun onDeliver() {
+        _uiState.update { it.copy(isCancelling = true, errorMessage = null) }
+        viewModelScope.launch {
+            when (val r = salesRepository.deliverOrder(orderId)) {
+                is DataResult.Success ->
+                    _uiState.update { it.copy(isCancelling = false, order = r.data) }
+                is DataResult.Error -> _uiState.update {
+                    it.copy(isCancelling = false, errorMessage = r.error.toMessage())
+                }
+            }
+        }
+    }
+
+    fun onAddPayment(monto: Double, metodo: PaymentMethod, referencia: String?) {
+        _uiState.update {
+            it.copy(isCancelling = true, showPaymentDialog = false, errorMessage = null)
+        }
+        viewModelScope.launch {
+            when (val r = salesRepository.addPayment(orderId, monto, metodo, referencia)) {
+                is DataResult.Success ->
+                    _uiState.update { it.copy(isCancelling = false, order = r.data) }
+                is DataResult.Error -> _uiState.update {
+                    it.copy(isCancelling = false, errorMessage = r.error.toMessage())
+                }
+            }
+        }
+    }
     fun onDismissCancel() = _uiState.update { it.copy(showCancelConfirm = false) }
 
     fun onConfirmCancel() {

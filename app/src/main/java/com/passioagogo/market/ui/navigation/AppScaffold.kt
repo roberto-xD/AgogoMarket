@@ -40,7 +40,9 @@ import com.passioagogo.market.ui.admin.catalog.ProductEditScreen
 import com.passioagogo.market.ui.admin.purchases.CreatePurchaseScreen
 import com.passioagogo.market.ui.admin.purchases.PurchaseDetailScreen
 import com.passioagogo.market.ui.admin.purchases.PurchasesListScreen
+import com.passioagogo.market.ui.admin.customers.CustomersScreen
 import com.passioagogo.market.ui.admin.locations.LocationsScreen
+import com.passioagogo.market.ui.orders.shipping.CreateShippingScreen
 import com.passioagogo.market.ui.admin.promotions.PromotionEditScreen
 import com.passioagogo.market.ui.admin.promotions.PromotionsListScreen
 import com.passioagogo.market.ui.admin.suppliers.SuppliersScreen
@@ -141,6 +143,18 @@ fun AppScaffold(
                             onOpenOrder = { id ->
                                 navController.navigate("pedidos/order/" + id)
                             },
+                            onCreateShipping = {
+                                navController.navigate("pedidos/shipping_new")
+                            },
+                        )
+                    }
+                    composable("pedidos/shipping_new") {
+                        CreateShippingScreen(
+                            onCreated = { orderId ->
+                                navController.navigate("pedidos/order/" + orderId) {
+                                    popUpTo("pedidos/home")
+                                }
+                            },
                         )
                     }
                     composable(
@@ -193,6 +207,7 @@ fun AppScaffold(
                             onOpenPromotions = { navController.navigate("admin/promotions") },
                             onOpenUsers = { navController.navigate("admin/users") },
                             onOpenLocations = { navController.navigate("admin/locations") },
+                            onOpenCustomers = { navController.navigate("admin/customers") },
                         )
                     }
                     composable("admin/suppliers") {
@@ -242,6 +257,9 @@ fun AppScaffold(
                     }
                     composable("admin/locations") {
                         LocationsScreen()
+                    }
+                    composable("admin/customers") {
+                        CustomersScreen()
                     }
                     composable("admin/purchase_new") {
                         CreatePurchaseScreen(

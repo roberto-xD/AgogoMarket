@@ -72,6 +72,7 @@ fun AdminHomeScreen(
     onOpenPromotions: () -> Unit,
     onOpenUsers: () -> Unit,
     onOpenLocations: () -> Unit,
+    onOpenCustomers: () -> Unit,
 ) {
     val sections = listOf(
         "Catálogo" to true,
@@ -80,6 +81,7 @@ fun AdminHomeScreen(
         "Promociones" to true,
         "Usuarios" to true,
         "Ubicaciones" to true,
+        "Clientes" to true,
     )
     LazyColumn {
         items(sections) { (name, enabled) ->
@@ -94,6 +96,7 @@ fun AdminHomeScreen(
                             "Promociones" -> onOpenPromotions()
                             "Usuarios" -> onOpenUsers()
                             "Ubicaciones" -> onOpenLocations()
+                            "Clientes" -> onOpenCustomers()
                         }
                     }
                     .padding(16.dp),

@@ -20,6 +20,9 @@ data class OrderDto(
     val subtotal: Double = 0.0,
     val descuento: Double = 0.0,
     val total: Double = 0.0,
+    @SerialName("shipping_address_id") val shippingAddressId: String? = null,
+    @SerialName("numero_guia") val numeroGuia: String? = null,
+    val paqueteria: String? = null,
     val notas: String? = null,
     @SerialName("created_by") val createdBy: String,
     @SerialName("confirmed_at") val confirmedAt: String? = null,
@@ -60,6 +63,8 @@ data class NewOrderDto(
     @SerialName("location_id") val locationId: String,
     val tipo: OrderType = OrderType.MOSTRADOR,
     @SerialName("customer_id") val customerId: String? = null,
+    @SerialName("shipping_address_id") val shippingAddressId: String? = null,
+    @SerialName("costo_envio") val costoEnvio: Double = 0.0,
     val notas: String? = null,
     @SerialName("created_by") val createdBy: String,
 )

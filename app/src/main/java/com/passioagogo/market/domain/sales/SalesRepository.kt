@@ -18,6 +18,9 @@ data class Order(
     val subtotal: Double,
     val descuento: Double,
     val total: Double,
+    val shippingAddressId: String?,
+    val numeroGuia: String?,
+    val paqueteria: String?,
     val notas: String?,
     val createdBy: String,
     val confirmedAt: String?,
@@ -72,8 +75,18 @@ data class CheckoutRequest(
 
 // ============ Repositorio ============
 
+data class ShippingOrderDraft(
+    val customerId: String,
+    val shippingAddressId: String,
+    /** Ubicación desde donde se despacha (de ahí sale el stock). */
+    val locationId: String,
+    val costoEnvio: Double,
+    val lines: List<CartLine>,
+    val notas: String? = null,
+)
+
 /**
- * Ventas de mostrador (Fase 3a). Remote-first estricto: sin red no hay
+ * Ventas de mostrador (Fase 3a) y envíos (Fase 3b). Remote-first estricto: sin red no hay
  * venta (la cola offline quedó como pendiente post-MVP).
  * Los precios SIEMPRE los calcula el servidor (script 12).
  */
@@ -104,4 +117,27 @@ interface SalesRepository {
 
     /** Cancela un pedido; si estaba confirmado el trigger devuelve el stock. */
     suspend fun cancelOrder(id: String): DataResult<Order>
+
+    // -- Envíos (Fase 3b) --
+
+    /**
+     * Crea y CONFIRMA un pedido de envío (congela snapshot de dirección
+     * y descuenta stock). El pago se registra por separado: el pedido
+     * queda en v_saldos_pendientes hasta cubrirse.
+     */
+    suspend fun createShippingOrder(draft: ShippingOrderDraft): DataResult<Order>
+
+    /** confirmado → en_transito, registrando paquetería y guía. */
+    suspend fun shipOrder(id: String, paqueteria: String, numeroGuia: String): DataResult<Order>
+
+    /** en_transito → entregado. */
+    suspend fun deliverOrder(id: String): DataResult<Order>
+
+    /** Registra un pago (parcial o total) sobre un pedido. */
+    suspend fun addPayment(
+        orderId: String,
+        monto: Double,
+        metodo: com.passioagogo.market.domain.common.PaymentMethod,
+        referencia: String? = null,
+    ): DataResult<Order>
 }
