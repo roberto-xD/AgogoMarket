@@ -9,7 +9,11 @@ import com.passioagogo.market.domain.catalog.CatalogRepository
 import com.passioagogo.market.domain.inventory.InventoryRepository
 import com.passioagogo.market.domain.inventory.LocationRepository
 import com.passioagogo.market.data.auth.SupabaseAuthRepository
+import com.passioagogo.market.data.promotions.PromotionRepositoryImpl
 import com.passioagogo.market.data.purchases.PurchaseRepositoryImpl
+import com.passioagogo.market.data.users.ProfilesAdminRepository
+import com.passioagogo.market.data.users.ProfilesAdminRepositoryImpl
+import com.passioagogo.market.domain.promotions.PromotionRepository
 import com.passioagogo.market.data.purchases.SupplierRepositoryImpl
 import com.passioagogo.market.data.sales.SalesRepositoryImpl
 import com.passioagogo.market.domain.purchases.PurchaseRepository
@@ -59,4 +63,14 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindPurchaseRepository(impl: PurchaseRepositoryImpl): PurchaseRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindPromotionRepository(impl: PromotionRepositoryImpl): PromotionRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindProfilesAdminRepository(
+        impl: ProfilesAdminRepositoryImpl,
+    ): ProfilesAdminRepository
 }

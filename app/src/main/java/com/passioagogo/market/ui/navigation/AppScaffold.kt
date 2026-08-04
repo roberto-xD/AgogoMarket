@@ -40,7 +40,11 @@ import com.passioagogo.market.ui.admin.catalog.ProductEditScreen
 import com.passioagogo.market.ui.admin.purchases.CreatePurchaseScreen
 import com.passioagogo.market.ui.admin.purchases.PurchaseDetailScreen
 import com.passioagogo.market.ui.admin.purchases.PurchasesListScreen
+import com.passioagogo.market.ui.admin.locations.LocationsScreen
+import com.passioagogo.market.ui.admin.promotions.PromotionEditScreen
+import com.passioagogo.market.ui.admin.promotions.PromotionsListScreen
 import com.passioagogo.market.ui.admin.suppliers.SuppliersScreen
+import com.passioagogo.market.ui.admin.users.UsersScreen
 import com.passioagogo.market.ui.inventory.InventoryHomeScreen
 import com.passioagogo.market.ui.orders.OrderDetailScreen
 import com.passioagogo.market.ui.orders.OrdersListScreen
@@ -186,6 +190,9 @@ fun AppScaffold(
                             onOpenCatalog = { navController.navigate("admin/catalog") },
                             onOpenSuppliers = { navController.navigate("admin/suppliers") },
                             onOpenPurchases = { navController.navigate("admin/purchases") },
+                            onOpenPromotions = { navController.navigate("admin/promotions") },
+                            onOpenUsers = { navController.navigate("admin/users") },
+                            onOpenLocations = { navController.navigate("admin/locations") },
                         )
                     }
                     composable("admin/suppliers") {
@@ -208,6 +215,33 @@ fun AppScaffold(
                         ),
                     ) {
                         PurchaseDetailScreen(onBack = { navController.popBackStack() })
+                    }
+                    composable("admin/promotions") {
+                        PromotionsListScreen(
+                            onOpenPromotion = { id ->
+                                navController.navigate("admin/promotion/" + id)
+                            },
+                            onNewPromotion = {
+                                navController.navigate("admin/promotion_new")
+                            },
+                        )
+                    }
+                    composable(
+                        route = "admin/promotion/{promotionId}",
+                        arguments = listOf(
+                            navArgument("promotionId") { type = NavType.StringType }
+                        ),
+                    ) {
+                        PromotionEditScreen(onSaved = { navController.popBackStack() })
+                    }
+                    composable("admin/promotion_new") {
+                        PromotionEditScreen(onSaved = { navController.popBackStack() })
+                    }
+                    composable("admin/users") {
+                        UsersScreen()
+                    }
+                    composable("admin/locations") {
+                        LocationsScreen()
                     }
                     composable("admin/purchase_new") {
                         CreatePurchaseScreen(

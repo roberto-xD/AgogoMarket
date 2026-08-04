@@ -53,6 +53,13 @@ enum class PurchaseStatus {
 }
 
 @Serializable
+enum class PromotionType {
+    @SerialName("porcentaje") PORCENTAJE,
+    @SerialName("monto_fijo") MONTO_FIJO,
+    @SerialName("precio_especial") PRECIO_ESPECIAL,
+}
+
+@Serializable
 enum class PaymentMethod {
     @SerialName("efectivo") EFECTIVO,
     @SerialName("transferencia") TRANSFERENCIA,
