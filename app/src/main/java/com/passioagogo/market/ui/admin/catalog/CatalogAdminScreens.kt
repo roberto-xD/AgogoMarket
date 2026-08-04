@@ -54,12 +54,16 @@ import com.passioagogo.market.domain.catalog.Category
 // ============ Home de Administración ============
 
 @Composable
-fun AdminHomeScreen(onOpenCatalog: () -> Unit) {
+fun AdminHomeScreen(
+    onOpenCatalog: () -> Unit,
+    onOpenSuppliers: () -> Unit,
+    onOpenPurchases: () -> Unit,
+) {
     val sections = listOf(
         "Catálogo" to true,
+        "Proveedores" to true,
+        "Compras" to true,
         "Ubicaciones" to false,
-        "Proveedores" to false,
-        "Compras" to false,
         "Promociones" to false,
         "Usuarios" to false,
     )
@@ -68,7 +72,13 @@ fun AdminHomeScreen(onOpenCatalog: () -> Unit) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable(enabled = enabled) { if (name == "Catálogo") onOpenCatalog() }
+                    .clickable(enabled = enabled) {
+                        when (name) {
+                            "Catálogo" -> onOpenCatalog()
+                            "Proveedores" -> onOpenSuppliers()
+                            "Compras" -> onOpenPurchases()
+                        }
+                    }
                     .padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {

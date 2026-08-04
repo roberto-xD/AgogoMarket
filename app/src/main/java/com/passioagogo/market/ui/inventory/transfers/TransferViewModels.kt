@@ -26,6 +26,7 @@ data class VariantInfo(
     val producto: String,
     val sku: String,
     val atributos: String,
+    val costo: Double = 0.0,
 )
 
 /** Aplana el catálogo cacheado a un índice variantId → info. */
@@ -44,6 +45,7 @@ internal suspend fun CatalogRepository.variantIndex(): Map<String, VariantInfo> 
                 atributos = v.attributes.entries.joinToString(" · ") { (k, value) ->
                     "$k: ${value.toString().trim('"')}"
                 },
+                costo = v.costo,
             )
         }
     }.associateBy { it.variantId }

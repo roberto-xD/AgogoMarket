@@ -37,6 +37,10 @@ import androidx.navigation.compose.navigation
 import com.passioagogo.market.ui.admin.catalog.AdminHomeScreen
 import com.passioagogo.market.ui.admin.catalog.CatalogAdminScreen
 import com.passioagogo.market.ui.admin.catalog.ProductEditScreen
+import com.passioagogo.market.ui.admin.purchases.CreatePurchaseScreen
+import com.passioagogo.market.ui.admin.purchases.PurchaseDetailScreen
+import com.passioagogo.market.ui.admin.purchases.PurchasesListScreen
+import com.passioagogo.market.ui.admin.suppliers.SuppliersScreen
 import com.passioagogo.market.ui.inventory.InventoryHomeScreen
 import com.passioagogo.market.ui.orders.OrderDetailScreen
 import com.passioagogo.market.ui.orders.OrdersListScreen
@@ -180,6 +184,34 @@ fun AppScaffold(
                     composable("admin/home") {
                         AdminHomeScreen(
                             onOpenCatalog = { navController.navigate("admin/catalog") },
+                            onOpenSuppliers = { navController.navigate("admin/suppliers") },
+                            onOpenPurchases = { navController.navigate("admin/purchases") },
+                        )
+                    }
+                    composable("admin/suppliers") {
+                        SuppliersScreen()
+                    }
+                    composable("admin/purchases") {
+                        PurchasesListScreen(
+                            onOpenPurchase = { id ->
+                                navController.navigate("admin/purchase/" + id)
+                            },
+                            onCreatePurchase = {
+                                navController.navigate("admin/purchase_new")
+                            },
+                        )
+                    }
+                    composable(
+                        route = "admin/purchase/{purchaseId}",
+                        arguments = listOf(
+                            navArgument("purchaseId") { type = NavType.StringType }
+                        ),
+                    ) {
+                        PurchaseDetailScreen(onBack = { navController.popBackStack() })
+                    }
+                    composable("admin/purchase_new") {
+                        CreatePurchaseScreen(
+                            onCreated = { navController.popBackStack() },
                         )
                     }
                     composable("admin/catalog") {
