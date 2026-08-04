@@ -41,6 +41,7 @@ import com.passioagogo.market.ui.admin.purchases.CreatePurchaseScreen
 import com.passioagogo.market.ui.admin.purchases.PurchaseDetailScreen
 import com.passioagogo.market.ui.admin.purchases.PurchasesListScreen
 import com.passioagogo.market.ui.admin.customers.CustomersScreen
+import com.passioagogo.market.ui.admin.stats.StatsScreen
 import com.passioagogo.market.ui.admin.locations.LocationsScreen
 import com.passioagogo.market.ui.orders.shipping.CreateShippingScreen
 import com.passioagogo.market.ui.admin.promotions.PromotionEditScreen
@@ -208,6 +209,7 @@ fun AppScaffold(
                             onOpenUsers = { navController.navigate("admin/users") },
                             onOpenLocations = { navController.navigate("admin/locations") },
                             onOpenCustomers = { navController.navigate("admin/customers") },
+                            onOpenStats = { navController.navigate("admin/stats") },
                         )
                     }
                     composable("admin/suppliers") {
@@ -260,6 +262,9 @@ fun AppScaffold(
                     }
                     composable("admin/customers") {
                         CustomersScreen()
+                    }
+                    composable("admin/stats") {
+                        StatsScreen()
                     }
                     composable("admin/purchase_new") {
                         CreatePurchaseScreen(

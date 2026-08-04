@@ -73,6 +73,7 @@ fun AdminHomeScreen(
     onOpenUsers: () -> Unit,
     onOpenLocations: () -> Unit,
     onOpenCustomers: () -> Unit,
+    onOpenStats: () -> Unit,
 ) {
     val sections = listOf(
         "Catálogo" to true,
@@ -82,6 +83,7 @@ fun AdminHomeScreen(
         "Usuarios" to true,
         "Ubicaciones" to true,
         "Clientes" to true,
+        "Estadísticas" to true,
     )
     LazyColumn {
         items(sections) { (name, enabled) ->
@@ -97,6 +99,7 @@ fun AdminHomeScreen(
                             "Usuarios" -> onOpenUsers()
                             "Ubicaciones" -> onOpenLocations()
                             "Clientes" -> onOpenCustomers()
+                            "Estadísticas" -> onOpenStats()
                         }
                     }
                     .padding(16.dp),
@@ -183,6 +186,17 @@ fun CatalogAdminScreen(
                                 .padding(horizontal = 16.dp, vertical = 10.dp),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
+                            pw.product.imagenes.firstOrNull()?.let { url ->
+                                AsyncImage(
+                                    model = url,
+                                    contentDescription = null,
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier
+                                        .size(44.dp)
+                                        .clip(RoundedCornerShape(6.dp)),
+                                )
+                                Spacer(Modifier.height(0.dp).padding(horizontal = 4.dp))
+                            }
                             Column(Modifier.weight(1f)) {
                                 Text(pw.product.nombre, style = MaterialTheme.typography.bodyLarge)
                                 Text(
