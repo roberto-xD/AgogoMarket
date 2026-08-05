@@ -10,6 +10,7 @@ import com.passioagogo.market.domain.inventory.Location
 import com.passioagogo.market.domain.inventory.LocationDraft
 import com.passioagogo.market.domain.inventory.LocationRepository
 import io.github.jan.supabase.postgrest.Postgrest
+import io.github.jan.supabase.postgrest.query.Order
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineDispatcher
@@ -32,7 +33,7 @@ class LocationRepositoryImpl @Inject constructor(
             safeSupabaseCall {
                 postgrest.from(TABLE).select {
                     if (!includeInactive) filter { eq("activo", true) }
-                    order("nombre", io.github.jan.supabase.postgrest.query.Order.ASCENDING)
+                    order("nombre", Order.ASCENDING)
                 }.decodeList<LocationDto>()
             }.map { list -> list.map { it.toDomain() } }
         }
