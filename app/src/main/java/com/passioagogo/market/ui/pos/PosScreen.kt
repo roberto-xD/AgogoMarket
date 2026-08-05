@@ -14,6 +14,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -40,13 +42,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.material3.IconButton
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.passioagogo.market.ui.pos.scanner.BarcodeScannerView
 import com.passioagogo.market.domain.common.PaymentMethod
 import com.passioagogo.market.domain.sales.Order
 import java.text.NumberFormat
@@ -71,6 +82,42 @@ fun PosScreen(viewModel: PosViewModel = hiltViewModel()) {
         return
     }
 
+    if (state.showScanner) {
+        Box(Modifier.fillMaxSize()) {
+            BarcodeScannerView(
+                onBarcode = viewModel::onBarcodeScanned,
+                modifier = Modifier.fillMaxSize(),
+            )
+            state.scanMessage?.let { message ->
+                Text(
+                    text = message,
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .padding(top = 48.dp)
+                        .background(
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.85f),
+                            RoundedCornerShape(8.dp),
+                        )
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                )
+            }
+            Row(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(24.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Button(onClick = viewModel::onCloseScanner) {
+                    Icon(Icons.Filled.Close, contentDescription = null)
+                    Text("  Listo (${state.cart.values.sumOf { it.cantidad }} artículos)")
+                }
+            }
+        }
+        return
+    }
+
     if (state.bloqueadoSinTienda) {
         Box(Modifier.fillMaxSize().padding(32.dp), contentAlignment = Alignment.Center) {
             Text(
@@ -89,14 +136,32 @@ fun PosScreen(viewModel: PosViewModel = hiltViewModel()) {
                 PosLocationSelector(state, viewModel::onLocationSelected)
                 Spacer(Modifier.height(8.dp))
             }
-            OutlinedTextField(
-                value = state.query,
-                onValueChange = viewModel::onQueryChange,
-                label = { Text("Buscar producto o SKU") },
-                singleLine = true,
-                enabled = state.locationId != null,
-                modifier = Modifier.fillMaxWidth(),
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                OutlinedTextField(
+                    value = state.query,
+                    onValueChange = viewModel::onQueryChange,
+                    label = { Text("Buscar producto o SKU") },
+                    singleLine = true,
+                    enabled = state.locationId != null,
+                    modifier = Modifier.weight(1f),
+                )
+                val context = LocalContext.current
+                val permissionLauncher = rememberLauncherForActivityResult(
+                    ActivityResultContracts.RequestPermission()
+                ) { granted -> if (granted) viewModel.onOpenScanner() }
+                IconButton(
+                    enabled = state.locationId != null,
+                    onClick = {
+                        val granted = ContextCompat.checkSelfPermission(
+                            context, Manifest.permission.CAMERA
+                        ) == PackageManager.PERMISSION_GRANTED
+                        if (granted) viewModel.onOpenScanner()
+                        else permissionLauncher.launch(Manifest.permission.CAMERA)
+                    },
+                ) {
+                    Icon(Icons.Filled.QrCodeScanner, contentDescription = "Escanear código")
+                }
+            }
             if (state.isAdmin && state.locationId == null) {
                 Text(
                     "Elige la ubicación desde la que vas a vender",

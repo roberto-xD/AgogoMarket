@@ -57,6 +57,8 @@ data class PosUiState(
     val cart: Map<String, CartEntry> = emptyMap(),
     val isCheckingOut: Boolean = false,
     val showPaymentDialog: Boolean = false,
+    val showScanner: Boolean = false,
+    val scanMessage: String? = null,
     val errorMessage: String? = null,
     /** Venta completada: muestra el ticket. */
     val lastSale: Order? = null,
@@ -175,6 +177,49 @@ class PosViewModel @Inject constructor(
         else {
             val entry = state.cart[variantId] ?: return@update state
             state.copy(cart = state.cart + (variantId to entry.copy(cantidad = cantidad)))
+        }
+    }
+
+    fun onOpenScanner() =
+        _uiState.update { it.copy(showScanner = true, scanMessage = null) }
+
+    fun onCloseScanner() =
+        _uiState.update { it.copy(showScanner = false, scanMessage = null) }
+
+    /** Cooldown por código: los frames consecutivos no duplican la línea. */
+    private val scanCooldown = mutableMapOf<String, Long>()
+
+    fun onBarcodeScanned(code: String) {
+        val now = System.currentTimeMillis()
+        val last = scanCooldown[code] ?: 0L
+        if (now - last < 2_000) return
+        scanCooldown[code] = now
+
+        viewModelScope.launch {
+            val variant = catalogRepository.findVariantBySku(code)
+            when {
+                variant == null -> _uiState.update {
+                    it.copy(scanMessage = "SKU no encontrado: $code")
+                }
+                !variant.activo -> _uiState.update {
+                    it.copy(scanMessage = "Variante inactiva: $code")
+                }
+                else -> {
+                    val item = _uiState.value.catalog
+                        .firstOrNull { it.variantId == variant.id }
+                    if (item == null) {
+                        _uiState.update {
+                            it.copy(scanMessage = "Producto no disponible: $code")
+                        }
+                    } else {
+                        onAddItem(item)
+                        val cantidad = _uiState.value.cart[item.variantId]?.cantidad ?: 1
+                        _uiState.update {
+                            it.copy(scanMessage = "Agregado: ${item.producto} ×$cantidad")
+                        }
+                    }
+                }
+            }
         }
     }
 
