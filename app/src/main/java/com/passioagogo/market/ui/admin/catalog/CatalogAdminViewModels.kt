@@ -385,11 +385,13 @@ class ProductEditViewModel @Inject constructor(
             val nuevas = mutableListOf<String>()
             var error: String? = null
             for (uri in uris.take(5)) {
-                val bytes = imageCompressor.compress(uri)
-                if (bytes == null) {
-                    error = "No se pudo procesar una de las imágenes"
-                    continue
-                }
+                val bytes = imageCompressor.compress(uri).getOrElse { e ->
+                    // Se expone la causa real: formato no soportado, sin
+                    // memoria, permiso de lectura revocado, etc.
+                    error = "No se pudo procesar la imagen: " +
+                        (e.message ?: e::class.simpleName ?: "error desconocido")
+                    null
+                } ?: continue
                 when (val result = productImageRepository.upload(productId, bytes)) {
                     is DataResult.Success -> nuevas += result.data
                     is DataResult.Error -> error = result.error.toMessage()

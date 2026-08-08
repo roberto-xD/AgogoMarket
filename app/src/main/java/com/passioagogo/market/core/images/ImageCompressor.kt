@@ -3,8 +3,11 @@ package com.passioagogo.market.core.images
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.ImageDecoder
 import android.graphics.Matrix
 import android.net.Uri
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.exifinterface.media.ExifInterface
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.ByteArrayOutputStream
@@ -14,9 +17,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /**
- * Redimensiona (lado mayor ≤ [MAX_DIM] px), corrige la orientación EXIF
- * y comprime a JPEG antes de subir a Storage. Una foto de cámara de
- * ~8 MB queda en ~150-300 KB, apta para listas del catálogo.
+ * Redimensiona (lado mayor <= [MAX_DIM] px), corrige orientacion y comprime
+ * a JPEG antes de subir a Storage.
+ *
+ * En API 28+ usa ImageDecoder: decodifica HEIC/HEIF (formato por defecto de
+ * muchas camaras, que BitmapFactory no soporta) y aplica la orientacion EXIF
+ * automaticamente. BitmapFactory queda solo como respaldo para API 26-27.
+ *
+ * Devuelve [Result] para que la UI pueda mostrar la causa real del fallo.
  */
 @Singleton
 class ImageCompressor @Inject constructor(
@@ -27,16 +35,55 @@ class ImageCompressor @Inject constructor(
         const val JPEG_QUALITY = 80
     }
 
-    suspend fun compress(uri: Uri): ByteArray? = withContext(Dispatchers.Default) {
+    suspend fun compress(uri: Uri): Result<ByteArray> = withContext(Dispatchers.Default) {
+        runCatching {
+            val bitmap = decode(uri)
+            try {
+                ByteArrayOutputStream().use { out ->
+                    val ok = bitmap.compress(Bitmap.CompressFormat.JPEG, JPEG_QUALITY, out)
+                    check(ok) { "El sistema no pudo comprimir la imagen a JPEG" }
+                    out.toByteArray()
+                }
+            } finally {
+                bitmap.recycle()
+            }
+        }
+    }
+
+    private fun decode(uri: Uri): Bitmap =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) decodeModern(uri)
+        else decodeLegacy(uri)
+
+    @RequiresApi(Build.VERSION_CODES.P)
+    private fun decodeModern(uri: Uri): Bitmap {
+        val source = ImageDecoder.createSource(context.contentResolver, uri)
+        return ImageDecoder.decodeBitmap(source) { decoder, info, _ ->
+            // Software: los bitmaps de hardware no se pueden comprimir
+            decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
+            decoder.isMutableRequired = false
+            val width = info.size.width
+            val height = info.size.height
+            val maxSide = maxOf(width, height)
+            if (maxSide > MAX_DIM) {
+                val scale = MAX_DIM.toFloat() / maxSide
+                decoder.setTargetSize(
+                    (width * scale).toInt().coerceAtLeast(1),
+                    (height * scale).toInt().coerceAtLeast(1),
+                )
+            }
+        }
+    }
+
+    private fun decodeLegacy(uri: Uri): Bitmap {
         val resolver = context.contentResolver
 
-        // 1) Dimensiones sin decodificar
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
         resolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, bounds) }
-            ?: return@withContext null
-        if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return@withContext null
+            ?: error("No se pudo abrir la imagen seleccionada")
+        check(bounds.outWidth > 0 && bounds.outHeight > 0) {
+            "Formato de imagen no soportado en este dispositivo"
+        }
 
-        // 2) Decodificar con sampleo (potencias de 2, sin pasar de MAX_DIM)
         var sample = 1
         while (
             bounds.outWidth / (sample * 2) >= MAX_DIM ||
@@ -44,12 +91,12 @@ class ImageCompressor @Inject constructor(
         ) {
             sample *= 2
         }
+
         val options = BitmapFactory.Options().apply { inSampleSize = sample }
         var bitmap = resolver.openInputStream(uri)?.use {
             BitmapFactory.decodeStream(it, null, options)
-        } ?: return@withContext null
+        } ?: error("No se pudo decodificar la imagen")
 
-        // 3) Ajuste fino al límite exacto
         val maxSide = maxOf(bitmap.width, bitmap.height)
         if (maxSide > MAX_DIM) {
             val scale = MAX_DIM.toFloat() / maxSide
@@ -61,29 +108,26 @@ class ImageCompressor @Inject constructor(
             )
         }
 
-        // 4) Orientación EXIF (fotos de galería suelen venir rotadas)
-        val rotation = resolver.openInputStream(uri)?.use { stream ->
-            when (
-                ExifInterface(stream).getAttributeInt(
-                    ExifInterface.TAG_ORIENTATION,
-                    ExifInterface.ORIENTATION_NORMAL,
-                )
-            ) {
-                ExifInterface.ORIENTATION_ROTATE_90 -> 90f
-                ExifInterface.ORIENTATION_ROTATE_180 -> 180f
-                ExifInterface.ORIENTATION_ROTATE_270 -> 270f
-                else -> 0f
-            }
-        } ?: 0f
+        val rotation = runCatching {
+            resolver.openInputStream(uri)?.use { stream ->
+                when (
+                    ExifInterface(stream).getAttributeInt(
+                        ExifInterface.TAG_ORIENTATION,
+                        ExifInterface.ORIENTATION_NORMAL,
+                    )
+                ) {
+                    ExifInterface.ORIENTATION_ROTATE_90 -> 90f
+                    ExifInterface.ORIENTATION_ROTATE_180 -> 180f
+                    ExifInterface.ORIENTATION_ROTATE_270 -> 270f
+                    else -> 0f
+                }
+            } ?: 0f
+        }.getOrDefault(0f)
+
         if (rotation != 0f) {
             val matrix = Matrix().apply { postRotate(rotation) }
             bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
         }
-
-        // 5) JPEG comprimido
-        ByteArrayOutputStream().use { out ->
-            bitmap.compress(Bitmap.CompressFormat.JPEG, JPEG_QUALITY, out)
-            out.toByteArray()
-        }
+        return bitmap
     }
 }
