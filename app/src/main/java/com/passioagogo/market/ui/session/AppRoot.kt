@@ -12,8 +12,12 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
@@ -49,8 +53,27 @@ class SessionViewModel @Inject constructor(
 fun AppRoot(viewModel: SessionViewModel = hiltViewModel()) {
     val session by viewModel.sessionState.collectAsState()
 
+    // Última sesión válida conocida: evita desmontar el AppScaffold (y con
+    // él el back stack de navegación) mientras la sesión pasa por estados
+    // transitorios, p. ej. al regresar la app desde segundo plano.
+    var lastAuthenticated by remember { mutableStateOf<SessionState.Authenticated?>(null) }
+    LaunchedEffect(session) {
+        when (session) {
+            is SessionState.Authenticated -> lastAuthenticated = session as SessionState.Authenticated
+            SessionState.NotAuthenticated, SessionState.Inactive -> lastAuthenticated = null
+            else -> Unit
+        }
+    }
+
     when (val state = session) {
-        SessionState.Initializing -> LoadingScreen()
+        SessionState.Initializing -> {
+            val cached = lastAuthenticated
+            if (cached != null) {
+                AppScaffold(session = cached, onSignOut = viewModel::onSignOut)
+            } else {
+                LoadingScreen()
+            }
+        }
         SessionState.NotAuthenticated -> LoginScreen()
         is SessionState.Authenticated -> AppScaffold(
             session = state,

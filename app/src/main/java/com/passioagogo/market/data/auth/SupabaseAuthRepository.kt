@@ -60,7 +60,12 @@ class SupabaseAuthRepository @Inject constructor(
             auth.sessionStatus.collect { status ->
                 when (status) {
                     is SessionStatus.Initializing ->
-                        _sessionState.value = SessionState.Initializing
+                        // Al volver del background auth-kt puede re-emitir este
+                        // estado; degradar a Initializing desmontaría la UI y
+                        // perdería la navegación actual.
+                        if (_sessionState.value !is SessionState.Authenticated) {
+                            _sessionState.value = SessionState.Initializing
+                        }
 
                     is SessionStatus.NotAuthenticated -> {
                         loadedUserId = null
@@ -82,7 +87,12 @@ class SupabaseAuthRepository @Inject constructor(
                     }
 
                     is SessionStatus.RefreshFailure ->
-                        _sessionState.value = SessionState.Error(DataError.Network)
+                        // Un fallo de red al renovar no debe expulsar al usuario
+                        // de la pantalla en la que está trabajando: si el token
+                        // realmente expiró, las peticiones devolverán 401.
+                        if (_sessionState.value !is SessionState.Authenticated) {
+                            _sessionState.value = SessionState.Error(DataError.Network)
+                        }
                 }
             }
         }
