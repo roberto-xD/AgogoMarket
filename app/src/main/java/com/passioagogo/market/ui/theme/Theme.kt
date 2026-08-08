@@ -15,13 +15,22 @@ object PassionRadius {
     val Pill = 999.dp
 }
 
+/**
+ * Ojo: `extraLarge` NO puede ser Pill. Material 3 lo usa para diálogos y
+ * hojas inferiores, y un radio de 999.dp los deforma en óvalos. La forma
+ * de píldora se aplica explícitamente donde toca (botones, chips) con
+ * [PillShape].
+ */
 val PassionShapes = Shapes(
     extraSmall = RoundedCornerShape(PassionRadius.Sm),
     small = RoundedCornerShape(PassionRadius.Md),
     medium = RoundedCornerShape(PassionRadius.Lg),
     large = RoundedCornerShape(PassionRadius.Xl),
-    extraLarge = RoundedCornerShape(PassionRadius.Pill),
+    extraLarge = RoundedCornerShape(PassionRadius.Xl),
 )
+
+/** Forma de píldora de marca: `Button(shape = PillShape)`. */
+val PillShape = RoundedCornerShape(PassionRadius.Pill)
 
 // ---------- Espaciado ----------
 object PassionSpacing {

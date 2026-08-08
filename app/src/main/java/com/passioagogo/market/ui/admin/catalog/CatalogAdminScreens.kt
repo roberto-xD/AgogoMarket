@@ -3,8 +3,19 @@ package com.passioagogo.market.ui.admin.catalog
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import android.Manifest
+import android.content.pm.PackageManager
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.filled.QrCodeScanner
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import androidx.core.content.ContextCompat
+import com.passioagogo.market.ui.pos.scanner.BarcodeScannerView
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -597,16 +608,39 @@ private fun VariantDialog(
     onDismiss: () -> Unit,
     onSave: () -> Unit,
 ) {
+    val context = LocalContext.current
+    var scanning by remember { mutableStateOf(false) }
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted -> if (granted) scanning = true }
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(if (dialog.editing == null) "Nueva variante" else "Editar variante") },
         text = {
-            Column {
+            Column(Modifier.verticalScroll(rememberScrollState())) {
                 OutlinedTextField(
                     value = dialog.sku,
                     onValueChange = { onChange(dialog.copy(sku = it)) },
                     label = { Text("SKU") },
                     singleLine = true,
+                    trailingIcon = {
+                        IconButton(
+                            onClick = {
+                                val granted = ContextCompat.checkSelfPermission(
+                                    context, Manifest.permission.CAMERA
+                                ) == PackageManager.PERMISSION_GRANTED
+                                if (granted) scanning = true
+                                else permissionLauncher.launch(Manifest.permission.CAMERA)
+                            },
+                        ) {
+                            Icon(
+                                Icons.Filled.QrCodeScanner,
+                                contentDescription = "Escanear código de barras",
+                            )
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
                 )
                 Spacer(Modifier.height(8.dp))
                 OutlinedTextField(
@@ -614,6 +648,8 @@ private fun VariantDialog(
                     onValueChange = { onChange(dialog.copy(precio = it)) },
                     label = { Text("Precio de venta") },
                     singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    modifier = Modifier.fillMaxWidth(),
                 )
                 Spacer(Modifier.height(8.dp))
                 OutlinedTextField(
@@ -621,12 +657,15 @@ private fun VariantDialog(
                     onValueChange = { onChange(dialog.copy(costo = it)) },
                     label = { Text("Costo") },
                     singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    modifier = Modifier.fillMaxWidth(),
                 )
                 Spacer(Modifier.height(8.dp))
                 OutlinedTextField(
                     value = dialog.attributesText,
                     onValueChange = { onChange(dialog.copy(attributesText = it)) },
                     label = { Text("Atributos (clave: valor)") },
+                    modifier = Modifier.fillMaxWidth(),
                 )
                 if (dialog.editing != null) {
                     Spacer(Modifier.height(8.dp))
@@ -647,6 +686,62 @@ private fun VariantDialog(
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Cancelar") } },
     )
+
+    if (scanning) {
+        SkuScannerDialog(
+            onDismiss = { scanning = false },
+            onScanned = { code ->
+                onChange(dialog.copy(sku = code))
+                scanning = false
+            },
+        )
+    }
+}
+
+/** Escáner a pantalla completa que devuelve el primer código leído. */
+@Composable
+private fun SkuScannerDialog(
+    onDismiss: () -> Unit,
+    onScanned: (String) -> Unit,
+) {
+    // Evita que los fotogramas siguientes vuelvan a disparar la callback
+    var handled by remember { mutableStateOf(false) }
+
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false),
+    ) {
+        Box(Modifier.fillMaxSize()) {
+            BarcodeScannerView(
+                onBarcode = { code ->
+                    if (!handled) {
+                        handled = true
+                        onScanned(code)
+                    }
+                },
+                modifier = Modifier.fillMaxSize(),
+            )
+            Text(
+                text = "Apunta al código de barras",
+                color = MaterialTheme.colorScheme.onPrimary,
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(top = 48.dp)
+                    .background(
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.85f),
+                        RoundedCornerShape(8.dp),
+                    )
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+            )
+            Button(
+                onClick = onDismiss,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(32.dp),
+            ) { Text("Cancelar") }
+        }
+    }
 }
 
 
