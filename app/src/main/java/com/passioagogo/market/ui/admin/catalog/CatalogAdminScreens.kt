@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -23,6 +24,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.Button
@@ -160,7 +162,7 @@ fun CatalogAdminScreen(
                 FilterChip(
                     selected = state.showInactive,
                     onClick = { viewModel.onToggleInactive(!state.showInactive) },
-                    label = { Text("Inactivos") },
+                    label = { Text("Ver inactivos") },
                 )
                 IconButton(onClick = viewModel::refresh, enabled = !state.isRefreshing) {
                     Icon(Icons.Filled.Refresh, contentDescription = "Actualizar")
@@ -186,6 +188,7 @@ fun CatalogAdminScreen(
                                 .padding(horizontal = 16.dp, vertical = 10.dp),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
+                            if (!pw.product.activo) InactiveIcon()
                             pw.product.imagenes.firstOrNull()?.let { url ->
                                 AsyncImage(
                                     model = url,
@@ -206,7 +209,6 @@ fun CatalogAdminScreen(
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                             }
-                            if (!pw.product.activo) InactiveBadge()
                         }
                         HorizontalDivider()
                     }
@@ -221,6 +223,7 @@ fun CatalogAdminScreen(
                                 .padding(horizontal = 16.dp, vertical = 12.dp),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
+                            if (!category.activo) InactiveIcon()
                             Column(Modifier.weight(1f)) {
                                 Text(category.nombre, style = MaterialTheme.typography.bodyLarge)
                                 val parent = state.categories
@@ -233,7 +236,6 @@ fun CatalogAdminScreen(
                                     )
                                 }
                             }
-                            if (!category.activo) InactiveBadge()
                         }
                         HorizontalDivider()
                     }
@@ -260,6 +262,20 @@ fun CatalogAdminScreen(
             onSave = viewModel::onSaveCategory,
         )
     }
+}
+
+/** Marca visual de registro inactivo, al inicio de la fila. */
+@Composable
+private fun InactiveIcon() {
+    Icon(
+        imageVector = Icons.Filled.Warning,
+        contentDescription = "Inactivo",
+        tint = MaterialTheme.colorScheme.error,
+        modifier = Modifier
+            .size(20.dp)
+            .padding(end = 2.dp),
+    )
+    Spacer(Modifier.width(8.dp))
 }
 
 @Composable
