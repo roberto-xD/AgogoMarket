@@ -27,6 +27,8 @@ data class GalleryItem(
     val categoria: String?,
     val orden: Int,
     val activo: Boolean,
+    /** URL absoluta o ruta interna del sitio; null = sin botón. */
+    val enlace: String?,
 )
 
 data class GalleryDraft(
@@ -36,6 +38,7 @@ data class GalleryDraft(
     val imagen: String,
     val categoria: String?,
     val orden: Int,
+    val enlace: String?,
 )
 
 // ============ DTOs ============
@@ -50,11 +53,13 @@ data class GalleryItemDto(
     val categoria: String? = null,
     val orden: Int = 0,
     val activo: Boolean = true,
+    val enlace: String? = null,
     @SerialName("created_at") val createdAt: String? = null,
 ) {
     fun toDomain() = GalleryItem(
         id = id, titulo = titulo, descripcion = descripcion, detalles = detalles,
         imagen = imagen, categoria = categoria, orden = orden, activo = activo,
+        enlace = enlace,
     )
 }
 
@@ -66,6 +71,7 @@ data class NewGalleryItemDto(
     val imagen: String,
     val categoria: String? = null,
     val orden: Int = 0,
+    val enlace: String? = null,
 )
 
 // ============ Repositorio ============
@@ -132,6 +138,7 @@ class GalleryRepositoryImpl @Inject constructor(
                         imagen = draft.imagen,
                         categoria = draft.categoria,
                         orden = draft.orden,
+                        enlace = draft.enlace,
                     )
                 ) { select() }.decodeSingle<GalleryItemDto>()
             }.map { it.toDomain() }
@@ -148,6 +155,7 @@ class GalleryRepositoryImpl @Inject constructor(
                     set("categoria", item.categoria)
                     set("orden", item.orden)
                     set("activo", item.activo)
+                    set("enlace", item.enlace)
                 }) {
                     select()
                     filter { eq("id", item.id) }

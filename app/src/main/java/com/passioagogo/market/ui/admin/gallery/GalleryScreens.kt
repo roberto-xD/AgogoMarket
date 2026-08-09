@@ -171,6 +171,7 @@ fun GalleryListScreen(
                                 listOfNotNull(
                                     "Orden ${item.orden}",
                                     item.categoria,
+                                    if (item.enlace != null) "con enlace" else null,
                                 ).joinToString("  ·  "),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -202,6 +203,7 @@ data class GalleryEditUiState(
     val detalles: String = "",
     val categoria: String = "",
     val orden: String = "0",
+    val enlace: String = "",
     val activo: Boolean = true,
     /** Ruta ya guardada en la tabla (relativa o URL). */
     val imagen: String? = null,
@@ -215,9 +217,16 @@ data class GalleryEditUiState(
 ) {
     val isNew: Boolean get() = itemId == null
 
+    /** El servidor exige URL absoluta o ruta interna; validamos antes de enviar. */
+    val enlaceValido: Boolean
+        get() = enlace.isBlank() ||
+            enlace.startsWith("http://") ||
+            enlace.startsWith("https://") ||
+            enlace.startsWith("/")
+
     val canSave: Boolean
         get() = !isSaving && titulo.isNotBlank() &&
-            orden.toIntOrNull() != null &&
+            orden.toIntOrNull() != null && enlaceValido &&
             (imagen != null || imagenPendiente != null)
 }
 
@@ -256,6 +265,7 @@ class GalleryEditViewModel @Inject constructor(
                             orden = item.orden.toString(),
                             activo = item.activo,
                             imagen = item.imagen,
+                            enlace = item.enlace.orEmpty(),
                         )
                     }
                 }
@@ -270,6 +280,7 @@ class GalleryEditViewModel @Inject constructor(
     fun onDetalles(v: String) = _uiState.update { it.copy(detalles = v) }
     fun onCategoria(v: String) = _uiState.update { it.copy(categoria = v) }
     fun onOrden(v: String) = _uiState.update { it.copy(orden = v) }
+    fun onEnlace(v: String) = _uiState.update { it.copy(enlace = v) }
     fun onActivo(v: Boolean) = _uiState.update { it.copy(activo = v) }
     fun onImagePicked(uri: Uri?) = _uiState.update { it.copy(imagenPendiente = uri) }
     fun onAskDelete() = _uiState.update { it.copy(showDeleteConfirm = true) }
@@ -328,6 +339,7 @@ class GalleryEditViewModel @Inject constructor(
                         imagen = imagenFinal,
                         categoria = state.categoria.ifBlank { null },
                         orden = state.orden.toInt(),
+                        enlace = state.enlace.trim().ifBlank { null },
                     )
                 )
             } else {
@@ -341,6 +353,7 @@ class GalleryEditViewModel @Inject constructor(
                         categoria = state.categoria.ifBlank { null },
                         orden = state.orden.toInt(),
                         activo = state.activo,
+                        enlace = state.enlace.trim().ifBlank { null },
                     )
                 )
             }
@@ -456,6 +469,26 @@ fun GalleryEditScreen(
                 modifier = Modifier.size(width = 110.dp, height = 60.dp),
             )
         }
+        Spacer(Modifier.height(8.dp))
+        OutlinedTextField(
+            value = state.enlace,
+            onValueChange = viewModel::onEnlace,
+            label = { Text("Enlace del botón (opcional)") },
+            placeholder = { Text("https://… o /tienda") },
+            singleLine = true,
+            isError = !state.enlaceValido,
+            supportingText = {
+                Text(
+                    if (!state.enlaceValido)
+                        "Debe empezar con https:// o con / para una ruta del sitio"
+                    else
+                        "Si lo dejas vacío, el elemento no muestra botón"
+                )
+            },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
+            modifier = Modifier.fillMaxWidth(),
+        )
+
         Spacer(Modifier.height(8.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
             Switch(checked = state.activo, onCheckedChange = viewModel::onActivo)
