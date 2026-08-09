@@ -149,6 +149,12 @@ fun AppScaffold(
 
     val sections = if (session.isAdmin) ADMIN_SECTIONS else VENDEDOR_SECTIONS
 
+    // La barra inferior solo pertenece a las secciones de operación; en las
+    // pantallas de gestión se oculta para ganar espacio vertical.
+    val enOperacion = AppDestination.entries.any { dest ->
+        currentDestination?.hierarchy?.any { it.route == dest.route } == true
+    }
+
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
@@ -201,24 +207,26 @@ fun AppScaffold(
                 )
             },
             bottomBar = {
-                NavigationBar {
-                    AppDestination.entries.forEach { dest ->
-                        val selected = currentDestination?.hierarchy
-                            ?.any { it.route == dest.route } == true
-                        NavigationBarItem(
-                            selected = selected,
-                            onClick = {
-                                navController.navigate(dest.route) {
-                                    popUpTo(navController.graph.startDestinationId) {
-                                        saveState = true
+                if (enOperacion) {
+                    NavigationBar {
+                        AppDestination.entries.forEach { dest ->
+                            val selected = currentDestination?.hierarchy
+                                ?.any { it.route == dest.route } == true
+                            NavigationBarItem(
+                                selected = selected,
+                                onClick = {
+                                    navController.navigate(dest.route) {
+                                        popUpTo(navController.graph.startDestinationId) {
+                                            saveState = true
+                                        }
+                                        launchSingleTop = true
+                                        restoreState = true
                                     }
-                                    launchSingleTop = true
-                                    restoreState = true
-                                }
-                            },
-                            icon = { Icon(dest.icon, contentDescription = dest.label) },
-                            label = { Text(dest.label) },
-                        )
+                                },
+                                icon = { Icon(dest.icon, contentDescription = dest.label) },
+                                label = { Text(dest.label) },
+                            )
+                        }
                     }
                 }
             },
