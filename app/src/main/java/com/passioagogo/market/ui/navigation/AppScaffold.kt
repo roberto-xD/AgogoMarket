@@ -12,6 +12,8 @@ import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.automirrored.filled.ReceiptLong
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Category
+import androidx.compose.material.icons.filled.Collections
+import androidx.compose.material.icons.filled.MarkEmailUnread
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Inventory2
 import androidx.compose.material.icons.filled.LocalOffer
@@ -58,7 +60,10 @@ import com.passioagogo.market.domain.auth.SessionState
 import com.passioagogo.market.domain.common.UserRole
 import com.passioagogo.market.ui.admin.catalog.CatalogAdminScreen
 import com.passioagogo.market.ui.admin.catalog.ProductEditScreen
+import com.passioagogo.market.ui.admin.contact.ContactMessagesScreen
 import com.passioagogo.market.ui.admin.customers.CustomersScreen
+import com.passioagogo.market.ui.admin.gallery.GalleryEditScreen
+import com.passioagogo.market.ui.admin.gallery.GalleryListScreen
 import com.passioagogo.market.ui.admin.locations.LocationsScreen
 import com.passioagogo.market.ui.admin.promotions.PromotionEditScreen
 import com.passioagogo.market.ui.admin.promotions.PromotionsListScreen
@@ -102,6 +107,8 @@ private enum class DrawerSection(
     UBICACIONES("admin/locations", "Ubicaciones", Icons.Filled.Store),
     CLIENTES("admin/customers", "Clientes", Icons.Filled.Groups),
     ESTADISTICAS("admin/stats", "Estadísticas", Icons.Filled.BarChart),
+    GALERIA("admin/gallery", "Galería web", Icons.Filled.Collections),
+    MENSAJES("admin/contact", "Mensajes de contacto", Icons.Filled.MarkEmailUnread),
 }
 
 private val ADMIN_SECTIONS = DrawerSection.entries
@@ -130,6 +137,10 @@ private fun titleFor(route: String?): String = when (route) {
     "admin/locations" -> "Ubicaciones"
     "admin/customers" -> "Clientes"
     "admin/stats" -> "Estadísticas"
+    "admin/gallery" -> "Galería web"
+    "admin/gallery/{itemId}" -> "Editar elemento"
+    "admin/gallery_new" -> "Nuevo elemento"
+    "admin/contact" -> "Mensajes de contacto"
     else -> "Passion A Gogo"
 }
 
@@ -402,6 +413,24 @@ private fun AppNavHost(
             }
             composable("admin/stats") {
                 StatsScreen()
+            }
+            composable("admin/gallery") {
+                GalleryListScreen(
+                    onOpenItem = { id -> navController.navigate("admin/gallery/$id") },
+                    onNewItem = { navController.navigate("admin/gallery_new") },
+                )
+            }
+            composable(
+                route = "admin/gallery/{itemId}",
+                arguments = listOf(navArgument("itemId") { type = NavType.StringType }),
+            ) {
+                GalleryEditScreen(onSaved = { navController.popBackStack() })
+            }
+            composable("admin/gallery_new") {
+                GalleryEditScreen(onSaved = { navController.popBackStack() })
+            }
+            composable("admin/contact") {
+                ContactMessagesScreen()
             }
         }
     }
