@@ -351,6 +351,7 @@ class PromotionEditViewModel @Inject constructor(
 fun PromotionsListScreen(
     onOpenPromotion: (String) -> Unit,
     onNewPromotion: () -> Unit,
+    readOnly: Boolean = false,
     viewModel: PromotionsViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsState()
@@ -425,13 +426,15 @@ fun PromotionsListScreen(
             }
         }
 
-        FloatingActionButton(
-            onClick = onNewPromotion,
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(16.dp),
-        ) {
-            Icon(Icons.Filled.Add, contentDescription = "Nueva promoción")
+        if (!readOnly) {
+            FloatingActionButton(
+                onClick = onNewPromotion,
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(16.dp),
+            ) {
+                Icon(Icons.Filled.Add, contentDescription = "Nueva promoción")
+            }
         }
     }
 }
@@ -440,6 +443,7 @@ fun PromotionsListScreen(
 @Composable
 fun PromotionEditScreen(
     onSaved: () -> Unit,
+    readOnly: Boolean = false,
     viewModel: PromotionEditViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsState()
@@ -462,16 +466,18 @@ fun PromotionEditScreen(
             onValueChange = viewModel::onNombreChange,
             label = { Text("Nombre") },
             singleLine = true,
+            enabled = !readOnly,
             modifier = Modifier.fillMaxWidth(),
         )
         Spacer(Modifier.height(8.dp))
 
         var tipoExpanded by remember { mutableStateOf(false) }
-        ExposedDropdownMenuBox(tipoExpanded, { tipoExpanded = it }) {
+        ExposedDropdownMenuBox(tipoExpanded, { if (!readOnly) tipoExpanded = it }) {
             OutlinedTextField(
                 value = state.tipo.etiqueta,
                 onValueChange = {},
                 readOnly = true,
+                enabled = !readOnly,
                 label = { Text("Tipo") },
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(tipoExpanded) },
                 modifier = Modifier
@@ -502,6 +508,7 @@ fun PromotionEditScreen(
                 )
             },
             singleLine = true,
+            enabled = !readOnly,
             modifier = Modifier.fillMaxWidth(),
         )
         Spacer(Modifier.height(8.dp))
@@ -511,12 +518,14 @@ fun PromotionEditScreen(
                 label = "Inicio",
                 dia = state.fechaInicio,
                 onDia = viewModel::onFechaInicio,
+                enabled = !readOnly,
                 modifier = Modifier.weight(1f),
             )
             DiaField(
                 label = "Fin",
                 dia = state.fechaFin,
                 onDia = viewModel::onFechaFin,
+                enabled = !readOnly,
                 modifier = Modifier.weight(1f),
             )
         }
@@ -535,10 +544,11 @@ fun PromotionEditScreen(
             value = state.notas,
             onValueChange = viewModel::onNotasChange,
             label = { Text("Notas") },
+            enabled = !readOnly,
             modifier = Modifier.fillMaxWidth(),
         )
 
-        if (!state.isNew) {
+        if (!state.isNew && !readOnly) {
             Spacer(Modifier.height(8.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Switch(checked = state.activo, onCheckedChange = viewModel::onActivoChange)
@@ -557,8 +567,10 @@ fun PromotionEditScreen(
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.weight(1f),
             )
-            IconButton(onClick = viewModel::onOpenTargetDialog) {
-                Icon(Icons.Filled.Add, contentDescription = "Agregar objetivo")
+            if (!readOnly) {
+                IconButton(onClick = viewModel::onOpenTargetDialog) {
+                    Icon(Icons.Filled.Add, contentDescription = "Agregar objetivo")
+                }
             }
         }
         if (state.isNew) {
@@ -580,6 +592,7 @@ fun PromotionEditScreen(
                 TargetRow(
                     nombre = display.nombre,
                     onRemove = { viewModel.onRemoveSavedTarget(display.target.id) },
+                    showRemove = !readOnly,
                 )
             }
         }
@@ -594,22 +607,24 @@ fun PromotionEditScreen(
         }
 
         Spacer(Modifier.height(16.dp))
-        Button(
-            onClick = viewModel::onSave,
-            enabled = state.canSave,
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Text(
-                when {
-                    state.isSaving -> "Guardando…"
-                    state.isNew -> "Crear promoción"
-                    else -> "Guardar cambios"
-                }
-            )
+        if (!readOnly) {
+            Button(
+                onClick = viewModel::onSave,
+                enabled = state.canSave,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(
+                    when {
+                        state.isSaving -> "Guardando…"
+                        state.isNew -> "Crear promoción"
+                        else -> "Guardar cambios"
+                    }
+                )
+            }
         }
     }
 
-    if (state.showTargetDialog) {
+    if (state.showTargetDialog && !readOnly) {
         TargetDialog(
             state = state,
             onDismiss = viewModel::onDismissTargetDialog,
@@ -619,7 +634,11 @@ fun PromotionEditScreen(
 }
 
 @Composable
-private fun TargetRow(nombre: String, onRemove: () -> Unit) {
+private fun TargetRow(
+    nombre: String,
+    onRemove: () -> Unit,
+    showRemove: Boolean = true,
+) {
     Row(
         Modifier
             .fillMaxWidth()
@@ -627,8 +646,10 @@ private fun TargetRow(nombre: String, onRemove: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(nombre, Modifier.weight(1f))
-        IconButton(onClick = onRemove) {
-            Icon(Icons.Filled.Delete, contentDescription = "Quitar")
+        if (showRemove) {
+            IconButton(onClick = onRemove) {
+                Icon(Icons.Filled.Delete, contentDescription = "Quitar")
+            }
         }
     }
 }
@@ -640,6 +661,7 @@ private fun DiaField(
     dia: String,
     onDia: (String) -> Unit,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
 ) {
     var showPicker by remember { mutableStateOf(false) }
 
@@ -648,9 +670,12 @@ private fun DiaField(
         onValueChange = {},
         readOnly = true,
         label = { Text(label) },
-        modifier = modifier.clickable { showPicker = true },
+        enabled = enabled,
+        modifier = modifier.clickable(enabled = enabled) { showPicker = true },
         trailingIcon = {
-            TextButton(onClick = { showPicker = true }) { Text("Elegir") }
+            if (enabled) {
+                TextButton(onClick = { showPicker = true }) { Text("Elegir") }
+            }
         },
     )
 

@@ -75,69 +75,6 @@ import coil.compose.AsyncImage
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.passioagogo.market.domain.catalog.Category
 
-// ============ Home de Administración ============
-
-@Composable
-fun AdminHomeScreen(
-    onOpenCatalog: () -> Unit,
-    onOpenSuppliers: () -> Unit,
-    onOpenPurchases: () -> Unit,
-    onOpenPromotions: () -> Unit,
-    onOpenUsers: () -> Unit,
-    onOpenLocations: () -> Unit,
-    onOpenCustomers: () -> Unit,
-    onOpenStats: () -> Unit,
-) {
-    val sections = listOf(
-        "Catálogo" to true,
-        "Proveedores" to true,
-        "Compras" to true,
-        "Promociones" to true,
-        "Usuarios" to true,
-        "Ubicaciones" to true,
-        "Clientes" to true,
-        "Estadísticas" to true,
-    )
-    LazyColumn {
-        items(sections) { (name, enabled) ->
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable(enabled = enabled) {
-                        when (name) {
-                            "Catálogo" -> onOpenCatalog()
-                            "Proveedores" -> onOpenSuppliers()
-                            "Compras" -> onOpenPurchases()
-                            "Promociones" -> onOpenPromotions()
-                            "Usuarios" -> onOpenUsers()
-                            "Ubicaciones" -> onOpenLocations()
-                            "Clientes" -> onOpenCustomers()
-                            "Estadísticas" -> onOpenStats()
-                        }
-                    }
-                    .padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    name,
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.weight(1f),
-                    color = if (enabled) MaterialTheme.colorScheme.onSurface
-                    else MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                if (!enabled) {
-                    Text(
-                        "Próximamente",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            }
-            HorizontalDivider()
-        }
-    }
-}
-
 // ============ Catálogo: productos + categorías ============
 
 @Composable
