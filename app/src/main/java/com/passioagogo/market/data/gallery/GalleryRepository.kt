@@ -29,6 +29,8 @@ data class GalleryItem(
     val activo: Boolean,
     /** URL absoluta o ruta interna del sitio; null = sin botón. */
     val enlace: String?,
+    /** Rótulo del botón; null = la web usa su texto por defecto. */
+    val enlaceTexto: String?,
 )
 
 data class GalleryDraft(
@@ -39,6 +41,7 @@ data class GalleryDraft(
     val categoria: String?,
     val orden: Int,
     val enlace: String?,
+    val enlaceTexto: String?,
 )
 
 // ============ DTOs ============
@@ -54,12 +57,13 @@ data class GalleryItemDto(
     val orden: Int = 0,
     val activo: Boolean = true,
     val enlace: String? = null,
+    @SerialName("enlace_texto") val enlaceTexto: String? = null,
     @SerialName("created_at") val createdAt: String? = null,
 ) {
     fun toDomain() = GalleryItem(
         id = id, titulo = titulo, descripcion = descripcion, detalles = detalles,
         imagen = imagen, categoria = categoria, orden = orden, activo = activo,
-        enlace = enlace,
+        enlace = enlace, enlaceTexto = enlaceTexto,
     )
 }
 
@@ -72,6 +76,7 @@ data class NewGalleryItemDto(
     val categoria: String? = null,
     val orden: Int = 0,
     val enlace: String? = null,
+    @SerialName("enlace_texto") val enlaceTexto: String? = null,
 )
 
 // ============ Repositorio ============
@@ -139,6 +144,7 @@ class GalleryRepositoryImpl @Inject constructor(
                         categoria = draft.categoria,
                         orden = draft.orden,
                         enlace = draft.enlace,
+                        enlaceTexto = draft.enlaceTexto,
                     )
                 ) { select() }.decodeSingle<GalleryItemDto>()
             }.map { it.toDomain() }
@@ -156,6 +162,7 @@ class GalleryRepositoryImpl @Inject constructor(
                     set("orden", item.orden)
                     set("activo", item.activo)
                     set("enlace", item.enlace)
+                    set("enlace_texto", item.enlaceTexto)
                 }) {
                     select()
                     filter { eq("id", item.id) }

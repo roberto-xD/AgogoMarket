@@ -204,6 +204,7 @@ data class GalleryEditUiState(
     val categoria: String = "",
     val orden: String = "0",
     val enlace: String = "",
+    val enlaceTexto: String = "",
     val activo: Boolean = true,
     /** Ruta ya guardada en la tabla (relativa o URL). */
     val imagen: String? = null,
@@ -224,9 +225,14 @@ data class GalleryEditUiState(
             enlace.startsWith("https://") ||
             enlace.startsWith("/")
 
+    /** El rótulo sin destino no se guarda: el servidor lo rechaza. */
+    val rotuloSinEnlace: Boolean
+        get() = enlaceTexto.isNotBlank() && enlace.isBlank()
+
     val canSave: Boolean
         get() = !isSaving && titulo.isNotBlank() &&
-            orden.toIntOrNull() != null && enlaceValido &&
+            orden.toIntOrNull() != null && enlaceValido && !rotuloSinEnlace &&
+            enlaceTexto.length <= 40 &&
             (imagen != null || imagenPendiente != null)
 }
 
@@ -266,6 +272,7 @@ class GalleryEditViewModel @Inject constructor(
                             activo = item.activo,
                             imagen = item.imagen,
                             enlace = item.enlace.orEmpty(),
+                            enlaceTexto = item.enlaceTexto.orEmpty(),
                         )
                     }
                 }
@@ -281,6 +288,7 @@ class GalleryEditViewModel @Inject constructor(
     fun onCategoria(v: String) = _uiState.update { it.copy(categoria = v) }
     fun onOrden(v: String) = _uiState.update { it.copy(orden = v) }
     fun onEnlace(v: String) = _uiState.update { it.copy(enlace = v) }
+    fun onEnlaceTexto(v: String) = _uiState.update { it.copy(enlaceTexto = v) }
     fun onActivo(v: Boolean) = _uiState.update { it.copy(activo = v) }
     fun onImagePicked(uri: Uri?) = _uiState.update { it.copy(imagenPendiente = uri) }
     fun onAskDelete() = _uiState.update { it.copy(showDeleteConfirm = true) }
@@ -340,6 +348,7 @@ class GalleryEditViewModel @Inject constructor(
                         categoria = state.categoria.ifBlank { null },
                         orden = state.orden.toInt(),
                         enlace = state.enlace.trim().ifBlank { null },
+                        enlaceTexto = state.enlaceTexto.trim().ifBlank { null },
                     )
                 )
             } else {
@@ -354,6 +363,7 @@ class GalleryEditViewModel @Inject constructor(
                         orden = state.orden.toInt(),
                         activo = state.activo,
                         enlace = state.enlace.trim().ifBlank { null },
+                        enlaceTexto = state.enlaceTexto.trim().ifBlank { null },
                     )
                 )
             }
@@ -486,6 +496,27 @@ fun GalleryEditScreen(
                 )
             },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
+            modifier = Modifier.fillMaxWidth(),
+        )
+
+        Spacer(Modifier.height(8.dp))
+        OutlinedTextField(
+            value = state.enlaceTexto,
+            onValueChange = viewModel::onEnlaceTexto,
+            label = { Text("Texto del botón (opcional)") },
+            placeholder = { Text("Ver más, Comprar ahora…") },
+            singleLine = true,
+            enabled = state.enlace.isNotBlank(),
+            isError = state.rotuloSinEnlace || state.enlaceTexto.length > 40,
+            supportingText = {
+                Text(
+                    when {
+                        state.rotuloSinEnlace -> "Primero indica el enlace de destino"
+                        state.enlaceTexto.length > 40 -> "Máximo 40 caracteres"
+                        else -> "Vacío: la web usa su texto por defecto"
+                    }
+                )
+            },
             modifier = Modifier.fillMaxWidth(),
         )
 
