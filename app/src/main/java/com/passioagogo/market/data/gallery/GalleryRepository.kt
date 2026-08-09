@@ -95,11 +95,11 @@ class GalleryRepositoryImpl @Inject constructor(
         const val TABLE = "gallery_items"
 
         /**
-         * ⚠ AJUSTAR: bucket público que consume la web. La tabla guarda rutas
-         * relativas a él (p. ej. 'galeria/expo-2026.jpg'), así que este nombre
-         * debe coincidir con el que usa el sitio o las imágenes no cargarán allá.
+         * Bucket público que consume la web: las URLs del sitio tienen la forma
+         * /storage/v1/object/public/inventory/galeria/…, y la tabla guarda la
+         * ruta relativa a este bucket.
          */
-        const val BUCKET = "productos"
+        const val BUCKET = "inventory"
         const val FOLDER = "galeria"
     }
 
