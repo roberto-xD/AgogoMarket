@@ -92,8 +92,29 @@ class SuppliersViewModel @Inject constructor(
         }
     }
 
+    fun onDismissError() = _uiState.update { it.copy(errorMessage = null) }
+
+    /** Compara igual que el índice del servidor: sin espacios y sin mayúsculas. */
+    private fun String.normalizado() = trim().lowercase()
+
     fun onSave(draft: SupplierDraft, activo: Boolean) {
         val editing = _uiState.value.editing
+
+        // Aviso inmediato sin viaje al servidor. El índice único es la
+        // garantía real (cubre carreras entre dos dispositivos); esto solo
+        // evita el rechazo críptico en el caso normal.
+        val yaExiste = _uiState.value.suppliers.any { existente ->
+            existente.activo &&
+                existente.id != editing?.id &&
+                existente.nombre.normalizado() == draft.nombre.normalizado()
+        }
+        if (yaExiste && activo) {
+            _uiState.update {
+                it.copy(errorMessage = "Ya existe un proveedor activo con ese nombre")
+            }
+            return
+        }
+
         _uiState.update { it.copy(isSaving = true, errorMessage = null) }
         viewModelScope.launch {
             val result = if (editing == null) {
@@ -119,7 +140,17 @@ class SuppliersViewModel @Inject constructor(
                     refresh()
                 }
                 is DataResult.Error -> _uiState.update {
-                    it.copy(isSaving = false, errorMessage = result.error.toMessage())
+                    val mensaje = result.error.toMessage()
+                    it.copy(
+                        isSaving = false,
+                        errorMessage = if (mensaje.contains("uq_suppliers_nombre") ||
+                            mensaje.contains("duplicate key")
+                        ) {
+                            "Ya existe un proveedor activo con ese nombre"
+                        } else {
+                            mensaje
+                        },
+                    )
                 }
             }
         }
@@ -148,13 +179,16 @@ fun SuppliersScreen(viewModel: SuppliersViewModel = hiltViewModel()) {
                 )
             }
 
-            state.errorMessage?.let {
-                Text(
-                    it,
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                )
+            // Cuando el diálogo está abierto el error se muestra dentro de él
+            if (!state.showDialog) {
+                state.errorMessage?.let {
+                    Text(
+                        it,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                    )
+                }
             }
 
             LazyColumn {
@@ -207,8 +241,10 @@ fun SuppliersScreen(viewModel: SuppliersViewModel = hiltViewModel()) {
         SupplierDialog(
             editing = state.editing,
             isSaving = state.isSaving,
+            errorMessage = state.errorMessage,
             onDismiss = viewModel::onDismiss,
             onSave = viewModel::onSave,
+            onClearError = viewModel::onDismissError,
         )
     }
 }
@@ -217,8 +253,10 @@ fun SuppliersScreen(viewModel: SuppliersViewModel = hiltViewModel()) {
 private fun SupplierDialog(
     editing: Supplier?,
     isSaving: Boolean,
+    errorMessage: String?,
     onDismiss: () -> Unit,
     onSave: (SupplierDraft, Boolean) -> Unit,
+    onClearError: () -> Unit,
 ) {
     var nombre by remember { mutableStateOf(editing?.nombre ?: "") }
     var contacto by remember { mutableStateOf(editing?.contacto ?: "") }
@@ -234,8 +272,14 @@ private fun SupplierDialog(
         text = {
             Column {
                 OutlinedTextField(
-                    value = nombre, onValueChange = { nombre = it },
-                    label = { Text("Nombre") }, singleLine = true,
+                    value = nombre,
+                    onValueChange = { nombre = it; onClearError() },
+                    label = { Text("Nombre") },
+                    singleLine = true,
+                    isError = errorMessage != null,
+                    supportingText = errorMessage?.let { msg ->
+                        { Text(msg, color = MaterialTheme.colorScheme.error) }
+                    },
                 )
                 Spacer(Modifier.height(8.dp))
                 OutlinedTextField(
