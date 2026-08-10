@@ -74,6 +74,7 @@ import com.passioagogo.market.ui.admin.stats.StatsScreen
 import com.passioagogo.market.ui.admin.suppliers.SuppliersScreen
 import com.passioagogo.market.ui.admin.users.UsersScreen
 import com.passioagogo.market.ui.inventory.InventoryHomeScreen
+import com.passioagogo.market.ui.inventory.stocktake.StockTakeScreen
 import com.passioagogo.market.ui.inventory.transfers.CreateTransferScreen
 import com.passioagogo.market.ui.inventory.transfers.TransferDetailScreen
 import com.passioagogo.market.ui.orders.OrderDetailScreen
@@ -123,6 +124,7 @@ private fun titleFor(route: String?): String = when (route) {
     "inventario/home" -> "Inventario"
     "inventario/transfer/{transferId}" -> "Transferencia"
     "inventario/transfer_new" -> "Nueva transferencia"
+    "inventario/stocktake" -> "Registrar existencias"
     "admin/catalog" -> "Catálogo"
     "admin/product/{productId}" -> "Editar producto"
     "admin/product_new" -> "Nuevo producto"
@@ -331,6 +333,7 @@ private fun AppNavHost(
                     session = session,
                     onOpenTransfer = { id -> navController.navigate("inventario/transfer/$id") },
                     onCreateTransfer = { navController.navigate("inventario/transfer_new") },
+                    onOpenStockTake = { navController.navigate("inventario/stocktake") },
                 )
             }
             composable(
@@ -341,6 +344,12 @@ private fun AppNavHost(
             }
             composable("inventario/transfer_new") {
                 CreateTransferScreen(onCreated = { navController.popBackStack() })
+            }
+            // Ajuste directo de existencias: exclusivo de administración
+            if (esAdmin) {
+                composable("inventario/stocktake") {
+                    StockTakeScreen()
+                }
             }
         }
 

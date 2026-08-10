@@ -19,6 +19,7 @@ fun InventoryHomeScreen(
     session: SessionState.Authenticated,
     onOpenTransfer: (String) -> Unit,
     onCreateTransfer: () -> Unit,
+    onOpenStockTake: () -> Unit,
 ) {
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
 
@@ -36,7 +37,7 @@ fun InventoryHomeScreen(
             )
         }
         when (selectedTab) {
-            0 -> InventoryScreen(session = session)
+            0 -> InventoryScreen(session = session, onOpenStockTake = onOpenStockTake)
             1 -> TransfersListScreen(
                 onOpenTransfer = onOpenTransfer,
                 onCreateTransfer = onCreateTransfer,
