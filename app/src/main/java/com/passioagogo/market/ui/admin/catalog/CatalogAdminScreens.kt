@@ -34,6 +34,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
@@ -571,6 +572,7 @@ fun ProductEditScreen(
             dialog = dialog,
             isSaving = state.isSaving,
             onChange = viewModel::onVariantDialogChange,
+            onGenerateSku = viewModel::onGenerateSku,
             onDismiss = viewModel::onDismissVariantDialog,
             onSave = viewModel::onSaveVariant,
         )
@@ -582,6 +584,7 @@ private fun VariantDialog(
     dialog: VariantDialogState,
     isSaving: Boolean,
     onChange: (VariantDialogState) -> Unit,
+    onGenerateSku: () -> Unit,
     onDismiss: () -> Unit,
     onSave: () -> Unit,
 ) {
@@ -602,20 +605,31 @@ private fun VariantDialog(
                     label = { Text("SKU") },
                     singleLine = true,
                     trailingIcon = {
-                        IconButton(
-                            onClick = {
-                                val granted = ContextCompat.checkSelfPermission(
-                                    context, Manifest.permission.CAMERA
-                                ) == PackageManager.PERMISSION_GRANTED
-                                if (granted) scanning = true
-                                else permissionLauncher.launch(Manifest.permission.CAMERA)
-                            },
-                        ) {
-                            Icon(
-                                Icons.Filled.QrCodeScanner,
-                                contentDescription = "Escanear código de barras",
-                            )
+                        Row {
+                            IconButton(onClick = onGenerateSku) {
+                                Icon(
+                                    Icons.Filled.AutoAwesome,
+                                    contentDescription = "Generar SKU",
+                                )
+                            }
+                            IconButton(
+                                onClick = {
+                                    val granted = ContextCompat.checkSelfPermission(
+                                        context, Manifest.permission.CAMERA
+                                    ) == PackageManager.PERMISSION_GRANTED
+                                    if (granted) scanning = true
+                                    else permissionLauncher.launch(Manifest.permission.CAMERA)
+                                },
+                            ) {
+                                Icon(
+                                    Icons.Filled.QrCodeScanner,
+                                    contentDescription = "Escanear código de barras",
+                                )
+                            }
                         }
+                    },
+                    supportingText = {
+                        Text("Escanea el código de fábrica o genera uno interno")
                     },
                     modifier = Modifier.fillMaxWidth(),
                 )

@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.passioagogo.market.core.images.ImageCompressor
 import com.passioagogo.market.core.result.DataResult
+import com.passioagogo.market.core.sku.SkuGenerator
 import com.passioagogo.market.data.catalog.ProductImageRepository
 import com.passioagogo.market.domain.catalog.CatalogRepository
 import com.passioagogo.market.domain.catalog.Category
@@ -372,6 +373,25 @@ class ProductEditViewModel @Inject constructor(
 
     fun onDismissVariantDialog() = _uiState.update { it.copy(variantDialog = null) }
 
+    /**
+     * Propone un SKU libre. Comprueba contra el caché para no chocar con uno
+     * existente; la restricción UNIQUE de la columna es la garantía final.
+     */
+    fun onGenerateSku() {
+        val nombre = _uiState.value.nombre.ifBlank { "Producto" }
+        viewModelScope.launch {
+            var candidato = SkuGenerator.generate(nombre)
+            var intentos = 0
+            while (catalogRepository.findVariantBySku(candidato) != null && intentos < 5) {
+                candidato = SkuGenerator.generate(nombre)
+                intentos++
+            }
+            _uiState.update { state ->
+                state.copy(variantDialog = state.variantDialog?.copy(sku = candidato))
+            }
+        }
+    }
+
     fun onVariantDialogChange(dialog: VariantDialogState) =
         _uiState.update { it.copy(variantDialog = dialog) }
 
@@ -408,8 +428,19 @@ class ProductEditViewModel @Inject constructor(
                 when (result) {
                     is DataResult.Success ->
                         it.copy(isSaving = false, variantDialog = null)
-                    is DataResult.Error ->
-                        it.copy(isSaving = false, errorMessage = result.error.toMessage())
+                    is DataResult.Error -> {
+                        val mensaje = result.error.toMessage()
+                        it.copy(
+                            isSaving = false,
+                            errorMessage = if (mensaje.contains("product_variants_sku_key") ||
+                                mensaje.contains("duplicate key")
+                            ) {
+                                "Ese SKU ya está en uso por otra variante"
+                            } else {
+                                mensaje
+                            },
+                        )
+                    }
                 }
             }
         }
