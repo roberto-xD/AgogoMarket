@@ -217,12 +217,23 @@ class ProductEditViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(ProductEditUiState())
     val uiState: StateFlow<ProductEditUiState> = _uiState.asStateFlow()
 
-    init {
-        viewModelScope.launch {
-            val categories = catalogRepository
-                .observeCategories(includeInactive = false).first()
-            _uiState.update { it.copy(categories = categories) }
+    /** Evita reintentar el refresco en bucle si el catálogo está realmente vacío. */
+    private var refrescoIntentado = false
 
+    init {
+        // Reactivo, no una lectura única: si el caché aún no tenía categorías
+        // cuando se abrió la pantalla, el desplegable se puebla al llegar.
+        viewModelScope.launch {
+            catalogRepository.observeCategories(includeInactive = false).collect { cats ->
+                _uiState.update { it.copy(categories = cats) }
+                if (cats.isEmpty() && !refrescoIntentado) {
+                    refrescoIntentado = true
+                    catalogRepository.refreshCatalog()
+                }
+            }
+        }
+
+        viewModelScope.launch {
             if (initialProductId != null) {
                 val loaded = catalogRepository.observeProduct(initialProductId).first()
                 if (loaded != null) {
@@ -272,7 +283,22 @@ class ProductEditViewModel @Inject constructor(
 
     fun onSaveProduct() {
         val state = _uiState.value
-        if (!state.canSave) return
+        if (state.isSaving) return
+
+        // El botón permanece habilitado a propósito: un botón inerte sin
+        // explicación deja al usuario sin saber qué falta.
+        val problema = when {
+            state.nombre.isBlank() -> "Escribe el nombre del producto"
+            state.categories.isEmpty() ->
+                "No hay categorías activas. Crea una en Catálogo → Categorías."
+            state.categoryId == null -> "Elige una categoría"
+            else -> null
+        }
+        if (problema != null) {
+            _uiState.update { it.copy(errorMessage = problema) }
+            return
+        }
+
         _uiState.update { it.copy(isSaving = true, errorMessage = null) }
         viewModelScope.launch {
             val result = if (state.isNew) {

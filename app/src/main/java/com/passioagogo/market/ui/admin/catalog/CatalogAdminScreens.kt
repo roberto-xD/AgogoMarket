@@ -358,6 +358,10 @@ fun ProductEditScreen(
                 onValueChange = {},
                 readOnly = true,
                 label = { Text("Categoría") },
+                supportingText = if (state.categories.isEmpty()) {
+                    { Text("No hay categorías activas: crea una primero") }
+                } else null,
+                isError = state.categories.isEmpty(),
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
                 modifier = Modifier
                     .menuAnchor()
@@ -412,7 +416,7 @@ fun ProductEditScreen(
         Spacer(Modifier.height(8.dp))
         Button(
             onClick = viewModel::onSaveProduct,
-            enabled = state.canSave,
+            enabled = !state.isSaving,
             modifier = Modifier.fillMaxWidth(),
         ) {
             Text(
