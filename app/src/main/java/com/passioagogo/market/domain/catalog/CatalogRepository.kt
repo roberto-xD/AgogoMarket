@@ -20,8 +20,6 @@ data class Product(
     val descripcion: String?,
     val resumen: String?,
     val sobrePedido: Boolean,
-    val resumen: String?,
-    val sobrePedido: Boolean,
     val categoryId: String,
     val marca: String?,
     val attributes: JsonObject,
@@ -55,7 +53,6 @@ data class CategoryDraft(
 data class ProductDraft(
     val nombre: String,
     val descripcion: String? = null,
-    val resumen: String? = null,
     val resumen: String? = null,
     val sobrePedido: Boolean = false,
     val categoryId: String,

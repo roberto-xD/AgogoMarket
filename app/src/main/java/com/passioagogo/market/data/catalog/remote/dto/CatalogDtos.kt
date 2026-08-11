@@ -33,9 +33,6 @@ data class ProductDto(
     /** Se consigue por encargo aunque no esté activo en tienda. */
     @SerialName("sobre_pedido") val sobrePedido: Boolean = false,
     /** Texto corto para la tarjeta del catálogo web. */
-    val resumen: String? = null,
-    /** Se consigue por encargo aunque no esté disponible en tienda. */
-    @SerialName("sobre_pedido") val sobrePedido: Boolean = false,
     @SerialName("category_id") val categoryId: String,
     val marca: String? = null,
     val attributes: JsonObject = JsonObject(emptyMap()),
@@ -71,7 +68,6 @@ data class NewCategoryDto(
 data class NewProductDto(
     val nombre: String,
     val descripcion: String? = null,
-    val resumen: String? = null,
     val resumen: String? = null,
     @SerialName("sobre_pedido") val sobrePedido: Boolean = false,
     @SerialName("category_id") val categoryId: String,
