@@ -135,6 +135,8 @@ class CatalogRepositoryImpl @Inject constructor(
                     NewProductDto(
                         nombre = draft.nombre,
                         descripcion = draft.descripcion,
+                        resumen = draft.resumen,
+                        sobrePedido = draft.sobrePedido,
                         categoryId = draft.categoryId,
                         marca = draft.marca,
                         attributes = draft.attributes,
@@ -151,6 +153,8 @@ class CatalogRepositoryImpl @Inject constructor(
                 postgrest.from(PRODUCTS).update({
                     set("nombre", product.nombre)
                     set("descripcion", product.descripcion)
+                    set("resumen", product.resumen)
+                    set("sobre_pedido", product.sobrePedido)
                     set("category_id", product.categoryId)
                     set("marca", product.marca)
                     set("attributes", product.attributes)

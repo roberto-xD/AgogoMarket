@@ -29,6 +29,8 @@ data class ProductEntity(
     @PrimaryKey val id: String,
     val nombre: String,
     val descripcion: String?,
+    val resumen: String?,
+    val sobrePedido: Boolean,
     val categoryId: String,
     val marca: String?,
     val attributesJson: String,

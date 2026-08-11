@@ -35,6 +35,7 @@ fun CategoryDto.toEntity() = CategoryEntity(
 
 fun ProductDto.toEntity() = ProductEntity(
     id = id, nombre = nombre, descripcion = descripcion,
+    resumen = resumen, sobrePedido = sobrePedido,
     categoryId = categoryId, marca = marca,
     attributesJson = attributes.toString(),
     imagenesJson = json.encodeToString(ListSerializer(String.serializer()), imagenes),
@@ -57,6 +58,7 @@ fun CategoryEntity.toDomain() = Category(
 
 fun ProductEntity.toDomain() = Product(
     id = id, nombre = nombre, descripcion = descripcion,
+    resumen = resumen, sobrePedido = sobrePedido,
     categoryId = categoryId, marca = marca,
     attributes = attributesJson.toJsonObject(),
     imagenes = imagenesJson.toStringList(),

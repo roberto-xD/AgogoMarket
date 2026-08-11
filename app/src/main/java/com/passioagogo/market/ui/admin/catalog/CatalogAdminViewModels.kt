@@ -187,6 +187,8 @@ data class ProductEditUiState(
     val productId: String? = null,
     val nombre: String = "",
     val descripcion: String = "",
+    val resumen: String = "",
+    val sobrePedido: Boolean = false,
     val marca: String = "",
     val categoryId: String? = null,
     val attributesText: String = "",
@@ -202,6 +204,8 @@ data class ProductEditUiState(
 ) {
     val isNew: Boolean get() = productId == null
     val canSave: Boolean get() = !isSaving && nombre.isNotBlank() && categoryId != null
+    /** El CHECK del servidor limita el resumen a 160 caracteres. */
+    val resumenValido: Boolean get() = resumen.length <= 160
 }
 
 @HiltViewModel
@@ -243,6 +247,8 @@ class ProductEditViewModel @Inject constructor(
                             productId = loaded.product.id,
                             nombre = loaded.product.nombre,
                             descripcion = loaded.product.descripcion.orEmpty(),
+                            resumen = loaded.product.resumen.orEmpty(),
+                            sobrePedido = loaded.product.sobrePedido,
                             marca = loaded.product.marca.orEmpty(),
                             categoryId = loaded.product.categoryId,
                             attributesText = loaded.product.attributes.toAttributesText(),
@@ -276,10 +282,14 @@ class ProductEditViewModel @Inject constructor(
 
     fun onNombreChange(v: String) = _uiState.update { it.copy(nombre = v) }
     fun onDescripcionChange(v: String) = _uiState.update { it.copy(descripcion = v) }
+    fun onResumenChange(v: String) = _uiState.update { it.copy(resumen = v) }
+    fun onSobrePedidoChange(v: Boolean) = _uiState.update { it.copy(sobrePedido = v) }
     fun onMarcaChange(v: String) = _uiState.update { it.copy(marca = v) }
     fun onCategorySelected(id: String) = _uiState.update { it.copy(categoryId = id) }
     fun onAttributesChange(v: String) = _uiState.update { it.copy(attributesText = v) }
-    fun onActivoChange(v: Boolean) = _uiState.update { it.copy(activo = v) }
+    fun onActivoChange(v: Boolean) = _uiState.update {
+        if (v) it.copy(activo = true, sobrePedido = false) else it.copy(activo = false)
+    }
 
     fun onSaveProduct() {
         val state = _uiState.value
@@ -292,6 +302,7 @@ class ProductEditViewModel @Inject constructor(
             state.categories.isEmpty() ->
                 "No hay categorías activas. Crea una en Catálogo → Categorías."
             state.categoryId == null -> "Elige una categoría"
+            !state.resumenValido -> "El resumen no puede pasar de 160 caracteres"
             else -> null
         }
         if (problema != null) {
@@ -306,6 +317,7 @@ class ProductEditViewModel @Inject constructor(
                     ProductDraft(
                         nombre = state.nombre.trim(),
                         descripcion = state.descripcion.ifBlank { null },
+                        resumen = state.resumen.trim().ifBlank { null },
                         categoryId = state.categoryId!!,
                         marca = state.marca.ifBlank { null },
                         attributes = state.attributesText.toAttributesJson(),
@@ -317,6 +329,8 @@ class ProductEditViewModel @Inject constructor(
                         id = state.productId!!,
                         nombre = state.nombre.trim(),
                         descripcion = state.descripcion.ifBlank { null },
+                        resumen = state.resumen.trim().ifBlank { null },
+                        sobrePedido = state.sobrePedido,
                         categoryId = state.categoryId!!,
                         marca = state.marca.ifBlank { null },
                         attributes = state.attributesText.toAttributesJson(),
@@ -455,6 +469,8 @@ class ProductEditViewModel @Inject constructor(
                 id = productId,
                 nombre = state.nombre.trim(),
                 descripcion = state.descripcion.ifBlank { null },
+                resumen = state.resumen.trim().ifBlank { null },
+                sobrePedido = state.sobrePedido,
                 categoryId = state.categoryId ?: return,
                 marca = state.marca.ifBlank { null },
                 attributes = state.attributesText.toAttributesJson(),

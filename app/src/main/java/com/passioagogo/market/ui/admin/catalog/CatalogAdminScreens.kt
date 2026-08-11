@@ -153,7 +153,8 @@ fun CatalogAdminScreen(
                                 Text(pw.product.nombre, style = MaterialTheme.typography.bodyLarge)
                                 Text(
                                     "${pw.variants.size} variante(s)" +
-                                        (pw.product.marca?.let { " · $it" } ?: ""),
+                                        (pw.product.marca?.let { " · $it" } ?: "") +
+                                        (if (pw.product.sobrePedido) " · sobre pedido" else ""),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
@@ -384,9 +385,18 @@ fun ProductEditScreen(
         Spacer(Modifier.height(8.dp))
 
         OutlinedTextField(
+            value = state.resumen,
+            onValueChange = viewModel::onResumenChange,
+            label = { Text("Resumen (tarjeta del catálogo web)") },
+            supportingText = { Text("${state.resumen.length}/160") },
+            isError = !state.resumenValido,
+            modifier = Modifier.fillMaxWidth(),
+        )
+        Spacer(Modifier.height(8.dp))
+        OutlinedTextField(
             value = state.descripcion,
             onValueChange = viewModel::onDescripcionChange,
-            label = { Text("Descripción") },
+            label = { Text("Descripción (ficha ampliada)") },
             modifier = Modifier.fillMaxWidth(),
         )
         Spacer(Modifier.height(8.dp))
@@ -401,9 +411,30 @@ fun ProductEditScreen(
             Spacer(Modifier.height(8.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Switch(checked = state.activo, onCheckedChange = viewModel::onActivoChange)
-                Spacer(Modifier.height(0.dp))
                 Text("  Activo")
             }
+            // Solo tiene sentido en productos inactivos: distingue
+            // "descatalogado" de "no lo tenemos, pero te lo conseguimos".
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Switch(
+                    checked = state.sobrePedido,
+                    onCheckedChange = viewModel::onSobrePedidoChange,
+                    enabled = !state.activo,
+                )
+                Text(
+                    "  Sobre pedido",
+                    color = if (state.activo) MaterialTheme.colorScheme.onSurfaceVariant
+                    else MaterialTheme.colorScheme.onSurface,
+                )
+            }
+            Text(
+                text = if (state.activo)
+                    "Disponible solo al desactivar el producto."
+                else
+                    "Se mostrará en la web como disponible por encargo.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
 
         state.errorMessage?.let {
