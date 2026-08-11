@@ -62,8 +62,10 @@ data class NewAttributePresetDto(
 )
 
 interface AttributePresetRepository {
-    suspend fun getPresets(): DataResult<List<AttributePreset>>
+    suspend fun getPresets(includeInactive: Boolean = false): DataResult<List<AttributePreset>>
     suspend fun createPreset(draft: AttributePresetDraft): DataResult<AttributePreset>
+    suspend fun updatePreset(preset: AttributePreset): DataResult<AttributePreset>
+    /** Borrado lógico: los productos que ya usan el par no se ven afectados. */
     suspend fun deletePreset(id: String): DataResult<Unit>
 }
 
@@ -75,10 +77,12 @@ class AttributePresetRepositoryImpl @Inject constructor(
 
     private companion object { const val TABLE = "attribute_presets" }
 
-    override suspend fun getPresets(): DataResult<List<AttributePreset>> = withContext(io) {
+    override suspend fun getPresets(
+        includeInactive: Boolean,
+    ): DataResult<List<AttributePreset>> = withContext(io) {
         safeSupabaseCall {
             postgrest.from(TABLE).select {
-                filter { eq("activo", true) }
+                if (!includeInactive) filter { eq("activo", true) }
                 order("orden", Order.ASCENDING)
                 order("created_at", Order.ASCENDING)
             }.decodeList<AttributePresetDto>()
@@ -99,6 +103,23 @@ class AttributePresetRepositoryImpl @Inject constructor(
             ) { select() }.decodeSingle<AttributePresetDto>()
         }.map { it.toDomain() }
     }
+
+    override suspend fun updatePreset(preset: AttributePreset): DataResult<AttributePreset> =
+        withContext(io) {
+            safeSupabaseCall {
+                postgrest.from(TABLE).update({
+                    set("clave", preset.clave.trim().lowercase())
+                    set("valor", preset.valor.trim())
+                    set("identificador", preset.identificador.trim())
+                    set("emoji", preset.emoji?.trim()?.ifBlank { null })
+                    set("orden", preset.orden)
+                    set("activo", preset.activo)
+                }) {
+                    select()
+                    filter { eq("id", preset.id) }
+                }.decodeSingle<AttributePresetDto>()
+            }.map { it.toDomain() }
+        }
 
     override suspend fun deletePreset(id: String): DataResult<Unit> = withContext(io) {
         safeSupabaseCall {

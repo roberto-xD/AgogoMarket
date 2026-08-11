@@ -13,6 +13,7 @@ import androidx.compose.material.icons.automirrored.filled.ReceiptLong
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.Collections
+import androidx.compose.material.icons.filled.Label
 import androidx.compose.material.icons.filled.MarkEmailUnread
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Inventory2
@@ -58,6 +59,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.passioagogo.market.domain.auth.SessionState
 import com.passioagogo.market.domain.common.UserRole
+import com.passioagogo.market.ui.admin.attributes.AttributePresetsScreen
 import com.passioagogo.market.ui.admin.catalog.CatalogAdminScreen
 import com.passioagogo.market.ui.admin.catalog.ProductEditScreen
 import com.passioagogo.market.ui.admin.contact.ContactMessagesScreen
@@ -107,6 +109,7 @@ private enum class DrawerSection(
     USUARIOS("admin/users", "Usuarios", Icons.Filled.ManageAccounts),
     UBICACIONES("admin/locations", "Ubicaciones", Icons.Filled.Store),
     CLIENTES("admin/customers", "Clientes", Icons.Filled.Groups),
+    ETIQUETAS("admin/presets", "Etiquetas de atributos", Icons.Filled.Label),
     ESTADISTICAS("admin/stats", "Estadísticas", Icons.Filled.BarChart),
     GALERIA("admin/gallery", "Galería web", Icons.Filled.Collections),
     MENSAJES("admin/contact", "Mensajes de contacto", Icons.Filled.MarkEmailUnread),
@@ -138,6 +141,7 @@ private fun titleFor(route: String?): String = when (route) {
     "admin/users" -> "Usuarios"
     "admin/locations" -> "Ubicaciones"
     "admin/customers" -> "Clientes"
+    "admin/presets" -> "Etiquetas de atributos"
     "admin/stats" -> "Estadísticas"
     "admin/gallery" -> "Galería web"
     "admin/gallery/{itemId}" -> "Editar elemento"
@@ -419,6 +423,9 @@ private fun AppNavHost(
             }
             composable("admin/customers") {
                 CustomersScreen()
+            }
+            composable("admin/presets") {
+                AttributePresetsScreen()
             }
             composable("admin/stats") {
                 StatsScreen()
