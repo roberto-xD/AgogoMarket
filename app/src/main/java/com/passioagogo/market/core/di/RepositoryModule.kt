@@ -12,8 +12,6 @@ import com.passioagogo.market.data.auth.SupabaseAuthRepository
 import com.passioagogo.market.data.contact.ContactRepository
 import com.passioagogo.market.data.contact.ContactRepositoryImpl
 import com.passioagogo.market.data.customers.CustomerRepository
-import com.passioagogo.market.data.contact.ContactRepository
-import com.passioagogo.market.data.contact.ContactRepositoryImpl
 import com.passioagogo.market.data.customers.CustomerRepositoryImpl
 import com.passioagogo.market.data.gallery.GalleryRepository
 import com.passioagogo.market.data.gallery.GalleryRepositoryImpl

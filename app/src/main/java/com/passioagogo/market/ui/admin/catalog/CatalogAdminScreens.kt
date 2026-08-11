@@ -70,6 +70,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -320,6 +321,7 @@ fun ProductEditScreen(
     viewModel: ProductEditViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsState()
+    val keyboardController = LocalSoftwareKeyboardController.current
 
     if (state.isLoading) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -415,7 +417,10 @@ fun ProductEditScreen(
 
         Spacer(Modifier.height(8.dp))
         Button(
-            onClick = viewModel::onSaveProduct,
+            onClick = {
+                keyboardController?.hide()
+                viewModel.onSaveProduct()
+            },
             enabled = !state.isSaving,
             modifier = Modifier.fillMaxWidth(),
         ) {
