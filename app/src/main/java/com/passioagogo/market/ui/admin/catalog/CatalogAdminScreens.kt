@@ -36,6 +36,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
@@ -52,6 +53,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Tab
@@ -76,6 +78,7 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.passioagogo.market.domain.catalog.Category
+import com.passioagogo.market.ui.admin.catalog.attributes.AttributePickerDialog
 
 // ============ Catálogo: productos + categorías ============
 
@@ -401,12 +404,22 @@ fun ProductEditScreen(
             modifier = Modifier.fillMaxWidth(),
         )
         Spacer(Modifier.height(8.dp))
-        OutlinedTextField(
-            value = state.attributesText,
-            onValueChange = viewModel::onAttributesChange,
-            label = { Text("Atributos (una línea: clave: valor)") },
-            modifier = Modifier.fillMaxWidth(),
+        var showProductAttrs by remember { mutableStateOf(false) }
+        AttributeSelectorField(
+            label = "Atributos del producto",
+            attributesText = state.attributesText,
+            onClick = { showProductAttrs = true },
         )
+        if (showProductAttrs) {
+            AttributePickerDialog(
+                actuales = state.attributesText.toAttributesJson(),
+                onDismiss = { showProductAttrs = false },
+                onConfirm = { json ->
+                    viewModel.onAttributesChange(json.toAttributesText())
+                    showProductAttrs = false
+                },
+            )
+        }
 
         if (!state.isNew) {
             Spacer(Modifier.height(8.dp))
@@ -590,6 +603,7 @@ private fun VariantDialog(
 ) {
     val context = LocalContext.current
     var scanning by remember { mutableStateOf(false) }
+    var showAttrs by remember { mutableStateOf(false) }
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { granted -> if (granted) scanning = true }
@@ -652,11 +666,10 @@ private fun VariantDialog(
                     modifier = Modifier.fillMaxWidth(),
                 )
                 Spacer(Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = dialog.attributesText,
-                    onValueChange = { onChange(dialog.copy(attributesText = it)) },
-                    label = { Text("Atributos (clave: valor)") },
-                    modifier = Modifier.fillMaxWidth(),
+                AttributeSelectorField(
+                    label = "Atributos de la variante",
+                    attributesText = dialog.attributesText,
+                    onClick = { showAttrs = true },
                 )
                 if (dialog.editing != null) {
                     Spacer(Modifier.height(8.dp))
@@ -677,6 +690,17 @@ private fun VariantDialog(
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Cancelar") } },
     )
+
+    if (showAttrs) {
+        AttributePickerDialog(
+            actuales = dialog.attributesText.toAttributesJson(),
+            onDismiss = { showAttrs = false },
+            onConfirm = { json ->
+                onChange(dialog.copy(attributesText = json.toAttributesText()))
+                showAttrs = false
+            },
+        )
+    }
 
     if (scanning) {
         SkuScannerDialog(
@@ -781,6 +805,41 @@ private fun ProductImageThumb(
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.primary,
             )
+        }
+    }
+}
+
+
+/** Campo de solo lectura que resume los atributos y abre el selector. */
+@Composable
+private fun AttributeSelectorField(
+    label: String,
+    attributesText: String,
+    onClick: () -> Unit,
+) {
+    val resumen = attributesText.lines()
+        .filter { it.isNotBlank() }
+        .joinToString(" · ") { it.trim() }
+
+    OutlinedCard(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(Modifier.weight(1f)) {
+                Text(label, style = MaterialTheme.typography.labelMedium)
+                Text(
+                    text = resumen.ifBlank { "Sin atributos: toca para elegir" },
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = if (resumen.isBlank())
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    else MaterialTheme.colorScheme.onSurface,
+                )
+            }
+            Icon(Icons.Filled.Tune, contentDescription = null)
         }
     }
 }

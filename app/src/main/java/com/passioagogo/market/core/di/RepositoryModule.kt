@@ -1,5 +1,7 @@
 package com.passioagogo.market.core.di
 
+import com.passioagogo.market.data.attributes.AttributePresetRepository
+import com.passioagogo.market.data.attributes.AttributePresetRepositoryImpl
 import com.passioagogo.market.data.catalog.CatalogRepositoryImpl
 import com.passioagogo.market.data.catalog.ProductImageRepository
 import com.passioagogo.market.data.catalog.ProductImageRepositoryImpl
@@ -41,6 +43,12 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindCatalogRepository(impl: CatalogRepositoryImpl): CatalogRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindAttributePresetRepository(
+        impl: AttributePresetRepositoryImpl,
+    ): AttributePresetRepository
 
     @Binds
     @Singleton
