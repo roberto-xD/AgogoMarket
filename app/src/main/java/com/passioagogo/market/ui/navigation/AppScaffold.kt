@@ -14,6 +14,7 @@ import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.Collections
 import androidx.compose.material.icons.filled.Event
+import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.Label
 import androidx.compose.material.icons.filled.MarkEmailUnread
 import androidx.compose.material.icons.filled.Groups
@@ -67,6 +68,8 @@ import com.passioagogo.market.ui.admin.contact.ContactMessagesScreen
 import com.passioagogo.market.ui.admin.customers.CustomersScreen
 import com.passioagogo.market.ui.admin.events.EventEditScreen
 import com.passioagogo.market.ui.admin.events.EventsListScreen
+import com.passioagogo.market.ui.admin.guides.GuideEditScreen
+import com.passioagogo.market.ui.admin.guides.GuidesListScreen
 import com.passioagogo.market.ui.admin.gallery.GalleryEditScreen
 import com.passioagogo.market.ui.admin.gallery.GalleryListScreen
 import com.passioagogo.market.ui.admin.locations.LocationsScreen
@@ -116,6 +119,7 @@ private enum class DrawerSection(
     ESTADISTICAS("admin/stats", "Estadísticas", Icons.Filled.BarChart),
     GALERIA("admin/gallery", "Galería web", Icons.Filled.Collections),
     EVENTOS("admin/events", "Eventos", Icons.Filled.Event),
+    GUIAS("admin/guides", "Uso y cuidados", Icons.AutoMirrored.Filled.MenuBook),
     MENSAJES("admin/contact", "Mensajes de contacto", Icons.Filled.MarkEmailUnread),
 }
 
@@ -149,6 +153,9 @@ private fun titleFor(route: String?): String = when (route) {
     "admin/stats" -> "Estadísticas"
     "admin/gallery" -> "Galería web"
     "admin/events" -> "Eventos"
+    "admin/guides" -> "Uso y cuidados"
+    "admin/guide/{guideId}" -> "Editar guía"
+    "admin/guide_new" -> "Nueva guía"
     "admin/event/{eventId}" -> "Editar evento"
     "admin/event_new" -> "Nuevo evento"
     "admin/gallery/{itemId}" -> "Editar elemento"
@@ -469,6 +476,21 @@ private fun AppNavHost(
             }
             composable("admin/event_new") {
                 EventEditScreen(onSaved = { navController.popBackStack() })
+            }
+            composable("admin/guides") {
+                GuidesListScreen(
+                    onOpenGuide = { id -> navController.navigate("admin/guide/$id") },
+                    onNewGuide = { navController.navigate("admin/guide_new") },
+                )
+            }
+            composable(
+                route = "admin/guide/{guideId}",
+                arguments = listOf(navArgument("guideId") { type = NavType.StringType }),
+            ) {
+                GuideEditScreen(onSaved = { navController.popBackStack() })
+            }
+            composable("admin/guide_new") {
+                GuideEditScreen(onSaved = { navController.popBackStack() })
             }
         }
     }

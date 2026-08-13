@@ -18,9 +18,13 @@ import com.passioagogo.market.data.customers.CustomerRepositoryImpl
 import com.passioagogo.market.data.events.EventRepository
 import com.passioagogo.market.data.events.EventRepositoryImpl
 import com.passioagogo.market.data.gallery.GalleryRepository
+import com.passioagogo.market.data.guides.GuideRepository
+import com.passioagogo.market.data.guides.GuideRepositoryImpl
 import com.passioagogo.market.data.events.EventRepository
 import com.passioagogo.market.data.events.EventRepositoryImpl
-import com.passioagogo.market.data.gallery.GalleryRepositoryImpl
+import com.passioagogo.market.data.gallery.GalleryRepository
+import com.passioagogo.market.data.guides.GuideRepository
+import com.passioagogo.market.data.guides.GuideRepositoryImplImpl
 import com.passioagogo.market.data.promotions.PromotionRepositoryImpl
 import com.passioagogo.market.data.purchases.PurchaseRepositoryImpl
 import com.passioagogo.market.data.stats.StatsRepository
@@ -113,4 +117,8 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindEventRepository(impl: EventRepositoryImpl): EventRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindGuideRepository(impl: GuideRepositoryImpl): GuideRepository
 }
