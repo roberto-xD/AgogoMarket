@@ -63,6 +63,7 @@ import com.passioagogo.market.domain.auth.SessionState
 import com.passioagogo.market.domain.common.UserRole
 import com.passioagogo.market.ui.admin.attributes.AttributePresetsScreen
 import com.passioagogo.market.ui.admin.catalog.CatalogAdminScreen
+import com.passioagogo.market.ui.catalog.browse.ProductDetailScreen
 import com.passioagogo.market.ui.admin.catalog.ProductEditScreen
 import com.passioagogo.market.ui.admin.contact.ContactMessagesScreen
 import com.passioagogo.market.ui.admin.customers.CustomersScreen
@@ -124,7 +125,7 @@ private enum class DrawerSection(
 }
 
 private val ADMIN_SECTIONS = DrawerSection.entries
-private val VENDEDOR_SECTIONS = listOf(DrawerSection.PROMOCIONES)
+private val VENDEDOR_SECTIONS = listOf(DrawerSection.CATALOGO, DrawerSection.PROMOCIONES)
 
 /** Título de la barra superior según la ruta activa. */
 private fun titleFor(route: String?): String = when (route) {
@@ -137,6 +138,7 @@ private fun titleFor(route: String?): String = when (route) {
     "inventario/transfer_new" -> "Nueva transferencia"
     "inventario/stocktake" -> "Registrar existencias"
     "admin/catalog" -> "Catálogo"
+    "catalogo/producto/{productId}" -> "Ficha del producto"
     "admin/product/{productId}" -> "Editar producto"
     "admin/product_new" -> "Nuevo producto"
     "admin/suppliers" -> "Proveedores"
@@ -391,16 +393,26 @@ private fun AppNavHost(
             )
         }
 
+        // ---------- Catálogo: todo el staff ----------
+        // El vendedor entra siempre en modo consulta; el admin puede alternar.
+        composable("admin/catalog") {
+            CatalogAdminScreen(
+                onOpenProduct = { id -> navController.navigate("admin/product/$id") },
+                onNewProduct = { navController.navigate("admin/product_new") },
+                onViewProduct = { id -> navController.navigate("catalogo/producto/$id") },
+            )
+        }
+        composable(
+            route = "catalogo/producto/{productId}",
+            arguments = listOf(navArgument("productId") { type = NavType.StringType }),
+        ) {
+            ProductDetailScreen()
+        }
+
         // ---------- Panel lateral: solo admin ----------
         if (esAdmin) {
             composable("admin/promotion_new") {
                 PromotionEditScreen(onSaved = { navController.popBackStack() })
-            }
-            composable("admin/catalog") {
-                CatalogAdminScreen(
-                    onOpenProduct = { id -> navController.navigate("admin/product/$id") },
-                    onNewProduct = { navController.navigate("admin/product_new") },
-                )
             }
             composable(
                 route = "admin/product/{productId}",

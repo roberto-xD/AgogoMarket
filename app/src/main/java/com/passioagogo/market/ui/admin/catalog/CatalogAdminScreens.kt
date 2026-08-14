@@ -86,6 +86,7 @@ import com.passioagogo.market.ui.admin.catalog.attributes.AttributePickerDialog
 fun CatalogAdminScreen(
     onOpenProduct: (String) -> Unit,
     onNewProduct: () -> Unit,
+    onViewProduct: (String) -> Unit,
     viewModel: CatalogAdminViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsState()
@@ -112,13 +113,37 @@ fun CatalogAdminScreen(
                         modifier = Modifier.weight(1f),
                     )
                 }
-                FilterChip(
-                    selected = state.showInactive,
-                    onClick = { viewModel.onToggleInactive(!state.showInactive) },
-                    label = { Text("Ver inactivos") },
-                )
+                if (!state.modoConsulta) {
+                    FilterChip(
+                        selected = state.showInactive,
+                        onClick = { viewModel.onToggleInactive(!state.showInactive) },
+                        label = { Text("Ver inactivos") },
+                    )
+                }
                 IconButton(onClick = viewModel::refresh, enabled = !state.isRefreshing) {
                     Icon(Icons.Filled.Refresh, contentDescription = "Actualizar")
+                }
+            }
+
+            if (!state.soloLectura) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Switch(
+                        checked = state.modoConsulta,
+                        onCheckedChange = viewModel::onToggleConsulta,
+                    )
+                    Column(Modifier.padding(start = 8.dp)) {
+                        Text("Modo consulta", style = MaterialTheme.typography.bodyMedium)
+                        Text(
+                            if (state.modoConsulta)
+                                "Solo lectura: toca un producto para ver su ficha"
+                            else "Edición habilitada",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                 }
             }
 
@@ -137,7 +162,10 @@ fun CatalogAdminScreen(
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clickable { onOpenProduct(pw.product.id) }
+                                .clickable {
+                                    if (state.modoConsulta) onViewProduct(pw.product.id)
+                                    else onOpenProduct(pw.product.id)
+                                }
                                 .padding(horizontal = 16.dp, vertical = 10.dp),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
@@ -158,7 +186,11 @@ fun CatalogAdminScreen(
                                 Text(
                                     "${pw.variants.size} variante(s)" +
                                         (pw.product.marca?.let { " · $it" } ?: "") +
-                                        (if (pw.product.sobrePedido) " · sobre pedido" else ""),
+                                        (if (pw.product.sobrePedido) " · sobre pedido" else "") +
+                                        (if (state.modoConsulta) {
+                                            pw.variants.minOfOrNull { it.precioVenta }
+                                                ?.let { " · desde $it" } ?: ""
+                                        } else ""),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
@@ -173,7 +205,9 @@ fun CatalogAdminScreen(
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clickable { viewModel.onEditCategory(category) }
+                                .clickable(enabled = !state.modoConsulta) {
+                                    viewModel.onEditCategory(category)
+                                }
                                 .padding(horizontal = 16.dp, vertical = 12.dp),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
@@ -197,13 +231,15 @@ fun CatalogAdminScreen(
             }
         }
 
-        FloatingActionButton(
-            onClick = { if (selectedTab == 0) onNewProduct() else viewModel.onNewCategory() },
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(16.dp),
-        ) {
-            Icon(Icons.Filled.Add, contentDescription = "Nuevo")
+        if (!state.modoConsulta) {
+            FloatingActionButton(
+                onClick = { if (selectedTab == 0) onNewProduct() else viewModel.onNewCategory() },
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(16.dp),
+            ) {
+                Icon(Icons.Filled.Add, contentDescription = "Nuevo")
+            }
         }
     }
 

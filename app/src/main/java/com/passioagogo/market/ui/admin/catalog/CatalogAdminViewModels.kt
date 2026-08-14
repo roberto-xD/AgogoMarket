@@ -55,6 +55,13 @@ data class CatalogAdminUiState(
     val categories: List<Category> = emptyList(),
     val query: String = "",
     val showInactive: Boolean = false,
+    /**
+     * Consulta: sin edición ni altas. Es el modo obligado del promotor y
+     * opcional para vendedor y admin, que lo usan para mostrar producto.
+     */
+    val modoConsulta: Boolean = false,
+    /** true si el rol no puede editar el catálogo en ningún caso. */
+    val soloLectura: Boolean = false,
     val isRefreshing: Boolean = false,
     val errorMessage: String? = null,
     /** Categoría en edición en el diálogo (null = diálogo cerrado). */
@@ -64,7 +71,13 @@ data class CatalogAdminUiState(
 ) {
     val filteredProducts: List<ProductWithVariants>
         get() {
-            val base = if (showInactive) products else products.filter { it.product.activo }
+            val base = when {
+                // En consulta se muestran los activos y los que se consiguen
+                // por encargo; nunca los descatalogados.
+                modoConsulta -> products.filter { it.product.activo || it.product.sobrePedido }
+                showInactive -> products
+                else -> products.filter { it.product.activo }
+            }
             if (query.isBlank()) return base
             val q = query.trim().lowercase()
             return base.filter { pw ->
@@ -81,12 +94,20 @@ data class CatalogAdminUiState(
 @HiltViewModel
 class CatalogAdminViewModel @Inject constructor(
     private val catalogRepository: CatalogRepository,
+    authRepository: com.passioagogo.market.domain.auth.AuthRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CatalogAdminUiState())
     val uiState: StateFlow<CatalogAdminUiState> = _uiState.asStateFlow()
 
     init {
+        val sesion = authRepository.sessionState.value
+            as? com.passioagogo.market.domain.auth.SessionState.Authenticated
+        val puedeEditar = sesion?.isAdmin == true
+        _uiState.update {
+            it.copy(soloLectura = !puedeEditar, modoConsulta = !puedeEditar)
+        }
+
         viewModelScope.launch {
             catalogRepository.observeAllProducts().collect { products ->
                 _uiState.update { it.copy(products = products) }
@@ -102,6 +123,10 @@ class CatalogAdminViewModel @Inject constructor(
 
     fun onQueryChange(value: String) = _uiState.update { it.copy(query = value) }
     fun onToggleInactive(show: Boolean) = _uiState.update { it.copy(showInactive = show) }
+
+    fun onToggleConsulta(activo: Boolean) = _uiState.update {
+        if (it.soloLectura) it else it.copy(modoConsulta = activo)
+    }
 
     fun refresh() {
         _uiState.update { it.copy(isRefreshing = true, errorMessage = null) }
