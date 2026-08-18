@@ -28,6 +28,15 @@ enum class UserRole {
     @SerialName("admin") ADMIN,
     @SerialName("vendedor") VENDEDOR,
     @SerialName("cliente") CLIENTE,
+    /** Muestra catálogo y levanta solicitudes; sin tienda ni inventario. */
+    @SerialName("promotor") PROMOTOR,
+}
+
+@Serializable
+enum class RequestStatus {
+    @SerialName("enviada") ENVIADA,
+    @SerialName("atendida") ATENDIDA,
+    @SerialName("rechazada") RECHAZADA,
 }
 
 @Serializable

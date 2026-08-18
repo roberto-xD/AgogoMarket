@@ -31,6 +31,9 @@ sealed interface SessionState {
         val isAdmin: Boolean get() = profile.rol == UserRole.ADMIN
         val isStaff: Boolean get() = profile.rol == UserRole.ADMIN || profile.rol == UserRole.VENDEDOR
 
+        /** Solo consulta el catálogo y levanta solicitudes de pedido. */
+        val isPromotor: Boolean get() = profile.rol == UserRole.PROMOTOR
+
         /**
          * Estado degenerado documentado en el esquema: un vendedor sin
          * location_id no verá pedidos (RLS). La UI debe mostrar un aviso

@@ -26,6 +26,8 @@ import com.passioagogo.market.data.gallery.GalleryRepository
 import com.passioagogo.market.data.guides.GuideRepository
 import com.passioagogo.market.data.guides.GuideRepositoryImplImpl
 import com.passioagogo.market.data.promotions.PromotionRepositoryImpl
+import com.passioagogo.market.data.requests.OrderRequestRepository
+import com.passioagogo.market.data.requests.OrderRequestRepositoryImpl
 import com.passioagogo.market.data.purchases.PurchaseRepositoryImpl
 import com.passioagogo.market.data.stats.StatsRepository
 import com.passioagogo.market.data.stats.StatsRepositoryImpl
@@ -121,4 +123,10 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindGuideRepository(impl: GuideRepositoryImpl): GuideRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindOrderRequestRepository(
+        impl: OrderRequestRepositoryImpl,
+    ): OrderRequestRepository
 }

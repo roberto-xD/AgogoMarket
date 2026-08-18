@@ -46,6 +46,10 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import coil.compose.AsyncImage
+import com.passioagogo.market.data.requests.RequestCart
+import com.passioagogo.market.data.requests.RequestCartItem
+import com.passioagogo.market.domain.auth.AuthRepository
+import com.passioagogo.market.domain.auth.SessionState
 import com.passioagogo.market.domain.catalog.CatalogRepository
 import com.passioagogo.market.domain.catalog.Category
 import com.passioagogo.market.domain.catalog.ProductWithVariants
@@ -72,6 +76,8 @@ data class ProductDetailUiState(
 @HiltViewModel
 class ProductDetailViewModel @Inject constructor(
     private val catalogRepository: CatalogRepository,
+    private val cart: RequestCart,
+    authRepository: AuthRepository,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
@@ -79,6 +85,27 @@ class ProductDetailViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(ProductDetailUiState())
     val uiState: StateFlow<ProductDetailUiState> = _uiState.asStateFlow()
+
+    /** El carrito de solicitudes es exclusivo del promotor. */
+    val puedeAgregar: Boolean =
+        (authRepository.sessionState.value as? SessionState.Authenticated)?.isPromotor == true
+
+    fun agregarAlCarrito(variantId: String) {
+        val pw = _uiState.value.producto ?: return
+        val variante = pw.variants.firstOrNull { it.id == variantId } ?: return
+        cart.add(
+            RequestCartItem(
+                variantId = variante.id,
+                producto = pw.product.nombre,
+                sku = variante.sku,
+                atributos = variante.attributes.entries.joinToString(" · ") { (k, v) ->
+                    "$k: ${v.jsonPrimitive.content}"
+                },
+                precio = variante.precioVenta,
+                cantidad = 1,
+            )
+        )
+    }
 
     init {
         viewModelScope.launch {
@@ -109,7 +136,6 @@ private fun copiar(context: Context, etiqueta: String, texto: String) {
 @OptIn(ExperimentalFoundationApi::class, ExperimentalLayoutApi::class)
 @Composable
 fun ProductDetailScreen(
-    onAddToCart: ((variantId: String) -> Unit)? = null,
     viewModel: ProductDetailViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsState()
@@ -216,9 +242,16 @@ fun ProductDetailScreen(
                                 ),
                             )
                         }
-                        onAddToCart?.let { agregar ->
+                        if (viewModel.puedeAgregar) {
                             androidx.compose.material3.Button(
-                                onClick = { agregar(variante.id) },
+                                onClick = {
+                                    viewModel.agregarAlCarrito(variante.id)
+                                    Toast.makeText(
+                                        context,
+                                        "Agregado al carrito",
+                                        Toast.LENGTH_SHORT,
+                                    ).show()
+                                },
                             ) { Text("Agregar") }
                         }
                     }

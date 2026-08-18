@@ -10,7 +10,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.automirrored.filled.ReceiptLong
+import androidx.compose.material.icons.filled.AssignmentTurnedIn
 import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.Collections
 import androidx.compose.material.icons.filled.Event
@@ -90,6 +92,9 @@ import com.passioagogo.market.ui.orders.OrderDetailScreen
 import com.passioagogo.market.ui.orders.OrdersListScreen
 import com.passioagogo.market.ui.orders.shipping.CreateShippingScreen
 import com.passioagogo.market.ui.pos.PosScreen
+import com.passioagogo.market.ui.requests.RequestCartScreen
+import com.passioagogo.market.ui.requests.RequestDetailScreen
+import com.passioagogo.market.ui.requests.RequestsListScreen
 import kotlinx.coroutines.launch
 
 /** Destinos de la barra inferior: solo las tres acciones de operación. */
@@ -101,7 +106,24 @@ enum class AppDestination(
     VENDER("vender", "Vender", Icons.Filled.PointOfSale),
     PEDIDOS("pedidos", "Pedidos", Icons.AutoMirrored.Filled.ReceiptLong),
     INVENTARIO("inventario", "Inventario", Icons.Filled.Inventory2),
+
+    // Del promotor: no vende ni maneja inventario, arma solicitudes.
+    CATALOGO_PROMOTOR("admin/catalog", "Catálogo", Icons.Filled.Category),
+    CARRITO("promotor/carrito", "Carrito", Icons.Filled.ShoppingCart),
+    SOLICITUDES("promotor/solicitudes", "Solicitudes", Icons.AutoMirrored.Filled.ReceiptLong),
 }
+
+private val DESTINOS_STAFF = listOf(
+    AppDestination.VENDER,
+    AppDestination.PEDIDOS,
+    AppDestination.INVENTARIO,
+)
+
+private val DESTINOS_PROMOTOR = listOf(
+    AppDestination.CATALOGO_PROMOTOR,
+    AppDestination.CARRITO,
+    AppDestination.SOLICITUDES,
+)
 
 /** Secciones de gestión, accesibles desde el panel lateral. */
 private enum class DrawerSection(
@@ -117,6 +139,7 @@ private enum class DrawerSection(
     UBICACIONES("admin/locations", "Ubicaciones", Icons.Filled.Store),
     CLIENTES("admin/customers", "Clientes", Icons.Filled.Groups),
     ETIQUETAS("admin/presets", "Etiquetas de atributos", Icons.Filled.Label),
+    SOLICITUDES_ADMIN("admin/requests", "Solicitudes de promotores", Icons.Filled.AssignmentTurnedIn),
     ESTADISTICAS("admin/stats", "Estadísticas", Icons.Filled.BarChart),
     GALERIA("admin/gallery", "Galería web", Icons.Filled.Collections),
     EVENTOS("admin/events", "Eventos", Icons.Filled.Event),
@@ -126,6 +149,7 @@ private enum class DrawerSection(
 
 private val ADMIN_SECTIONS = DrawerSection.entries
 private val VENDEDOR_SECTIONS = listOf(DrawerSection.CATALOGO, DrawerSection.PROMOCIONES)
+private val PROMOTOR_SECTIONS = listOf(DrawerSection.PROMOCIONES)
 
 /** Título de la barra superior según la ruta activa. */
 private fun titleFor(route: String?): String = when (route) {
@@ -138,6 +162,10 @@ private fun titleFor(route: String?): String = when (route) {
     "inventario/transfer_new" -> "Nueva transferencia"
     "inventario/stocktake" -> "Registrar existencias"
     "admin/catalog" -> "Catálogo"
+    "promotor/carrito" -> "Carrito"
+    "promotor/solicitudes" -> "Solicitudes"
+    "promotor/solicitud/{requestId}" -> "Detalle de solicitud"
+    "admin/requests" -> "Solicitudes de promotores"
     "catalogo/producto/{productId}" -> "Ficha del producto"
     "admin/product/{productId}" -> "Editar producto"
     "admin/product_new" -> "Nuevo producto"
@@ -180,11 +208,16 @@ fun AppScaffold(
     val currentDestination = backStack?.destination
     val currentRoute = currentDestination?.route
 
-    val sections = if (session.isAdmin) ADMIN_SECTIONS else VENDEDOR_SECTIONS
+    val sections = when {
+        session.isAdmin -> ADMIN_SECTIONS
+        session.isPromotor -> PROMOTOR_SECTIONS
+        else -> VENDEDOR_SECTIONS
+    }
+    val destinos = if (session.isPromotor) DESTINOS_PROMOTOR else DESTINOS_STAFF
 
     // La barra inferior solo pertenece a las secciones de operación; en las
     // pantallas de gestión se oculta para ganar espacio vertical.
-    val enOperacion = AppDestination.entries.any { dest ->
+    val enOperacion = destinos.any { dest ->
         currentDestination?.hierarchy?.any { it.route == dest.route } == true
     }
 
@@ -242,7 +275,7 @@ fun AppScaffold(
             bottomBar = {
                 if (enOperacion) {
                     NavigationBar {
-                        AppDestination.entries.forEach { dest ->
+                        destinos.forEach { dest ->
                             val selected = currentDestination?.hierarchy
                                 ?.any { it.route == dest.route } == true
                             NavigationBarItem(
@@ -310,14 +343,35 @@ private fun AppNavHost(
 
     NavHost(
         navController = navController,
-        startDestination = AppDestination.VENDER.route,
+        startDestination = if (session.isPromotor) AppDestination.CATALOGO_PROMOTOR.route
+        else AppDestination.VENDER.route,
     ) {
         // ---------- Barra inferior ----------
-        composable(AppDestination.VENDER.route) {
-            PosScreen()
+        // El promotor no vende ni toca inventario: esos destinos no existen
+        // en su grafo, así que no hay forma de alcanzarlos.
+        if (!session.isPromotor) {
+            composable(AppDestination.VENDER.route) {
+                PosScreen()
+            }
         }
 
-        navigation(
+        // ---------- Promotor ----------
+        composable(AppDestination.CARRITO.route) {
+            RequestCartScreen()
+        }
+        composable(AppDestination.SOLICITUDES.route) {
+            RequestsListScreen(
+                onOpenRequest = { id -> navController.navigate("promotor/solicitud/$id") },
+            )
+        }
+        composable(
+            route = "promotor/solicitud/{requestId}",
+            arguments = listOf(navArgument("requestId") { type = NavType.StringType }),
+        ) {
+            RequestDetailScreen(onBack = { navController.popBackStack() })
+        }
+
+        if (!session.isPromotor) navigation(
             route = AppDestination.PEDIDOS.route,
             startDestination = "pedidos/home",
         ) {
@@ -344,7 +398,7 @@ private fun AppNavHost(
             }
         }
 
-        navigation(
+        if (!session.isPromotor) navigation(
             route = AppDestination.INVENTARIO.route,
             startDestination = "inventario/home",
         ) {
@@ -452,6 +506,11 @@ private fun AppNavHost(
             }
             composable("admin/presets") {
                 AttributePresetsScreen()
+            }
+            composable("admin/requests") {
+                RequestsListScreen(
+                    onOpenRequest = { id -> navController.navigate("promotor/solicitud/$id") },
+                )
             }
             composable("admin/stats") {
                 StatsScreen()
