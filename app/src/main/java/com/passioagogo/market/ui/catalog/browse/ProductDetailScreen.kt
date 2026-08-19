@@ -86,9 +86,17 @@ class ProductDetailViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(ProductDetailUiState())
     val uiState: StateFlow<ProductDetailUiState> = _uiState.asStateFlow()
 
+    private val sesion =
+        authRepository.sessionState.value as? SessionState.Authenticated
+
     /** El carrito de solicitudes es exclusivo del promotor. */
-    val puedeAgregar: Boolean =
-        (authRepository.sessionState.value as? SessionState.Authenticated)?.isPromotor == true
+    val puedeAgregar: Boolean = sesion?.isPromotor == true
+
+    /**
+     * Copiar datos al portapapeles es una herramienta para quien atiende
+     * (staff y promotor): el cliente solo consulta.
+     */
+    val puedeCopiar: Boolean = sesion?.isCliente != true
 
     fun agregarAlCarrito(variantId: String) {
         val pw = _uiState.value.producto ?: return
@@ -140,6 +148,7 @@ fun ProductDetailScreen(
 ) {
     val state by viewModel.uiState.collectAsState()
     val context = LocalContext.current
+    val puedeCopiar = viewModel.puedeCopiar
 
     if (state.isLoading) {
         Box(Modifier.fillMaxSize(), Alignment.Center) { CircularProgressIndicator() }
@@ -175,7 +184,12 @@ fun ProductDetailScreen(
             Spacer(Modifier.height(16.dp))
         }
 
-        CampoCopiable("Producto", producto.nombre, MaterialTheme.typography.headlineSmall)
+        CampoCopiable(
+            "Producto",
+            producto.nombre,
+            MaterialTheme.typography.headlineSmall,
+            puedeCopiar = puedeCopiar,
+        )
 
         Row(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -191,9 +205,9 @@ fun ProductDetailScreen(
             }
         }
 
-        producto.marca?.let { CampoCopiable("Marca", it) }
-        producto.resumen?.let { CampoCopiable("Resumen", it) }
-        producto.descripcion?.let { CampoCopiable("Descripción", it) }
+        producto.marca?.let { CampoCopiable("Marca", it, puedeCopiar = puedeCopiar) }
+        producto.resumen?.let { CampoCopiable("Resumen", it, puedeCopiar = puedeCopiar) }
+        producto.descripcion?.let { CampoCopiable("Descripción", it, puedeCopiar = puedeCopiar) }
 
         if (producto.attributes.isNotEmpty()) {
             Spacer(Modifier.height(8.dp))
@@ -202,7 +216,7 @@ fun ProductDetailScreen(
                 producto.attributes.forEach { (clave, valor) ->
                     AssistChip(
                         onClick = {
-                            copiar(context, clave, valor.jsonPrimitive.content)
+                            if (puedeCopiar) copiar(context, clave, valor.jsonPrimitive.content)
                         },
                         label = { Text("$clave: ${valor.jsonPrimitive.content}") },
                     )
@@ -238,7 +252,9 @@ fun ProductDetailScreen(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.combinedClickable(
                                     onClick = {},
-                                    onLongClick = { copiar(context, "SKU", variante.sku) },
+                                    onLongClick = {
+                                        if (puedeCopiar) copiar(context, "SKU", variante.sku)
+                                    },
                                 ),
                             )
                         }
@@ -275,12 +291,14 @@ fun ProductDetailScreen(
             )
         }
 
-        Spacer(Modifier.height(24.dp))
-        Text(
-            "Mantén pulsado cualquier dato para copiarlo.",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        if (puedeCopiar) {
+            Spacer(Modifier.height(24.dp))
+            Text(
+                "Mantén pulsado cualquier dato para copiarlo.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
     }
 }
 
@@ -290,12 +308,14 @@ private fun CampoCopiable(
     etiqueta: String,
     valor: String,
     estilo: androidx.compose.ui.text.TextStyle = MaterialTheme.typography.bodyLarge,
+    puedeCopiar: Boolean = true,
 ) {
     val context = LocalContext.current
     Column(
         Modifier
             .fillMaxWidth()
             .combinedClickable(
+                enabled = puedeCopiar,
                 onClick = {},
                 onLongClick = { copiar(context, etiqueta, valor) },
             )

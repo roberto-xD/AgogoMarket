@@ -91,12 +91,15 @@ fun CatalogAdminScreen(
 ) {
     val state by viewModel.uiState.collectAsState()
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
+    if (state.soloProductos && selectedTab != 0) selectedTab = 0
 
     Box(Modifier.fillMaxSize()) {
         Column(Modifier.fillMaxSize()) {
-            TabRow(selectedTabIndex = selectedTab) {
-                Tab(selectedTab == 0, { selectedTab = 0 }, text = { Text("Productos") })
-                Tab(selectedTab == 1, { selectedTab = 1 }, text = { Text("Categorías") })
+            if (!state.soloProductos) {
+                TabRow(selectedTabIndex = selectedTab) {
+                    Tab(selectedTab == 0, { selectedTab = 0 }, text = { Text("Productos") })
+                    Tab(selectedTab == 1, { selectedTab = 1 }, text = { Text("Categorías") })
+                }
             }
 
             Row(

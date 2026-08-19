@@ -34,6 +34,9 @@ sealed interface SessionState {
         /** Solo consulta el catálogo y levanta solicitudes de pedido. */
         val isPromotor: Boolean get() = profile.rol == UserRole.PROMOTOR
 
+        /** Solo navega el catálogo: sin operación, sin carrito, sin copiar. */
+        val isCliente: Boolean get() = profile.rol == UserRole.CLIENTE
+
         /**
          * Estado degenerado documentado en el esquema: un vendedor sin
          * location_id no verá pedidos (RLS). La UI debe mostrar un aviso

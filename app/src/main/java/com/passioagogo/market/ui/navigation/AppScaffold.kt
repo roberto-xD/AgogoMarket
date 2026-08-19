@@ -150,6 +150,8 @@ private enum class DrawerSection(
 private val ADMIN_SECTIONS = DrawerSection.entries
 private val VENDEDOR_SECTIONS = listOf(DrawerSection.CATALOGO, DrawerSection.PROMOCIONES)
 private val PROMOTOR_SECTIONS = listOf(DrawerSection.PROMOCIONES)
+/** El cliente no gestiona nada: su panel solo ofrece cerrar sesión. */
+private val CLIENTE_SECTIONS = emptyList<DrawerSection>()
 
 /** Título de la barra superior según la ruta activa. */
 private fun titleFor(route: String?): String = when (route) {
@@ -211,9 +213,14 @@ fun AppScaffold(
     val sections = when {
         session.isAdmin -> ADMIN_SECTIONS
         session.isPromotor -> PROMOTOR_SECTIONS
+        session.isCliente -> CLIENTE_SECTIONS
         else -> VENDEDOR_SECTIONS
     }
-    val destinos = if (session.isPromotor) DESTINOS_PROMOTOR else DESTINOS_STAFF
+    val destinos = when {
+        session.isCliente -> emptyList()   // sin barra inferior
+        session.isPromotor -> DESTINOS_PROMOTOR
+        else -> DESTINOS_STAFF
+    }
 
     // La barra inferior solo pertenece a las secciones de operación; en las
     // pantallas de gestión se oculta para ganar espacio vertical.
@@ -343,35 +350,40 @@ private fun AppNavHost(
 
     NavHost(
         navController = navController,
-        startDestination = if (session.isPromotor) AppDestination.CATALOGO_PROMOTOR.route
-        else AppDestination.VENDER.route,
+        startDestination = when {
+            session.isPromotor || session.isCliente -> AppDestination.CATALOGO_PROMOTOR.route
+            else -> AppDestination.VENDER.route
+        },
     ) {
         // ---------- Barra inferior ----------
         // El promotor no vende ni toca inventario: esos destinos no existen
         // en su grafo, así que no hay forma de alcanzarlos.
-        if (!session.isPromotor) {
+        val soloConsulta = session.isPromotor || session.isCliente
+        if (!soloConsulta) {
             composable(AppDestination.VENDER.route) {
                 PosScreen()
             }
         }
 
         // ---------- Promotor ----------
-        composable(AppDestination.CARRITO.route) {
-            RequestCartScreen()
-        }
-        composable(AppDestination.SOLICITUDES.route) {
-            RequestsListScreen(
-                onOpenRequest = { id -> navController.navigate("promotor/solicitud/$id") },
-            )
-        }
-        composable(
-            route = "promotor/solicitud/{requestId}",
-            arguments = listOf(navArgument("requestId") { type = NavType.StringType }),
-        ) {
-            RequestDetailScreen(onBack = { navController.popBackStack() })
+        if (!session.isCliente) {
+            composable(AppDestination.CARRITO.route) {
+                RequestCartScreen()
+            }
+            composable(AppDestination.SOLICITUDES.route) {
+                RequestsListScreen(
+                    onOpenRequest = { id -> navController.navigate("promotor/solicitud/$id") },
+                )
+            }
+            composable(
+                route = "promotor/solicitud/{requestId}",
+                arguments = listOf(navArgument("requestId") { type = NavType.StringType }),
+            ) {
+                RequestDetailScreen(onBack = { navController.popBackStack() })
+            }
         }
 
-        if (!session.isPromotor) navigation(
+        if (!soloConsulta) navigation(
             route = AppDestination.PEDIDOS.route,
             startDestination = "pedidos/home",
         ) {
@@ -398,7 +410,7 @@ private fun AppNavHost(
             }
         }
 
-        if (!session.isPromotor) navigation(
+        if (!soloConsulta) navigation(
             route = AppDestination.INVENTARIO.route,
             startDestination = "inventario/home",
         ) {
@@ -430,14 +442,14 @@ private fun AppNavHost(
         // ---------- Panel lateral: promociones ----------
         // El vendedor entra en modo consulta; RLS bloquea igualmente cualquier
         // escritura, pero la UI no debe ofrecerla.
-        composable("admin/promotions") {
+        if (!session.isCliente) composable("admin/promotions") {
             PromotionsListScreen(
                 readOnly = !esAdmin,
                 onOpenPromotion = { id -> navController.navigate("admin/promotion/$id") },
                 onNewPromotion = { navController.navigate("admin/promotion_new") },
             )
         }
-        composable(
+        if (!session.isCliente) composable(
             route = "admin/promotion/{promotionId}",
             arguments = listOf(navArgument("promotionId") { type = NavType.StringType }),
         ) {

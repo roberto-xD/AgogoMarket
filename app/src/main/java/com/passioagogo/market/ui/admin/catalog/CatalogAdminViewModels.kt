@@ -62,6 +62,11 @@ data class CatalogAdminUiState(
     val modoConsulta: Boolean = false,
     /** true si el rol no puede editar el catálogo en ningún caso. */
     val soloLectura: Boolean = false,
+    /**
+     * El cliente solo navega productos: las categorías no filtran nada en
+     * esta pantalla, así que su pestaña no le aporta.
+     */
+    val soloProductos: Boolean = false,
     val isRefreshing: Boolean = false,
     val errorMessage: String? = null,
     /** Categoría en edición en el diálogo (null = diálogo cerrado). */
@@ -104,8 +109,13 @@ class CatalogAdminViewModel @Inject constructor(
         val sesion = authRepository.sessionState.value
             as? com.passioagogo.market.domain.auth.SessionState.Authenticated
         val puedeEditar = sesion?.isAdmin == true
+        val esCliente = sesion?.isCliente == true
         _uiState.update {
-            it.copy(soloLectura = !puedeEditar, modoConsulta = !puedeEditar)
+            it.copy(
+                soloLectura = !puedeEditar,
+                modoConsulta = !puedeEditar,
+                soloProductos = esCliente,
+            )
         }
 
         viewModelScope.launch {
