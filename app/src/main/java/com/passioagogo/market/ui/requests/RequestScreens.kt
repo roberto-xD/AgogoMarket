@@ -71,6 +71,7 @@ internal val RequestStatus.etiqueta: String
 // ============ Carrito / nueva solicitud ============
 
 data class RequestCartUiState(
+    val esCliente: Boolean = false,
     val items: List<RequestCartItem> = emptyList(),
     val clienteNombre: String = "",
     val clienteTelefono: String = "",
@@ -90,12 +91,24 @@ data class RequestCartUiState(
 class RequestCartViewModel @Inject constructor(
     private val cart: RequestCart,
     private val repository: OrderRequestRepository,
+    authRepository: com.passioagogo.market.domain.auth.AuthRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(RequestCartUiState())
     val uiState: StateFlow<RequestCartUiState> = _uiState.asStateFlow()
 
     init {
+        val sesion = authRepository.sessionState.value
+            as? com.passioagogo.market.domain.auth.SessionState.Authenticated
+        // El cliente pide para sí mismo: su nombre ya se conoce.
+        _uiState.update {
+            it.copy(
+                esCliente = sesion?.isCliente == true,
+                clienteNombre = if (sesion?.isCliente == true) {
+                    sesion.profile.nombre
+                } else "",
+            )
+        }
         viewModelScope.launch {
             cart.items.collect { mapa ->
                 _uiState.update { it.copy(items = mapa.values.toList()) }
@@ -134,7 +147,13 @@ class RequestCartViewModel @Inject constructor(
             when (result) {
                 is DataResult.Success -> {
                     cart.clear()
-                    _uiState.update { RequestCartUiState(folioEnviado = result.data.folio) }
+                    _uiState.update {
+                        RequestCartUiState(
+                            esCliente = it.esCliente,
+                            clienteNombre = if (it.esCliente) it.clienteNombre else "",
+                            folioEnviado = result.data.folio,
+                        )
+                    }
                 }
                 is DataResult.Error -> _uiState.update {
                     it.copy(isSending = false, errorMessage = result.error.toMessage())
@@ -195,7 +214,11 @@ fun RequestCartScreen(viewModel: RequestCartViewModel = hiltViewModel()) {
 
                 item(key = "datos") {
                     Spacer(Modifier.height(16.dp))
-                    Text("Datos del cliente", style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        if (state.esCliente) "Tus datos de contacto"
+                        else "Datos del cliente",
+                        style = MaterialTheme.typography.titleMedium,
+                    )
                     Spacer(Modifier.height(8.dp))
                     OutlinedTextField(
                         value = state.clienteNombre,
@@ -224,7 +247,12 @@ fun RequestCartScreen(viewModel: RequestCartViewModel = hiltViewModel()) {
                     OutlinedTextField(
                         value = state.notas,
                         onValueChange = viewModel::onNotas,
-                        label = { Text("Notas para el administrador") },
+                        label = {
+                            Text(
+                                if (state.esCliente) "Comentarios de tu pedido"
+                                else "Notas para el administrador"
+                            )
+                        },
                         modifier = Modifier.fillMaxWidth(),
                     )
                     Spacer(Modifier.height(8.dp))
@@ -258,7 +286,10 @@ fun RequestCartScreen(viewModel: RequestCartViewModel = hiltViewModel()) {
                 }
             }
             Text(
-                "El administrador confirmará precios y disponibilidad al procesarla.",
+                if (state.esCliente)
+                    "Te confirmaremos precios y disponibilidad antes de completar el pedido."
+                else
+                    "El administrador confirmará precios y disponibilidad al procesarla.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -271,8 +302,12 @@ fun RequestCartScreen(viewModel: RequestCartViewModel = hiltViewModel()) {
             title = { Text("Solicitud enviada") },
             text = {
                 Text(
-                    "Quedó registrada con el folio #$folio. " +
-                        "Un administrador la revisará para completar la venta."
+                    if (state.esCliente)
+                        "Tu pedido quedó registrado con el folio #$folio. " +
+                            "Nos pondremos en contacto para completarlo."
+                    else
+                        "Quedó registrada con el folio #$folio. " +
+                            "Un administrador la revisará para completar la venta."
                 )
             },
             confirmButton = {

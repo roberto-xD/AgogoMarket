@@ -125,6 +125,13 @@ private val DESTINOS_PROMOTOR = listOf(
     AppDestination.SOLICITUDES,
 )
 
+/** El cliente arma su propio pedido: mismo recorrido, otros rótulos. */
+private val DESTINOS_CLIENTE = listOf(
+    AppDestination.CATALOGO_PROMOTOR,
+    AppDestination.CARRITO,
+    AppDestination.SOLICITUDES,
+)
+
 /** Secciones de gestión, accesibles desde el panel lateral. */
 private enum class DrawerSection(
     val route: String,
@@ -217,7 +224,7 @@ fun AppScaffold(
         else -> VENDEDOR_SECTIONS
     }
     val destinos = when {
-        session.isCliente -> emptyList()   // sin barra inferior
+        session.isCliente -> DESTINOS_CLIENTE
         session.isPromotor -> DESTINOS_PROMOTOR
         else -> DESTINOS_STAFF
     }
@@ -285,6 +292,9 @@ fun AppScaffold(
                         destinos.forEach { dest ->
                             val selected = currentDestination?.hierarchy
                                 ?.any { it.route == dest.route } == true
+                            val rotulo = if (session.isCliente &&
+                                dest == AppDestination.SOLICITUDES
+                            ) "Mis pedidos" else dest.label
                             NavigationBarItem(
                                 selected = selected,
                                 onClick = {
@@ -296,8 +306,8 @@ fun AppScaffold(
                                         restoreState = true
                                     }
                                 },
-                                icon = { Icon(dest.icon, contentDescription = dest.label) },
-                                label = { Text(dest.label) },
+                                icon = { Icon(dest.icon, contentDescription = rotulo) },
+                                label = { Text(rotulo) },
                             )
                         }
                     }
@@ -365,22 +375,20 @@ private fun AppNavHost(
             }
         }
 
-        // ---------- Promotor ----------
-        if (!session.isCliente) {
-            composable(AppDestination.CARRITO.route) {
-                RequestCartScreen()
-            }
-            composable(AppDestination.SOLICITUDES.route) {
-                RequestsListScreen(
-                    onOpenRequest = { id -> navController.navigate("promotor/solicitud/$id") },
-                )
-            }
-            composable(
-                route = "promotor/solicitud/{requestId}",
-                arguments = listOf(navArgument("requestId") { type = NavType.StringType }),
-            ) {
-                RequestDetailScreen(onBack = { navController.popBackStack() })
-            }
+        // ---------- Carrito de solicitudes: promotor y cliente ----------
+        composable(AppDestination.CARRITO.route) {
+            RequestCartScreen()
+        }
+        composable(AppDestination.SOLICITUDES.route) {
+            RequestsListScreen(
+                onOpenRequest = { id -> navController.navigate("promotor/solicitud/$id") },
+            )
+        }
+        composable(
+            route = "promotor/solicitud/{requestId}",
+            arguments = listOf(navArgument("requestId") { type = NavType.StringType }),
+        ) {
+            RequestDetailScreen(onBack = { navController.popBackStack() })
         }
 
         if (!soloConsulta) navigation(

@@ -89,8 +89,8 @@ class ProductDetailViewModel @Inject constructor(
     private val sesion =
         authRepository.sessionState.value as? SessionState.Authenticated
 
-    /** El carrito de solicitudes es exclusivo del promotor. */
-    val puedeAgregar: Boolean = sesion?.isPromotor == true
+    /** Promotor y cliente arman carrito; el staff vende por el POS. */
+    val puedeAgregar: Boolean = sesion?.isPromotor == true || sesion?.isCliente == true
 
     /**
      * Copiar datos al portapapeles es una herramienta para quien atiende
