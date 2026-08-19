@@ -97,6 +97,7 @@ poi = { module = "org.apache.poi:poi", version.ref = "poi" }
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
 room-compiler = { module = "androidx.room:room-compiler", version.ref = "roomCompilerVersion" }
 firebase-crashlytics = {module = "com.google.firebase:firebase-crashlytics"}
+firebase-messaging = { module = "com.google.firebase:firebase-messaging" }
 barcode-scanning = { module = "com.google.mlkit:barcode-scanning", version.ref = "barcodeScanning" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
 firebase-analytics = { module = "com.google.firebase:firebase-analytics", version.ref = "firebaseAnalyticsVersion" }

@@ -12,7 +12,14 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -25,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.passioagogo.market.core.push.PushTokenRepository
 import com.passioagogo.market.domain.auth.AuthRepository
 import com.passioagogo.market.domain.auth.SessionState
 import com.passioagogo.market.ui.auth.LoginScreen
@@ -37,12 +45,31 @@ import kotlinx.coroutines.launch
 @HiltViewModel
 class SessionViewModel @Inject constructor(
     private val authRepository: AuthRepository,
+    private val pushTokenRepository: PushTokenRepository,
 ) : ViewModel() {
 
     val sessionState = authRepository.sessionState
 
+    init {
+        // Registra el token cada vez que hay sesión: cubre el login y
+        // también el arranque con sesión persistida.
+        viewModelScope.launch {
+            authRepository.sessionState.collect { estado ->
+                if (estado is SessionState.Authenticated) {
+                    pushTokenRepository.sincronizar()
+                }
+            }
+        }
+    }
+
     fun onRetry() = viewModelScope.launch { authRepository.refreshProfile() }
-    fun onSignOut() = viewModelScope.launch { authRepository.signOut() }
+
+    fun onSignOut() = viewModelScope.launch {
+        // Antes de cerrar: si no, el siguiente usuario de este teléfono
+        // heredaría las notificaciones del anterior.
+        pushTokenRepository.eliminarTokenActual()
+        authRepository.signOut()
+    }
 }
 
 /**
@@ -50,12 +77,16 @@ class SessionViewModel @Inject constructor(
  * Auth directamente — solo observa este estado.
  */
 @Composable
-fun AppRoot(viewModel: SessionViewModel = hiltViewModel()) {
+fun AppRoot(
+    deepLink: DeepLinkDestino? = null,
+    viewModel: SessionViewModel = hiltViewModel(),
+) {
     val session by viewModel.sessionState.collectAsState()
 
     // Última sesión válida conocida: evita desmontar el AppScaffold (y con
     // él el back stack de navegación) mientras la sesión pasa por estados
     // transitorios, p. ej. al regresar la app desde segundo plano.
+    val contexto = LocalContext.current
     var lastAuthenticated by remember { mutableStateOf<SessionState.Authenticated?>(null) }
     LaunchedEffect(session) {
         when (session) {
@@ -65,11 +96,32 @@ fun AppRoot(viewModel: SessionViewModel = hiltViewModel()) {
         }
     }
 
+    // Android 13+ exige permiso explícito; en versiones anteriores se
+    // concede al instalar y la solicitud no aplica.
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+        session is SessionState.Authenticated
+    ) {
+        val permiso = rememberLauncherForActivityResult(
+            ActivityResultContracts.RequestPermission()
+        ) { }
+        LaunchedEffect(Unit) {
+            val context = contexto
+            val concedido = ContextCompat.checkSelfPermission(
+                context, Manifest.permission.POST_NOTIFICATIONS
+            ) == PackageManager.PERMISSION_GRANTED
+            if (!concedido) permiso.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
+    }
+
     when (val state = session) {
         SessionState.Initializing -> {
             val cached = lastAuthenticated
             if (cached != null) {
-                AppScaffold(session = cached, onSignOut = viewModel::onSignOut)
+                AppScaffold(
+                    session = cached,
+                    onSignOut = viewModel::onSignOut,
+                    deepLink = deepLink,
+                )
             } else {
                 LoadingScreen()
             }
@@ -78,6 +130,7 @@ fun AppRoot(viewModel: SessionViewModel = hiltViewModel()) {
         is SessionState.Authenticated -> AppScaffold(
             session = state,
             onSignOut = viewModel::onSignOut,
+            deepLink = deepLink,
         )
         SessionState.Inactive -> MessageScreen(
             title = "Cuenta desactivada",

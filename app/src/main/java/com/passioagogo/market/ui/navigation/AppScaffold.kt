@@ -47,6 +47,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
@@ -96,6 +97,12 @@ import com.passioagogo.market.ui.requests.RequestCartScreen
 import com.passioagogo.market.ui.requests.RequestDetailScreen
 import com.passioagogo.market.ui.requests.RequestsListScreen
 import kotlinx.coroutines.launch
+
+/**
+ * Destino pedido por una notificación. Se resuelve una sola vez al abrir:
+ * navegar en cada recomposición secuestraría la navegación del usuario.
+ */
+data class DeepLinkDestino(val tipo: String, val id: String?)
 
 /** Destinos de la barra inferior: solo las tres acciones de operación. */
 enum class AppDestination(
@@ -208,6 +215,7 @@ private fun titleFor(route: String?): String = when (route) {
 fun AppScaffold(
     session: SessionState.Authenticated,
     onSignOut: () -> Unit,
+    deepLink: DeepLinkDestino? = null,
 ) {
     val navController = rememberNavController()
     val drawerState = rememberDrawerState(DrawerValue.Closed)
@@ -216,6 +224,17 @@ fun AppScaffold(
     val backStack by navController.currentBackStackEntryAsState()
     val currentDestination = backStack?.destination
     val currentRoute = currentDestination?.route
+
+    // Las notificaciones son de administración: para otros roles se ignoran.
+    LaunchedEffect(deepLink) {
+        if (deepLink == null || !session.isAdmin) return@LaunchedEffect
+        when (deepLink.tipo) {
+            "solicitud" -> deepLink.id?.let {
+                navController.navigate("promotor/solicitud/$it")
+            }
+            "contacto" -> navController.navigate("admin/contact")
+        }
+    }
 
     val sections = when {
         session.isAdmin -> ADMIN_SECTIONS
