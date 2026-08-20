@@ -13,12 +13,16 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -46,7 +50,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -94,6 +102,8 @@ data class StockTakeUiState(
     /** Existencias actuales de la ubicación, por variante. */
     val stockActual: Map<String, Int> = emptyMap(),
     val lineas: Map<String, ConteoLinea> = emptyMap(),
+    /** Última variante agregada: recibe el foco al aparecer en la lista. */
+    val recienAgregada: String? = null,
     val isLoading: Boolean = true,
     val isSaving: Boolean = false,
     val showScanner: Boolean = false,
@@ -176,11 +186,13 @@ class StockTakeViewModel @Inject constructor(
 
     fun onAddVariant(info: VariantInfo) = _uiState.update { state ->
         if (state.lineas.containsKey(info.variantId)) {
-            state.copy(query = "")
+            // Ya estaba: no se duplica, pero igual se enfoca para corregirla
+            state.copy(query = "", recienAgregada = info.variantId)
         } else {
             val actual = state.stockActual[info.variantId] ?: 0
             state.copy(
                 query = "",
+                recienAgregada = info.variantId,
                 lineas = state.lineas + (
                     info.variantId to ConteoLinea(
                         info = info,
@@ -191,6 +203,9 @@ class StockTakeViewModel @Inject constructor(
             )
         }
     }
+
+    /** El foco se consume una sola vez: si no, volvería al mismo campo. */
+    fun onFocoConsumido() = _uiState.update { it.copy(recienAgregada = null) }
 
     fun onContadoChange(variantId: String, valor: String) = _uiState.update { state ->
         val linea = state.lineas[variantId] ?: return@update state
@@ -276,6 +291,7 @@ class StockTakeViewModel @Inject constructor(
 fun StockTakeScreen(viewModel: StockTakeViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsState()
     val context = LocalContext.current
+    val teclado = LocalSoftwareKeyboardController.current
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { granted -> if (granted) viewModel.onOpenScanner() }
@@ -326,6 +342,8 @@ fun StockTakeScreen(viewModel: StockTakeViewModel = hiltViewModel()) {
     Column(
         Modifier
             .fillMaxSize()
+            // Sin esto el teclado tapa la lista y hay que hacer scroll a mano
+            .imePadding()
             .padding(16.dp)
     ) {
         Text(
@@ -391,7 +409,8 @@ fun StockTakeScreen(viewModel: StockTakeViewModel = hiltViewModel()) {
             }
         }
 
-        LazyColumn(Modifier.weight(1f)) {
+        val listState = rememberLazyListState()
+        LazyColumn(state = listState, modifier = Modifier.weight(1f)) {
             items(state.searchResults, key = { "s-${it.variantId}" }) { info ->
                 Row(
                     modifier = Modifier
@@ -414,7 +433,22 @@ fun StockTakeScreen(viewModel: StockTakeViewModel = hiltViewModel()) {
             }
 
             if (state.query.isBlank()) {
-                items(state.lineas.entries.toList(), key = { "l-${it.key}" }) { (id, linea) ->
+                val entradas = state.lineas.entries.toList()
+                itemsIndexed(entradas, key = { _, e -> "l-${e.key}" }) { indice, entrada ->
+                    val id = entrada.key
+                    val linea = entrada.value
+                    val focusRequester = remember { FocusRequester() }
+
+                    // Al agregar por búsqueda o escáner: desplazar, enfocar y
+                    // seleccionar el valor para que teclear lo sustituya.
+                    LaunchedEffect(state.recienAgregada) {
+                        if (state.recienAgregada == id) {
+                            listState.animateScrollToItem(indice)
+                            focusRequester.requestFocus()
+                            viewModel.onFocoConsumido()
+                        }
+                    }
+
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -444,8 +478,16 @@ fun StockTakeScreen(viewModel: StockTakeViewModel = hiltViewModel()) {
                             label = { Text("Real") },
                             singleLine = true,
                             isError = !linea.contadoValido,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            modifier = Modifier.width(96.dp),
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = KeyboardType.Number,
+                                imeAction = ImeAction.Done,
+                            ),
+                            keyboardActions = KeyboardActions(
+                                onDone = { teclado?.hide() },
+                            ),
+                            modifier = Modifier
+                                .width(96.dp)
+                                .focusRequester(focusRequester),
                         )
                         IconButton(onClick = { viewModel.onRemove(id) }) {
                             Icon(Icons.Filled.Delete, contentDescription = "Quitar")
