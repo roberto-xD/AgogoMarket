@@ -28,6 +28,9 @@ data class ContactMessage(
     val createdAt: String?,
 )
 
+/** Qué subconjunto de la bandeja se muestra. */
+enum class ContactFilter { SIN_ATENDER, ATENDIDOS, TODOS }
+
 @Serializable
 data class ContactMessageDto(
     val id: String,
@@ -35,6 +38,7 @@ data class ContactMessageDto(
     val email: String,
     val mensaje: String,
     val atendido: Boolean = false,
+    val oculto: Boolean = false,
     @SerialName("created_at") val createdAt: String? = null,
 ) {
     fun toDomain() = ContactMessage(
@@ -44,7 +48,15 @@ data class ContactMessageDto(
 }
 
 interface ContactRepository {
-    suspend fun getMessages(pendingOnly: Boolean = false): DataResult<List<ContactMessage>>
+    /** Nunca devuelve los archivados: para eso está la consulta directa. */
+    suspend fun getMessages(
+        filtro: ContactFilter = ContactFilter.TODOS,
+    ): DataResult<List<ContactMessage>>
+
+    suspend fun marcarAtendido(id: String, atendido: Boolean = true): DataResult<Unit>
+
+    /** Archiva: sale de la bandeja pero la fila permanece en la base. */
+    suspend fun archivar(id: String): DataResult<Unit>
 }
 
 @Singleton
@@ -55,14 +67,41 @@ class ContactRepositoryImpl @Inject constructor(
 
     private companion object { const val TABLE = "contact_messages" }
 
-    override suspend fun getMessages(pendingOnly: Boolean): DataResult<List<ContactMessage>> =
+    override suspend fun getMessages(
+        filtro: ContactFilter,
+    ): DataResult<List<ContactMessage>> = withContext(io) {
+        safeSupabaseCall {
+            postgrest.from(TABLE).select {
+                filter {
+                    eq("oculto", false)
+                    when (filtro) {
+                        ContactFilter.SIN_ATENDER -> eq("atendido", false)
+                        ContactFilter.ATENDIDOS -> eq("atendido", true)
+                        ContactFilter.TODOS -> Unit
+                    }
+                }
+                order("created_at", Order.DESCENDING)
+                limit(200)
+            }.decodeList<ContactMessageDto>()
+        }.map { list -> list.map { it.toDomain() } }
+    }
+
+    override suspend fun marcarAtendido(id: String, atendido: Boolean): DataResult<Unit> =
         withContext(io) {
             safeSupabaseCall {
-                postgrest.from(TABLE).select {
-                    if (pendingOnly) filter { eq("atendido", false) }
-                    order("created_at", Order.DESCENDING)
-                    limit(200)
-                }.decodeList<ContactMessageDto>()
-            }.map { list -> list.map { it.toDomain() } }
+                postgrest.from(TABLE).update({ set("atendido", atendido) }) {
+                    filter { eq("id", id) }
+                }
+                Unit
+            }
         }
+
+    override suspend fun archivar(id: String): DataResult<Unit> = withContext(io) {
+        safeSupabaseCall {
+            postgrest.from(TABLE).update({ set("oculto", true) }) {
+                filter { eq("id", id) }
+            }
+            Unit
+        }
+    }
 }
