@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -342,8 +341,9 @@ fun StockTakeScreen(viewModel: StockTakeViewModel = hiltViewModel()) {
     Column(
         Modifier
             .fillMaxSize()
-            // Sin esto el teclado tapa la lista y hay que hacer scroll a mano
-            .imePadding()
+            // Sin imePadding: el manifest declara adjustResize, que ya encoge
+            // la ventana al abrir el teclado. Aplicar ambos resta la altura
+            // del teclado dos veces y deja un hueco muerto bajo el contenido.
             .padding(16.dp)
     ) {
         Text(
