@@ -439,10 +439,15 @@ fun StockTakeScreen(viewModel: StockTakeViewModel = hiltViewModel()) {
                     val linea = entrada.value
                     val focusRequester = remember { FocusRequester() }
 
-                    // Al agregar por búsqueda o escáner: desplazar, enfocar y
-                    // seleccionar el valor para que teclear lo sustituya.
-                    LaunchedEffect(state.recienAgregada) {
-                        if (state.recienAgregada == id) {
+                    // Al agregar, desplazar y enfocar la línea nueva.
+                    //
+                    // Mientras el escáner está abierto NO se pide foco: el campo
+                    // vive detrás del diálogo y al enfocarlo se lo robaría,
+                    // cerrando la cámara tras cada lectura. El foco se aplica
+                    // cuando el escáner se cierra (la clave incluye showScanner
+                    // para que el efecto vuelva a evaluarse en ese momento).
+                    LaunchedEffect(state.recienAgregada, state.showScanner) {
+                        if (state.recienAgregada == id && !state.showScanner) {
                             listState.animateScrollToItem(indice)
                             focusRequester.requestFocus()
                             viewModel.onFocoConsumido()
