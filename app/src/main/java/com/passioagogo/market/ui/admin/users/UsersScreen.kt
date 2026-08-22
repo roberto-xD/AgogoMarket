@@ -55,6 +55,7 @@ internal val UserRole.etiqueta: String
         UserRole.ADMIN -> "Administrador"
         UserRole.VENDEDOR -> "Vendedor"
         UserRole.CLIENTE -> "Cliente"
+        UserRole.PROMOTOR -> "Promotor"
     }
 
 data class UsersUiState(

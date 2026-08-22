@@ -38,6 +38,7 @@ import com.passioagogo.market.domain.auth.SessionState
 import com.passioagogo.market.ui.auth.LoginScreen
 import com.passioagogo.market.ui.common.toMessage
 import com.passioagogo.market.ui.navigation.AppScaffold
+import com.passioagogo.market.ui.navigation.DeepLinkDestino
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.launch

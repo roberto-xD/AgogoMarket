@@ -363,6 +363,7 @@ private fun DrawerHeader(session: SessionState.Authenticated) {
                 UserRole.ADMIN -> "Administrador"
                 UserRole.VENDEDOR -> "Vendedor"
                 UserRole.CLIENTE -> "Cliente"
+                UserRole.PROMOTOR -> "Promotor"
             },
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,

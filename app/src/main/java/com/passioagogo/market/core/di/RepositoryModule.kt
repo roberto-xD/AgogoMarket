@@ -18,13 +18,9 @@ import com.passioagogo.market.data.customers.CustomerRepositoryImpl
 import com.passioagogo.market.data.events.EventRepository
 import com.passioagogo.market.data.events.EventRepositoryImpl
 import com.passioagogo.market.data.gallery.GalleryRepository
+import com.passioagogo.market.data.gallery.GalleryRepositoryImpl
 import com.passioagogo.market.data.guides.GuideRepository
 import com.passioagogo.market.data.guides.GuideRepositoryImpl
-import com.passioagogo.market.data.events.EventRepository
-import com.passioagogo.market.data.events.EventRepositoryImpl
-import com.passioagogo.market.data.gallery.GalleryRepository
-import com.passioagogo.market.data.guides.GuideRepository
-import com.passioagogo.market.data.guides.GuideRepositoryImplImpl
 import com.passioagogo.market.data.promotions.PromotionRepositoryImpl
 import com.passioagogo.market.data.requests.OrderRequestRepository
 import com.passioagogo.market.data.requests.OrderRequestRepositoryImpl
