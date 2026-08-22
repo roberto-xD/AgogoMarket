@@ -350,7 +350,7 @@ fun RequestDetailScreen(
         var expandedPago by remember { mutableStateOf(false) }
         AlertDialog(
             onDismissRequest = viewModel::onDismissConvert,
-            title = { Text("Convertir en venta") },
+            title = { Text("Aceptar") },
             text = {
                 Column {
                     ExposedDropdownMenuBox(expandedLoc, { expandedLoc = it }) {
