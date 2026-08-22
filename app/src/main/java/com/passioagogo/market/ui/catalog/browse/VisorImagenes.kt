@@ -55,7 +55,11 @@ import kotlinx.coroutines.withContext
  *
  * Reutiliza el caché de Coil: si la imagen ya se vio, no vuelve a bajarla.
  */
-suspend fun compartirImagen(context: Context, url: String): Result<Unit> = runCatching {
+suspend fun compartirImagen(
+    context: Context,
+    url: String,
+    texto: String? = null,
+): Result<Unit> = runCatching {
     val bitmap = withContext(Dispatchers.IO) {
         val request = ImageRequest.Builder(context)
             .data(url)
@@ -85,6 +89,13 @@ suspend fun compartirImagen(context: Context, url: String): Result<Unit> = runCa
     val intent = Intent(Intent.ACTION_SEND).apply {
         type = "image/jpeg"
         putExtra(Intent.EXTRA_STREAM, uri)
+        // WhatsApp y Telegram lo usan como pie de foto; el correo, como
+        // cuerpo. Algunas apps (Instagram) lo ignoran: la imagen siempre
+        // llega, el texto es un extra que depende del destino.
+        texto?.takeIf { it.isNotBlank() }?.let {
+            putExtra(Intent.EXTRA_TEXT, it)
+            putExtra(Intent.EXTRA_SUBJECT, it.lineSequence().first())
+        }
         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
     }
     context.startActivity(Intent.createChooser(intent, "Compartir imagen"))
@@ -99,6 +110,8 @@ fun VisorImagenes(
     imagenes: List<String>,
     indiceInicial: Int,
     onDismiss: () -> Unit,
+    /** Pie de foto al compartir: nombre del producto, precio, etc. */
+    textoCompartir: String? = null,
 ) {
     if (imagenes.isEmpty()) return
     val context = LocalContext.current
@@ -137,7 +150,11 @@ fun VisorImagenes(
                 onClick = {
                     compartiendo = true
                     scope.launch {
-                        val resultado = compartirImagen(context, imagenes[pagerState.currentPage])
+                        val resultado = compartirImagen(
+                            context = context,
+                            url = imagenes[pagerState.currentPage],
+                            texto = textoCompartir,
+                        )
                         compartiendo = false
                         if (resultado.isFailure) {
                             Toast.makeText(

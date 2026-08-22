@@ -202,6 +202,7 @@ fun ProductDetailScreen(
                 imagenes = producto.imagenes,
                 indiceInicial = indice,
                 onDismiss = { imagenAbierta = null },
+                textoCompartir = pieDeFoto(pw),
             )
         }
 
@@ -350,4 +351,29 @@ private fun CampoCopiable(
         Text(valor, style = estilo)
     }
     HorizontalDivider()
+}
+
+
+/**
+ * Pie de foto para compartir: nombre, marca y precio.
+ *
+ * Con varias presentaciones se anuncia el más barato como "desde", que es
+ * como se comunica en tienda y evita prometer un precio que no aplica a
+ * todas las variantes.
+ */
+private fun pieDeFoto(pw: ProductWithVariants): String {
+    val producto = pw.product
+    val precios = pw.variants.filter { it.activo }.map { it.precioVenta }
+    val linea = when {
+        precios.isEmpty() -> null
+        precios.distinct().size == 1 -> moneda.format(precios.first())
+        else -> "desde ${moneda.format(precios.min())}"
+    }
+    return listOfNotNull(
+        producto.nombre,
+        producto.marca,
+        linea,
+        producto.resumen,
+        if (producto.sobrePedido && !producto.activo) "Disponible sobre pedido" else null,
+    ).joinToString("\n")
 }
