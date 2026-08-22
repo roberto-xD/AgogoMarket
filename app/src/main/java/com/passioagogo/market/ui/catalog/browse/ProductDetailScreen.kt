@@ -5,6 +5,7 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -21,6 +22,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -34,6 +36,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -167,9 +172,11 @@ fun ProductDetailScreen(
             .padding(16.dp)
     ) {
         // ---------- Imágenes ----------
+        var imagenAbierta by remember { mutableStateOf<Int?>(null) }
+
         if (producto.imagenes.isNotEmpty()) {
             LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                items(producto.imagenes) { url ->
+                itemsIndexed(producto.imagenes) { indice, url ->
                     AsyncImage(
                         model = url,
                         contentDescription = null,
@@ -177,11 +184,25 @@ fun ProductDetailScreen(
                         modifier = Modifier
                             .size(240.dp)
                             .aspectRatio(1f)
-                            .clip(RoundedCornerShape(12.dp)),
+                            .clip(RoundedCornerShape(12.dp))
+                            .clickable { imagenAbierta = indice },
                     )
                 }
             }
+            Text(
+                "Toca una imagen para ampliarla",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
             Spacer(Modifier.height(16.dp))
+        }
+
+        imagenAbierta?.let { indice ->
+            VisorImagenes(
+                imagenes = producto.imagenes,
+                indiceInicial = indice,
+                onDismiss = { imagenAbierta = null },
+            )
         }
 
         CampoCopiable(

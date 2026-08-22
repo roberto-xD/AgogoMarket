@@ -10,6 +10,11 @@
         name="pdf_cache"
         path="pdfs/" />
 
+    <!-- Imágenes de producto descargadas para compartir -->
+    <cache-path
+        name="imagenes_compartidas"
+        path="compartir/" />
+
     <!-- Directorio externo (Downloads) -->
     <external-path
         name="external_files"
