@@ -417,6 +417,18 @@ fun StockTakeScreen(viewModel: StockTakeViewModel = hiltViewModel()) {
         Spacer(Modifier.height(8.dp))
         HorizontalDivider()
         val listState = rememberLazyListState()
+
+        // El desplazamiento se hace AQUÍ y no dentro del item: LazyColumn solo
+        // compone lo visible, así que un producto en la posición 60 de la lista
+        // nunca ejecutaría su propio efecto y no se desplazaría hacia él.
+        LaunchedEffect(state.recienAgregada, state.showScanner, state.query) {
+            val objetivo = state.recienAgregada
+            if (objetivo == null || state.showScanner || state.query.isNotBlank()) {
+                return@LaunchedEffect
+            }
+            val indice = state.lineas.keys.indexOf(objetivo)
+            if (indice >= 0) listState.animateScrollToItem(indice)
+        }
         LazyColumn(state = listState, modifier = Modifier.weight(1f)) {
             items(state.searchResults, key = { "s-${it.variantId}" }) { info ->
                 Row(
@@ -441,21 +453,19 @@ fun StockTakeScreen(viewModel: StockTakeViewModel = hiltViewModel()) {
 
             if (state.query.isBlank()) {
                 val entradas = state.lineas.entries.toList()
-                itemsIndexed(entradas, key = { _, e -> "l-${e.key}" }) { indice, entrada ->
+                items(entradas, key = { e -> "l-${e.key}" }) { entrada ->
                     val id = entrada.key
                     val linea = entrada.value
                     val focusRequester = remember { FocusRequester() }
 
-                    // Al agregar, desplazar y enfocar la línea nueva.
+                    // El scroll ya lo hizo el efecto de pantalla; aquí solo se
+                    // pide el foco, que requiere que el campo esté compuesto.
                     //
-                    // Mientras el escáner está abierto NO se pide foco: el campo
-                    // vive detrás del diálogo y al enfocarlo se lo robaría,
-                    // cerrando la cámara tras cada lectura. El foco se aplica
-                    // cuando el escáner se cierra (la clave incluye showScanner
-                    // para que el efecto vuelva a evaluarse en ese momento).
+                    // Con el escáner abierto NO se pide: el campo vive detrás
+                    // del diálogo y al enfocarlo le robaría el foco, cerrando
+                    // la cámara tras cada lectura.
                     LaunchedEffect(state.recienAgregada, state.showScanner) {
                         if (state.recienAgregada == id && !state.showScanner) {
-                            listState.animateScrollToItem(indice)
                             focusRequester.requestFocus()
                             viewModel.onFocoConsumido()
                         }
