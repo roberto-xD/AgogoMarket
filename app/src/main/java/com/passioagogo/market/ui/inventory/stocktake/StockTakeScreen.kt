@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -25,6 +26,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AllInbox
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material3.AlertDialog
@@ -342,19 +344,9 @@ fun StockTakeScreen(viewModel: StockTakeViewModel = hiltViewModel()) {
     Column(
         Modifier
             .fillMaxSize()
-            // Sin imePadding: el manifest declara adjustResize, que ya encoge
-            // la ventana al abrir el teclado. Aplicar ambos resta la altura
-            // del teclado dos veces y deja un hueco muerto bajo el contenido.
+            .imePadding()
             .padding(16.dp)
     ) {
-        Text(
-            "Fija la existencia real de cada producto. Sustituye la cantidad " +
-                "actual, no la suma.",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Spacer(Modifier.height(8.dp))
-
         var expanded by remember { mutableStateOf(false) }
         ExposedDropdownMenuBox(expanded, { expanded = it }) {
             OutlinedTextField(
@@ -402,14 +394,28 @@ fun StockTakeScreen(viewModel: StockTakeViewModel = hiltViewModel()) {
             ) {
                 Icon(Icons.Filled.QrCodeScanner, contentDescription = "Escanear")
             }
-        }
-
-        if (state.stockActual.isNotEmpty() && state.query.isBlank()) {
-            TextButton(onClick = viewModel::onCargarExistentes) {
-                Text("Cargar los ${state.stockActual.size} productos con existencia")
+            if (state.stockActual.isNotEmpty() && state.query.isBlank()){
+                IconButton(
+                    enabled = state.locationId != null,
+                    onClick = viewModel::onCargarExistentes,
+                ) {
+                    Icon(Icons.Filled.AllInbox , contentDescription = "Carga todo")
+                }
             }
         }
-
+        Spacer(Modifier.height(8.dp))
+        Button(
+            onClick = viewModel::onAskConfirm,
+            enabled = state.canSave,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text(
+                if (state.isSaving) "Aplicando…"
+                else "Aplicar a ${state.lineas.size} producto(s)"
+            )
+        }
+        Spacer(Modifier.height(8.dp))
+        HorizontalDivider()
         val listState = rememberLazyListState()
         LazyColumn(state = listState, modifier = Modifier.weight(1f)) {
             items(state.searchResults, key = { "s-${it.variantId}" }) { info ->
@@ -509,17 +515,6 @@ fun StockTakeScreen(viewModel: StockTakeViewModel = hiltViewModel()) {
                 it,
                 color = MaterialTheme.colorScheme.error,
                 style = MaterialTheme.typography.bodySmall,
-            )
-        }
-
-        Button(
-            onClick = viewModel::onAskConfirm,
-            enabled = state.canSave,
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Text(
-                if (state.isSaving) "Aplicando…"
-                else "Aplicar a ${state.lineas.size} producto(s)"
             )
         }
     }
