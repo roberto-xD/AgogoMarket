@@ -4,6 +4,7 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,6 +18,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -31,6 +33,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -256,7 +260,7 @@ private fun EventoRow(
             )
             Spacer(Modifier.size(8.dp))
         }
-        evento.imagen?.let { imagen ->
+        evento.portada?.let { imagen ->
             AsyncImage(
                 model = imageUrl(imagen),
                 contentDescription = null,
@@ -291,6 +295,7 @@ data class EventEditUiState(
     val detalles: String = "",
     val lugar: String = "",
     val enlace: String = "",
+    val enlaceTexto: String = "",
     val orden: String = "0",
     val activo: Boolean = true,
     val diaInicio: String = "",
@@ -298,8 +303,11 @@ data class EventEditUiState(
     val tieneFin: Boolean = false,
     val diaFin: String = "",
     val horaFin: String = "21:00",
-    val imagen: String? = null,
-    val imagenPendiente: Uri? = null,
+    /** Rutas ya guardadas; la primera es la portada. */
+    val imagenes: List<String> = emptyList(),
+    /** Elegidas y aún sin subir: se suben al guardar. */
+    val imagenesPendientes: List<Uri> = emptyList(),
+    val subiendo: Boolean = false,
     val isLoading: Boolean = true,
     val isSaving: Boolean = false,
     val showDeleteConfirm: Boolean = false,
@@ -312,6 +320,9 @@ data class EventEditUiState(
         get() = enlace.isBlank() || enlace.startsWith("http://") ||
             enlace.startsWith("https://") || enlace.startsWith("/")
 
+    /** El servidor rechaza un rótulo sin destino. */
+    val rotuloSinEnlace: Boolean get() = enlaceTexto.isNotBlank() && enlace.isBlank()
+
     val isoInicio: String? get() = EventDateTime.aIsoUtc(diaInicio, horaInicio)
     val isoFin: String?
         get() = if (tieneFin) EventDateTime.aIsoUtc(diaFin, horaFin) else null
@@ -323,6 +334,7 @@ data class EventEditUiState(
     val canSave: Boolean
         get() = !isSaving && titulo.isNotBlank() && diaInicio.isNotBlank() &&
             orden.toIntOrNull() != null && enlaceValido && rangoValido &&
+            !rotuloSinEnlace && enlaceTexto.length <= 40 &&
             resumen.length <= 160
 }
 
@@ -359,9 +371,10 @@ class EventEditViewModel @Inject constructor(
                             detalles = evento.detalles.orEmpty(),
                             lugar = evento.lugar.orEmpty(),
                             enlace = evento.enlace.orEmpty(),
+                            enlaceTexto = evento.enlaceTexto.orEmpty(),
                             orden = evento.orden.toString(),
                             activo = evento.activo,
-                            imagen = evento.imagen,
+                            imagenes = evento.imagenes,
                             diaInicio = EventDateTime.toDiaLocal(evento.fechaInicio),
                             horaInicio = EventDateTime.toHoraLocal(evento.fechaInicio),
                             tieneFin = evento.fechaFin != null,
@@ -382,13 +395,29 @@ class EventEditViewModel @Inject constructor(
     fun onDetalles(v: String) = _uiState.update { it.copy(detalles = v) }
     fun onLugar(v: String) = _uiState.update { it.copy(lugar = v) }
     fun onEnlace(v: String) = _uiState.update { it.copy(enlace = v) }
+    fun onEnlaceTexto(v: String) = _uiState.update { it.copy(enlaceTexto = v) }
     fun onOrden(v: String) = _uiState.update { it.copy(orden = v) }
     fun onActivo(v: Boolean) = _uiState.update { it.copy(activo = v) }
     fun onDiaInicio(v: String) = _uiState.update { it.copy(diaInicio = v) }
     fun onHoraInicio(v: String) = _uiState.update { it.copy(horaInicio = v) }
     fun onDiaFin(v: String) = _uiState.update { it.copy(diaFin = v) }
     fun onHoraFin(v: String) = _uiState.update { it.copy(horaFin = v) }
-    fun onImagePicked(uri: Uri?) = _uiState.update { it.copy(imagenPendiente = uri) }
+    fun onImagesPicked(uris: List<Uri>) = _uiState.update {
+        it.copy(imagenesPendientes = it.imagenesPendientes + uris)
+    }
+
+    fun onQuitarPendiente(uri: Uri) = _uiState.update {
+        it.copy(imagenesPendientes = it.imagenesPendientes - uri)
+    }
+
+    fun onQuitarImagen(url: String) = _uiState.update {
+        it.copy(imagenes = it.imagenes - url)
+    }
+
+    /** Reordena para que la elegida quede de portada. */
+    fun onHacerPortada(url: String) = _uiState.update {
+        it.copy(imagenes = listOf(url) + (it.imagenes - url))
+    }
     fun onAskDelete() = _uiState.update { it.copy(showDeleteConfirm = true) }
     fun onDismissDelete() = _uiState.update { it.copy(showDeleteConfirm = false) }
 
@@ -415,20 +444,22 @@ class EventEditViewModel @Inject constructor(
         val inicio = state.isoInicio ?: return
         _uiState.update { it.copy(isSaving = true, errorMessage = null) }
         viewModelScope.launch {
-            var ruta = state.imagen
-            state.imagenPendiente?.let { uri ->
+            // Las pendientes se suben ahora: si el usuario abandona el
+            // formulario, no quedan archivos huérfanos en Storage.
+            val rutas = state.imagenes.toMutableList()
+            for (uri in state.imagenesPendientes) {
                 val bytes = imageCompressor.compress(uri).getOrElse { e ->
                     _uiState.update {
                         it.copy(
                             isSaving = false,
-                            errorMessage = "No se pudo procesar la imagen: " +
+                            errorMessage = "No se pudo procesar una imagen: " +
                                 (e.message ?: "error desconocido"),
                         )
                     }
                     return@launch
                 }
                 when (val subida = repository.uploadImage(bytes)) {
-                    is DataResult.Success -> ruta = subida.data
+                    is DataResult.Success -> rutas += subida.data
                     is DataResult.Error -> {
                         _uiState.update {
                             it.copy(isSaving = false, errorMessage = subida.error.toMessage())
@@ -445,10 +476,11 @@ class EventEditViewModel @Inject constructor(
                         resumen = state.resumen.trim().ifBlank { null },
                         detalles = state.detalles.ifBlank { null },
                         lugar = state.lugar.trim().ifBlank { null },
-                        imagen = ruta,
+                        imagenes = rutas,
                         fechaInicio = inicio,
                         fechaFin = state.isoFin,
                         enlace = state.enlace.trim().ifBlank { null },
+                        enlaceTexto = state.enlaceTexto.trim().ifBlank { null },
                         orden = state.orden.toInt(),
                     )
                 )
@@ -460,10 +492,11 @@ class EventEditViewModel @Inject constructor(
                         resumen = state.resumen.trim().ifBlank { null },
                         detalles = state.detalles.ifBlank { null },
                         lugar = state.lugar.trim().ifBlank { null },
-                        imagen = ruta,
+                        imagenes = rutas,
                         fechaInicio = inicio,
                         fechaFin = state.isoFin,
                         enlace = state.enlace.trim().ifBlank { null },
+                        enlaceTexto = state.enlaceTexto.trim().ifBlank { null },
                         orden = state.orden.toInt(),
                         activo = state.activo,
                         vigenteHasta = null,
@@ -491,8 +524,8 @@ fun EventEditScreen(
     LaunchedEffect(state.saved) { if (state.saved) onSaved() }
 
     val picker = rememberLauncherForActivityResult(
-        ActivityResultContracts.PickVisualMedia()
-    ) { uri -> viewModel.onImagePicked(uri) }
+        ActivityResultContracts.PickMultipleVisualMedia(maxItems = 6)
+    ) { uris -> viewModel.onImagesPicked(uris) }
 
     if (state.isLoading) {
         Box(Modifier.fillMaxSize(), Alignment.Center) { CircularProgressIndicator() }
@@ -505,16 +538,31 @@ fun EventEditScreen(
             .verticalScroll(rememberScrollState())
             .padding(16.dp)
     ) {
-        val modelo = state.imagenPendiente ?: state.imagen?.let { viewModel.imageUrl(it) }
-        if (modelo != null) {
-            AsyncImage(
-                model = modelo,
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(16f / 9f)
-                    .clip(RoundedCornerShape(12.dp)),
+        val hayImagenes = state.imagenes.isNotEmpty() || state.imagenesPendientes.isNotEmpty()
+        if (hayImagenes) {
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                items(state.imagenes, key = { it }) { url ->
+                    MiniaturaEvento(
+                        modelo = viewModel.imageUrl(url),
+                        esPortada = url == state.imagenes.first(),
+                        onPortada = { viewModel.onHacerPortada(url) },
+                        onQuitar = { viewModel.onQuitarImagen(url) },
+                    )
+                }
+                items(state.imagenesPendientes, key = { it.toString() }) { uri ->
+                    MiniaturaEvento(
+                        modelo = uri,
+                        esPortada = false,
+                        pendiente = true,
+                        onPortada = null,
+                        onQuitar = { viewModel.onQuitarPendiente(uri) },
+                    )
+                }
+            }
+            Text(
+                "La primera imagen es la portada. Toca una para gestionarla.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Spacer(Modifier.height(8.dp))
         }
@@ -527,7 +575,14 @@ fun EventEditScreen(
             enabled = !state.isSaving,
             modifier = Modifier.fillMaxWidth(),
         ) {
-            Text(if (modelo == null) "Elegir imagen (opcional)" else "Cambiar imagen")
+            Text(if (!hayImagenes) "Elegir imágenes (opcional)" else "Agregar más imágenes")
+        }
+        if (state.imagenesPendientes.isNotEmpty()) {
+            Text(
+                "${state.imagenesPendientes.size} imagen(es) se subirán al guardar.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
 
         Spacer(Modifier.height(16.dp))
@@ -609,6 +664,26 @@ fun EventEditScreen(
                 }
             },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
+            modifier = Modifier.fillMaxWidth(),
+        )
+        Spacer(Modifier.height(8.dp))
+        OutlinedTextField(
+            value = state.enlaceTexto,
+            onValueChange = viewModel::onEnlaceTexto,
+            label = { Text("Texto del botón (opcional)") },
+            placeholder = { Text("Comprar boletos, Registrarme…") },
+            singleLine = true,
+            enabled = state.enlace.isNotBlank(),
+            isError = state.rotuloSinEnlace || state.enlaceTexto.length > 40,
+            supportingText = {
+                Text(
+                    when {
+                        state.rotuloSinEnlace -> "Primero indica el enlace de destino"
+                        state.enlaceTexto.length > 40 -> "Máximo 40 caracteres"
+                        else -> "Vacío: la web usa su texto por defecto"
+                    }
+                )
+            },
             modifier = Modifier.fillMaxWidth(),
         )
         Spacer(Modifier.height(8.dp))
@@ -747,6 +822,61 @@ private fun FechaHoraFila(
             dismissButton = {
                 TextButton(onClick = { showTime = false }) { Text("Cancelar") }
             },
+        )
+    }
+}
+
+
+/** Miniatura con menú para hacer portada o quitar. */
+@Composable
+private fun MiniaturaEvento(
+    modelo: Any?,
+    esPortada: Boolean,
+    onPortada: (() -> Unit)?,
+    onQuitar: () -> Unit,
+    pendiente: Boolean = false,
+) {
+    var menu by remember { mutableStateOf(false) }
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Box {
+            AsyncImage(
+                model = modelo,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .size(110.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .then(
+                        if (esPortada) Modifier.border(
+                            2.dp,
+                            MaterialTheme.colorScheme.primary,
+                            RoundedCornerShape(10.dp),
+                        ) else Modifier
+                    )
+                    .clickable { menu = true },
+            )
+            DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                if (onPortada != null && !esPortada) {
+                    DropdownMenuItem(
+                        text = { Text("Hacer portada") },
+                        onClick = { menu = false; onPortada() },
+                    )
+                }
+                DropdownMenuItem(
+                    text = { Text("Quitar") },
+                    onClick = { menu = false; onQuitar() },
+                )
+            }
+        }
+        Text(
+            when {
+                pendiente -> "Sin subir"
+                esPortada -> "Portada"
+                else -> ""
+            },
+            style = MaterialTheme.typography.labelSmall,
+            color = if (pendiente) MaterialTheme.colorScheme.onSurfaceVariant
+            else MaterialTheme.colorScheme.primary,
         )
     }
 }

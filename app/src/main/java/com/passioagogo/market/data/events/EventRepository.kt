@@ -23,28 +23,33 @@ data class Event(
     val resumen: String?,
     val detalles: String?,
     val lugar: String?,
-    /** Ruta relativa al bucket público o URL absoluta. */
-    val imagen: String?,
+    /** Rutas relativas al bucket público o URLs. La primera es la portada. */
+    val imagenes: List<String>,
     /** ISO-8601 UTC. */
     val fechaInicio: String,
     /** null = evento de un solo momento. */
     val fechaFin: String?,
     val enlace: String?,
+    /** Rótulo del botón; null = la web usa su texto por defecto. */
+    val enlaceTexto: String?,
     val orden: Int,
     val activo: Boolean,
     /** Generada por la BD: coalesce(fecha_fin, fecha_inicio). */
     val vigenteHasta: String?,
-)
+) {
+    val portada: String? get() = imagenes.firstOrNull()
+}
 
 data class EventDraft(
     val titulo: String,
     val resumen: String?,
     val detalles: String?,
     val lugar: String?,
-    val imagen: String?,
+    val imagenes: List<String>,
     val fechaInicio: String,
     val fechaFin: String?,
     val enlace: String?,
+    val enlaceTexto: String?,
     val orden: Int,
 )
 
@@ -57,18 +62,27 @@ data class EventDto(
     val resumen: String? = null,
     val detalles: String? = null,
     val lugar: String? = null,
+    val imagenes: List<String> = emptyList(),
+    /**
+     * Columna anterior, aún presente hasta que se elimine en la base.
+     * Sirve de respaldo para eventos que no se hayan migrado.
+     */
     val imagen: String? = null,
     @SerialName("fecha_inicio") val fechaInicio: String,
     @SerialName("fecha_fin") val fechaFin: String? = null,
     val enlace: String? = null,
+    @SerialName("enlace_texto") val enlaceTexto: String? = null,
     val orden: Int = 0,
     val activo: Boolean = true,
     @SerialName("vigente_hasta") val vigenteHasta: String? = null,
 ) {
     fun toDomain() = Event(
         id = id, titulo = titulo, resumen = resumen, detalles = detalles,
-        lugar = lugar, imagen = imagen, fechaInicio = fechaInicio, fechaFin = fechaFin,
-        enlace = enlace, orden = orden, activo = activo, vigenteHasta = vigenteHasta,
+        lugar = lugar,
+        imagenes = imagenes.ifEmpty { listOfNotNull(imagen?.takeIf { it.isNotBlank() }) },
+        fechaInicio = fechaInicio, fechaFin = fechaFin,
+        enlace = enlace, enlaceTexto = enlaceTexto,
+        orden = orden, activo = activo, vigenteHasta = vigenteHasta,
     )
 }
 
@@ -79,10 +93,11 @@ data class NewEventDto(
     val resumen: String? = null,
     val detalles: String? = null,
     val lugar: String? = null,
-    val imagen: String? = null,
+    val imagenes: List<String> = emptyList(),
     @SerialName("fecha_inicio") val fechaInicio: String,
     @SerialName("fecha_fin") val fechaFin: String? = null,
     val enlace: String? = null,
+    @SerialName("enlace_texto") val enlaceTexto: String? = null,
     val orden: Int = 0,
 )
 
@@ -140,10 +155,11 @@ class EventRepositoryImpl @Inject constructor(
                     resumen = draft.resumen,
                     detalles = draft.detalles,
                     lugar = draft.lugar,
-                    imagen = draft.imagen,
+                    imagenes = draft.imagenes,
                     fechaInicio = draft.fechaInicio,
                     fechaFin = draft.fechaFin,
                     enlace = draft.enlace,
+                    enlaceTexto = draft.enlaceTexto,
                     orden = draft.orden,
                 )
             ) { select() }.decodeSingle<EventDto>()
@@ -157,10 +173,11 @@ class EventRepositoryImpl @Inject constructor(
                 set("resumen", event.resumen)
                 set("detalles", event.detalles)
                 set("lugar", event.lugar)
-                set("imagen", event.imagen)
+                set("imagenes", event.imagenes)
                 set("fecha_inicio", event.fechaInicio)
                 set("fecha_fin", event.fechaFin)
                 set("enlace", event.enlace)
+                set("enlace_texto", event.enlaceTexto)
                 set("orden", event.orden)
                 set("activo", event.activo)
             }) {
