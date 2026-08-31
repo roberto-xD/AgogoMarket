@@ -239,10 +239,20 @@ fun RequestDetailScreen(
     ) {
         Text("Solicitud #${request.folio}", style = MaterialTheme.typography.titleLarge)
         Text(
-            request.estado.etiqueta,
+            listOfNotNull(
+                request.estado.etiqueta,
+                FechaSolicitud.larga(request.createdAt).takeIf { it != "—" },
+            ).joinToString("  ·  "),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
+        request.creadorNombre?.let { promotor ->
+            Text(
+                "Levantada por $promotor",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.primary,
+            )
+        }
 
         Spacer(Modifier.height(12.dp))
         Text("Cliente", style = MaterialTheme.typography.labelLarge)

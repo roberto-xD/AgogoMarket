@@ -429,9 +429,19 @@ fun RequestsListScreen(
                                 "#${request.folio} · ${request.clienteNombre}",
                                 style = MaterialTheme.typography.bodyLarge,
                             )
+                            request.creadorNombre?.let { promotor ->
+                                Text(
+                                    "Levantada por $promotor",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.primary,
+                                )
+                            }
                             Text(
-                                "${request.items.sumOf { it.cantidad }} artículos · " +
+                                listOfNotNull(
+                                    "${request.items.sumOf { it.cantidad }} artículos",
                                     moneda.format(request.totalEstimado),
+                                    FechaSolicitud.corta(request.createdAt).ifBlank { null },
+                                ).joinToString("  ·  "),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )

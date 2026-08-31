@@ -30,6 +30,8 @@ data class OrderRequest(
     /** Informativo: al convertir se recotiza contra las promos vigentes. */
     val totalEstimado: Double,
     val createdBy: String,
+    /** Nombre de quien la levantó; null si el perfil no es legible. */
+    val creadorNombre: String?,
     val orderId: String?,
     val motivoRechazo: String?,
     val createdAt: String?,
@@ -70,6 +72,12 @@ data class OrderRequestDto(
     val notas: String? = null,
     @SerialName("total_estimado") val totalEstimado: Double = 0.0,
     @SerialName("created_by") val createdBy: String,
+    /**
+     * Embebido con alias: order_requests tiene DOS llaves foráneas a
+     * profiles (created_by y atendida_por), así que PostgREST obliga a
+     * indicar cuál se sigue con la sintaxis `!created_by`.
+     */
+    val creador: PerfilMiniDto? = null,
     @SerialName("order_id") val orderId: String? = null,
     @SerialName("motivo_rechazo") val motivoRechazo: String? = null,
     @SerialName("created_at") val createdAt: String? = null,
@@ -78,7 +86,8 @@ data class OrderRequestDto(
     fun toDomain() = OrderRequest(
         id = id, folio = folio, estado = estado, clienteNombre = clienteNombre,
         clienteTelefono = clienteTelefono, clienteEmail = clienteEmail, notas = notas,
-        totalEstimado = totalEstimado, createdBy = createdBy, orderId = orderId,
+        totalEstimado = totalEstimado, createdBy = createdBy,
+        creadorNombre = creador?.nombre, orderId = orderId,
         motivoRechazo = motivoRechazo, createdAt = createdAt,
         items = items.map {
             OrderRequestItem(
@@ -88,6 +97,9 @@ data class OrderRequestDto(
         },
     )
 }
+
+@Serializable
+data class PerfilMiniDto(val nombre: String)
 
 @Serializable
 data class OrderRequestItemDto(
@@ -144,7 +156,9 @@ class OrderRequestRepositoryImpl @Inject constructor(
     private companion object {
         const val REQUESTS = "order_requests"
         const val ITEMS = "order_request_items"
-        val REQUEST_COLUMNS = Columns.raw("*, order_request_items(*)")
+        val REQUEST_COLUMNS = Columns.raw(
+            "*, order_request_items(*), creador:profiles!created_by(nombre)",
+        )
     }
 
     override suspend fun getRequests(pendingOnly: Boolean): DataResult<List<OrderRequest>> =
