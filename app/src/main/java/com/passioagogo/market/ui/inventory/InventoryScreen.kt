@@ -114,6 +114,15 @@ fun InventoryScreen(
                 }
             }
 
+            state.sinTienda -> Centered {
+                Text(
+                    "No tienes tienda asignada, por lo que no hay existencias " +
+                        "que mostrar. Pide a un administrador que te asigne una.",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                )
+            }
+
             state.filteredItems.isEmpty() -> Centered {
                 Text(
                     if (state.query.isBlank()) "Sin existencias registradas"

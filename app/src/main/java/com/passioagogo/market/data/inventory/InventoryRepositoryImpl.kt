@@ -98,17 +98,26 @@ class InventoryRepositoryImpl @Inject constructor(
 
     // ============ Transferencias ============
 
-    override suspend fun getTransfers(openOnly: Boolean): DataResult<List<StockTransfer>> =
-        withContext(io) {
-            safeSupabaseCall {
-                postgrest.from(TRANSFERS).select(TRANSFER_COLUMNS) {
-                    if (openOnly) {
-                        filter { isIn("estado", listOf("pendiente", "en_transito")) }
+    override suspend fun getTransfers(
+        openOnly: Boolean,
+        locationId: String?,
+    ): DataResult<List<StockTransfer>> = withContext(io) {
+        safeSupabaseCall {
+            postgrest.from(TRANSFERS).select(TRANSFER_COLUMNS) {
+                filter {
+                    if (openOnly) isIn("estado", listOf("pendiente", "en_transito"))
+                    // Involucra la tienda si sale de ella o llega a ella
+                    locationId?.let { id ->
+                        or {
+                            eq("from_location_id", id)
+                            eq("to_location_id", id)
+                        }
                     }
-                    order("created_at", Order.DESCENDING)
-                }.decodeList<StockTransferDto>()
-            }.map { list -> list.map { it.toDomain() } }
-        }
+                }
+                order("created_at", Order.DESCENDING)
+            }.decodeList<StockTransferDto>()
+        }.map { list -> list.map { it.toDomain() } }
+    }
 
     override suspend fun getTransfer(id: String): DataResult<StockTransfer> =
         withContext(io) {

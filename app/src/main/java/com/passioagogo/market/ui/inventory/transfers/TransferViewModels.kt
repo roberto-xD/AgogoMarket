@@ -55,6 +55,11 @@ internal suspend fun CatalogRepository.variantIndex(): Map<String, VariantInfo> 
 
 data class TransfersUiState(
     val openOnly: Boolean = true,
+    /** Tienda del vendedor; null en admin (ve todas). */
+    val miTienda: String? = null,
+    val esAdmin: Boolean = true,
+    /** Vendedor sin tienda: no hay transferencias que pueda ver. */
+    val bloqueado: Boolean = false,
     val transfers: List<StockTransfer> = emptyList(),
     val locationNames: Map<String, String> = emptyMap(),
     val isLoading: Boolean = false,
@@ -65,12 +70,25 @@ data class TransfersUiState(
 class TransfersViewModel @Inject constructor(
     private val inventoryRepository: InventoryRepository,
     private val locationRepository: LocationRepository,
+    authRepository: com.passioagogo.market.domain.auth.AuthRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(TransfersUiState())
     val uiState: StateFlow<TransfersUiState> = _uiState.asStateFlow()
 
     init {
+        val sesion = authRepository.sessionState.value
+            as? com.passioagogo.market.domain.auth.SessionState.Authenticated
+        val esAdmin = sesion?.isAdmin == true
+        val miTienda = sesion?.profile?.locationId
+        _uiState.update {
+            it.copy(
+                esAdmin = esAdmin,
+                miTienda = if (esAdmin) null else miTienda,
+                bloqueado = !esAdmin && miTienda == null,
+            )
+        }
+
         viewModelScope.launch {
             val locs = locationRepository.getLocations(includeInactive = true)
             if (locs is DataResult.Success) {
@@ -90,8 +108,15 @@ class TransfersViewModel @Inject constructor(
     fun refresh() = viewModelScope.launch { load() }
 
     private suspend fun load() {
+        if (_uiState.value.bloqueado) {
+            _uiState.update { it.copy(isLoading = false, transfers = emptyList()) }
+            return
+        }
         _uiState.update { it.copy(isLoading = true, errorMessage = null) }
-        val result = inventoryRepository.getTransfers(openOnly = _uiState.value.openOnly)
+        val result = inventoryRepository.getTransfers(
+            openOnly = _uiState.value.openOnly,
+            locationId = _uiState.value.miTienda,
+        )
         _uiState.update { state ->
             when (result) {
                 is DataResult.Success -> state.copy(isLoading = false, transfers = result.data)
@@ -177,6 +202,8 @@ class TransferDetailViewModel @Inject constructor(
 
 data class CreateTransferUiState(
     val locations: List<Location> = emptyList(),
+    /** El vendedor solo despacha desde su tienda: el origen no se elige. */
+    val origenFijo: Boolean = false,
     val fromLocationId: String? = null,
     val toLocationId: String? = null,
     val notas: String = "",
@@ -210,12 +237,18 @@ class CreateTransferViewModel @Inject constructor(
     private val inventoryRepository: InventoryRepository,
     private val locationRepository: LocationRepository,
     private val catalogRepository: CatalogRepository,
+    authRepository: com.passioagogo.market.domain.auth.AuthRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CreateTransferUiState())
     val uiState: StateFlow<CreateTransferUiState> = _uiState.asStateFlow()
 
     init {
+        val sesion = authRepository.sessionState.value
+            as? com.passioagogo.market.domain.auth.SessionState.Authenticated
+        val esAdmin = sesion?.isAdmin == true
+        val miTienda = sesion?.profile?.locationId
+
         viewModelScope.launch {
             val locs = locationRepository.getLocations()
             val index = catalogRepository.variantIndex()
@@ -223,6 +256,9 @@ class CreateTransferViewModel @Inject constructor(
                 state.copy(
                     isLoading = false,
                     locations = (locs as? DataResult.Success)?.data ?: emptyList(),
+                    origenFijo = !esAdmin,
+                    // El vendedor sale siempre de su tienda
+                    fromLocationId = if (!esAdmin) miTienda else state.fromLocationId,
                     catalog = index.values.sortedBy { it.producto },
                     variantIndex = index,
                     errorMessage = (locs as? DataResult.Error)?.error?.toMessage(),
@@ -231,7 +267,9 @@ class CreateTransferViewModel @Inject constructor(
         }
     }
 
-    fun onFromSelected(id: String) = _uiState.update { it.copy(fromLocationId = id) }
+    fun onFromSelected(id: String) = _uiState.update {
+        if (it.origenFijo) it else it.copy(fromLocationId = id)
+    }
     fun onToSelected(id: String) = _uiState.update { it.copy(toLocationId = id) }
     fun onNotasChange(value: String) = _uiState.update { it.copy(notas = value) }
     fun onQueryChange(value: String) = _uiState.update { it.copy(query = value) }

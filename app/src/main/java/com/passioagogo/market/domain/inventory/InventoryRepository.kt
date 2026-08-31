@@ -96,7 +96,15 @@ interface InventoryRepository {
 
     // -- Transferencias --
 
-    suspend fun getTransfers(openOnly: Boolean = true): DataResult<List<StockTransfer>>
+    /**
+     * [locationId] limita a las transferencias que involucran esa ubicación,
+     * como origen o como destino. El vendedor solo debe ver las suyas: RLS
+     * permite a todo el staff leerlas, así que el recorte es del cliente.
+     */
+    suspend fun getTransfers(
+        openOnly: Boolean = true,
+        locationId: String? = null,
+    ): DataResult<List<StockTransfer>>
     suspend fun getTransfer(id: String): DataResult<StockTransfer>
 
     /** Crea la transferencia en 'pendiente' con sus artículos. */

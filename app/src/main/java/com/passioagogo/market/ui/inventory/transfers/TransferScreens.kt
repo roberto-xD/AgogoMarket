@@ -103,6 +103,14 @@ fun TransfersListScreen(
                     }
                 }
 
+                state.bloqueado -> Centered {
+                    Text(
+                        "Sin tienda asignada: no hay transferencias que mostrar.",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                    )
+                }
+
                 state.transfers.isEmpty() -> Centered {
                     Text(
                         "Sin transferencias",
@@ -123,13 +131,15 @@ fun TransfersListScreen(
             }
         }
 
-        FloatingActionButton(
-            onClick = onCreateTransfer,
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(16.dp),
-        ) {
-            Icon(Icons.Filled.Add, contentDescription = "Nueva transferencia")
+        if (!state.bloqueado) {
+            FloatingActionButton(
+                onClick = onCreateTransfer,
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(16.dp),
+            ) {
+                Icon(Icons.Filled.Add, contentDescription = "Nueva transferencia")
+            }
         }
     }
 }
@@ -318,11 +328,20 @@ fun CreateTransferScreen(
             locations = state.locations,
             selectedId = state.fromLocationId,
             onSelected = viewModel::onFromSelected,
+            enabled = !state.origenFijo,
         )
+        if (state.origenFijo) {
+            Text(
+                "Solo puedes enviar desde tu tienda.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
         Spacer(Modifier.height(8.dp))
         LocationDropdown(
             label = "Destino",
-            locations = state.locations,
+            // El origen no puede ser también destino: el esquema lo rechaza
+            locations = state.locations.filter { it.id != state.fromLocationId },
             selectedId = state.toLocationId,
             onSelected = viewModel::onToSelected,
         )
@@ -430,15 +449,20 @@ private fun LocationDropdown(
     locations: List<com.passioagogo.market.domain.inventory.Location>,
     selectedId: String?,
     onSelected: (String) -> Unit,
+    enabled: Boolean = true,
 ) {
     var expanded by remember { mutableStateOf(false) }
     val selectedName = locations.firstOrNull { it.id == selectedId }?.nombre ?: ""
 
-    ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
+    ExposedDropdownMenuBox(
+        expanded = expanded && enabled,
+        onExpandedChange = { if (enabled) expanded = it },
+    ) {
         OutlinedTextField(
             value = selectedName,
             onValueChange = {},
             readOnly = true,
+            enabled = enabled,
             label = { Text(label) },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
             modifier = Modifier

@@ -30,6 +30,8 @@ data class InventoryUiState(
     val items: List<StockItem> = emptyList(),
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
+    /** Vendedor sin tienda: no tiene existencias que consultar. */
+    val sinTienda: Boolean = false,
 ) {
     val filteredItems: List<StockItem>
         get() {
@@ -73,8 +75,13 @@ class InventoryViewModel @Inject constructor(
                 val saved = userPreferences.activeLocationId.first()
                 _uiState.update { it.copy(selectedLocationId = saved) }
             } else {
-                // Vendedor: fijo a su tienda (si no tiene, RLS devolverá vacío)
-                _uiState.update { it.copy(selectedLocationId = session?.profile?.locationId) }
+                // Vendedor: fijo a su tienda. Sin ella no se consulta nada:
+                // getStock(null) traería TODAS las ubicaciones, porque la
+                // política de stock permite leer a cualquier staff.
+                val tienda = session?.profile?.locationId
+                _uiState.update {
+                    it.copy(selectedLocationId = tienda, sinTienda = tienda == null)
+                }
             }
             loadStock()
         }
@@ -93,6 +100,10 @@ class InventoryViewModel @Inject constructor(
     fun refresh() = viewModelScope.launch { loadStock() }
 
     private suspend fun loadStock() {
+        if (_uiState.value.sinTienda) {
+            _uiState.update { it.copy(isLoading = false, items = emptyList()) }
+            return
+        }
         _uiState.update { it.copy(isLoading = true, errorMessage = null) }
         val result = inventoryRepository.getStock(
             locationId = _uiState.value.selectedLocationId,
