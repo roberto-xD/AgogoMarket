@@ -1,6 +1,7 @@
 package com.passioagogo.market.ui.navigation
 
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -29,7 +30,9 @@ import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.PointOfSale
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Store
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -45,12 +48,16 @@ import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.NavigationDrawerItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
@@ -229,6 +236,16 @@ fun AppScaffold(
         scope.launch { drawerState.close() }
     }
 
+    var confirmarSalida by remember { mutableStateOf(false) }
+
+    // En la raíz del grafo no hay a dónde volver: en vez de cerrar de golpe,
+    // se pide confirmación. Se comprueba previousBackStackEntry y no la ruta,
+    // para que valga en cualquier destino inicial (varía según el rol).
+    val enRaiz = navController.previousBackStackEntry == null
+    BackHandler(enabled = !drawerState.isOpen && enRaiz) {
+        confirmarSalida = true
+    }
+
     val backStack by navController.currentBackStackEntryAsState()
     val currentDestination = backStack?.destination
     val currentRoute = currentDestination?.route
@@ -351,6 +368,26 @@ fun AppScaffold(
                 )
             }
         }
+    }
+
+    if (confirmarSalida) {
+        val actividad = LocalActivity.current
+        AlertDialog(
+            onDismissRequest = { confirmarSalida = false },
+            title = { Text("Cerrar la aplicación") },
+            text = { Text("¿Seguro que quieres cerrar la aplicación?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    confirmarSalida = false
+                    // finish() respeta el ciclo de vida; matar el proceso
+                    // saltaría onDestroy y dejaría trabajo a medias.
+                    actividad?.finish()
+                }) { Text("Cerrar") }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmarSalida = false }) { Text("Cancelar") }
+            },
+        )
     }
 }
 
