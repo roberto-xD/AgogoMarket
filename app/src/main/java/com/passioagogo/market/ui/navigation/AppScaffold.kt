@@ -1,5 +1,6 @@
 package com.passioagogo.market.ui.navigation
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -220,6 +221,13 @@ fun AppScaffold(
     val navController = rememberNavController()
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
+
+    // Con el panel abierto, «atrás» lo cierra en lugar de navegar por debajo.
+    // Solo se activa mientras está abierto: si estuviera siempre activo,
+    // bloquearía la navegación normal hacia atrás.
+    BackHandler(enabled = drawerState.isOpen) {
+        scope.launch { drawerState.close() }
+    }
 
     val backStack by navController.currentBackStackEntryAsState()
     val currentDestination = backStack?.destination
