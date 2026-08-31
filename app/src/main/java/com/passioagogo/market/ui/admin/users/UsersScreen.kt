@@ -22,6 +22,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -240,36 +241,48 @@ private fun UserDialog(
                         }
                     }
                 }
-                Spacer(Modifier.height(8.dp))
-                ExposedDropdownMenuBox(locExpanded, { locExpanded = it }) {
-                    OutlinedTextField(
-                        value = locations.firstOrNull { it.id == locationId }?.nombre
-                            ?: "Sin tienda",
-                        onValueChange = {},
-                        readOnly = true,
-                        label = { Text("Tienda") },
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(locExpanded) },
-                        modifier = Modifier.menuAnchor(),
-                    )
-                    ExposedDropdownMenu(locExpanded, { locExpanded = false }) {
-                        DropdownMenuItem(
-                            text = { Text("Sin tienda") },
-                            onClick = { locationId = null; locExpanded = false },
+                // La tienda solo aplica a quien opera en una: el promotor no
+                // tiene inventario y el cliente no opera. Al cambiar a esos
+                // roles se limpia, para no dejar una asignación sin sentido.
+                val usaTienda = rol == UserRole.ADMIN || rol == UserRole.VENDEDOR
+                LaunchedEffect(rol) {
+                    if (!usaTienda) locationId = null
+                }
+
+                if (usaTienda) {
+                    Spacer(Modifier.height(8.dp))
+                    ExposedDropdownMenuBox(locExpanded, { locExpanded = it }) {
+                        OutlinedTextField(
+                            value = locations.firstOrNull { it.id == locationId }?.nombre
+                                ?: "Sin tienda",
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text("Tienda") },
+                            trailingIcon = {
+                                ExposedDropdownMenuDefaults.TrailingIcon(locExpanded)
+                            },
+                            modifier = Modifier.menuAnchor(),
                         )
-                        locations.forEach { location ->
+                        ExposedDropdownMenu(locExpanded, { locExpanded = false }) {
                             DropdownMenuItem(
-                                text = { Text(location.nombre) },
-                                onClick = { locationId = location.id; locExpanded = false },
+                                text = { Text("Sin tienda") },
+                                onClick = { locationId = null; locExpanded = false },
                             )
+                            locations.forEach { location ->
+                                DropdownMenuItem(
+                                    text = { Text(location.nombre) },
+                                    onClick = { locationId = location.id; locExpanded = false },
+                                )
+                            }
                         }
                     }
-                }
-                if (rol == UserRole.VENDEDOR && locationId == null) {
-                    Text(
-                        "Un vendedor sin tienda no podrá operar el punto de venta.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.error,
-                    )
+                    if (rol == UserRole.VENDEDOR && locationId == null) {
+                        Text(
+                            "Un vendedor sin tienda no podrá operar el punto de venta.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error,
+                        )
+                    }
                 }
                 Spacer(Modifier.height(8.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
