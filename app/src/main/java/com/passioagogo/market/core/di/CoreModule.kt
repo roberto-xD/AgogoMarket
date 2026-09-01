@@ -10,6 +10,8 @@ import io.github.jan.supabase.annotations.SupabaseInternal
 import io.github.jan.supabase.auth.Auth
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.createSupabaseClient
+import io.github.jan.supabase.functions.Functions
+import io.github.jan.supabase.functions.functions
 import io.github.jan.supabase.postgrest.Postgrest
 import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.storage.Storage
@@ -55,6 +57,7 @@ object CoreModule {
         install(Auth)
         install(Postgrest)
         install(Storage)
+        install(Functions)
         // Sin esto, una conexión que no responde puede quedar suspendida
         // indefinidamente en lugar de fallar con excepción diagnosticable
         httpConfig {
@@ -74,4 +77,7 @@ object CoreModule {
 
     @Provides
     fun provideStorage(client: SupabaseClient): Storage = client.storage
+
+    @Provides
+    fun provideFunctions(client: SupabaseClient): Functions = client.functions
 }

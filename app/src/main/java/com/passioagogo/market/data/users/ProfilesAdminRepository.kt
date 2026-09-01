@@ -7,6 +7,7 @@ import com.passioagogo.market.core.result.safeSupabaseCall
 import com.passioagogo.market.data.auth.ProfileDto
 import com.passioagogo.market.domain.auth.Profile
 import com.passioagogo.market.domain.common.UserRole
+import io.github.jan.supabase.functions.Functions
 import io.github.jan.supabase.postgrest.Postgrest
 import io.github.jan.supabase.postgrest.query.Order
 import javax.inject.Inject
@@ -20,8 +21,23 @@ import kotlinx.coroutines.withContext
  * es posible desde el cliente (requiere service role): se hace por
  * registro o desde el dashboard de Supabase.
  */
+data class NuevoUsuario(
+    val email: String,
+    val password: String,
+    val nombre: String,
+    val rol: UserRole,
+    val locationId: String?,
+)
+
 interface ProfilesAdminRepository {
     suspend fun getProfiles(): DataResult<List<Profile>>
+
+    /**
+     * Crea un usuario de personal a través de la Edge Function `create-staff`.
+     * No se hace desde el cliente porque exige la service_role key, que no
+     * puede vivir dentro del APK.
+     */
+    suspend fun crearUsuario(nuevo: NuevoUsuario): DataResult<Unit>
     suspend fun updateProfile(
         id: String,
         nombre: String,
@@ -34,10 +50,35 @@ interface ProfilesAdminRepository {
 @Singleton
 class ProfilesAdminRepositoryImpl @Inject constructor(
     private val postgrest: Postgrest,
+    private val functions: Functions,
     @IoDispatcher private val io: CoroutineDispatcher,
 ) : ProfilesAdminRepository {
 
-    private companion object { const val TABLE = "profiles" }
+    private companion object {
+        const val TABLE = "profiles"
+        const val FN_CREAR = "create-staff"
+    }
+
+    override suspend fun crearUsuario(nuevo: NuevoUsuario): DataResult<Unit> =
+        withContext(io) {
+            safeSupabaseCall {
+                val respuesta = functions.invoke(
+                    function = FN_CREAR,
+                    body = buildJsonObject {
+                        put("email", nuevo.email.trim())
+                        put("password", nuevo.password)
+                        put("nombre", nuevo.nombre.trim())
+                        put("rol", if (nuevo.rol == UserRole.PROMOTOR) "promotor" else "vendedor")
+                        nuevo.locationId?.let { put("location_id", it) }
+                    },
+                )
+                val cuerpo = respuesta.body<JsonObject>()
+                // La función responde 4xx con {"error": "..."} para los
+                // casos previsibles: correo repetido, contraseña corta…
+                cuerpo["error"]?.jsonPrimitive?.content?.let { error(it) }
+                Unit
+            }
+        }
 
     override suspend fun getProfiles(): DataResult<List<Profile>> = withContext(io) {
         safeSupabaseCall {

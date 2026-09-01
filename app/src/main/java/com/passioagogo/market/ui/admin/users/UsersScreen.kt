@@ -11,9 +11,14 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
@@ -35,11 +40,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.passioagogo.market.core.result.DataResult
+import com.passioagogo.market.data.users.NuevoUsuario
 import com.passioagogo.market.data.users.ProfilesAdminRepository
 import com.passioagogo.market.domain.auth.AuthRepository
 import com.passioagogo.market.domain.auth.Profile
@@ -72,6 +81,9 @@ data class UsersUiState(
     val isLoading: Boolean = false,
     val isSaving: Boolean = false,
     val errorMessage: String? = null,
+    /** Rol del alta en curso; null = diálogo cerrado. */
+    val creando: UserRole? = null,
+    val creadoOk: String? = null,
 ) {
     fun porRol(rol: UserRole): List<Profile> =
         profiles.filter { it.rol == rol }.sortedBy { it.nombre.lowercase() }
@@ -127,7 +139,32 @@ class UsersViewModel @Inject constructor(
     }
 
     fun onEdit(profile: Profile) = _uiState.update { it.copy(editing = profile) }
-    fun onDismiss() = _uiState.update { it.copy(editing = null) }
+    fun onDismiss() =
+        _uiState.update { it.copy(editing = null, creando = null, errorMessage = null) }
+
+    fun onCrear(rol: UserRole) = _uiState.update { it.copy(creando = rol, errorMessage = null) }
+    fun onDismissCreado() = _uiState.update { it.copy(creadoOk = null) }
+
+    fun onGuardarNuevo(nuevo: NuevoUsuario) {
+        _uiState.update { it.copy(isSaving = true, errorMessage = null) }
+        viewModelScope.launch {
+            when (val r = profilesRepository.crearUsuario(nuevo)) {
+                is DataResult.Success -> {
+                    _uiState.update {
+                        it.copy(
+                            isSaving = false,
+                            creando = null,
+                            creadoOk = nuevo.email,
+                        )
+                    }
+                    load()
+                }
+                is DataResult.Error -> _uiState.update {
+                    it.copy(isSaving = false, errorMessage = r.error.toMessage())
+                }
+            }
+        }
+    }
     fun refresh() = viewModelScope.launch { load() }
 
     fun onSave(nombre: String, rol: UserRole, locationId: String?, activo: Boolean) {
@@ -172,6 +209,13 @@ fun UsersScreen(viewModel: UsersViewModel = hiltViewModel()) {
     var pestana by rememberSaveable { mutableIntStateOf(0) }
     val pestanas = PestanaUsuarios.entries
 
+    val seleccionadaFab = pestanas[pestana]
+    // Solo se dan de alta perfiles de personal: clientes se registran solos
+    // y los administradores se crean desde el panel de Supabase.
+    val puedeCrear = seleccionadaFab == PestanaUsuarios.VENDEDORES ||
+        seleccionadaFab == PestanaUsuarios.PROMOTORES
+
+    Box(Modifier.fillMaxSize()) {
     Column(Modifier.fillMaxSize()) {
         // Desplazable: con cuatro rótulos largos no caben fijos en móvil
         ScrollableTabRow(selectedTabIndex = pestana, edgePadding = 8.dp) {
@@ -245,6 +289,48 @@ fun UsersScreen(viewModel: UsersViewModel = hiltViewModel()) {
         }
     }
 
+    if (puedeCrear) {
+        FloatingActionButton(
+            onClick = { viewModel.onCrear(seleccionadaFab.rol) },
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(16.dp),
+        ) {
+            Icon(
+                Icons.Filled.PersonAdd,
+                contentDescription = "Nuevo ${seleccionadaFab.etiqueta.lowercase()}",
+            )
+        }
+    }
+    }
+
+    state.creando?.let { rol ->
+        NuevoUsuarioDialog(
+            rol = rol,
+            locations = state.locations,
+            isSaving = state.isSaving,
+            errorMessage = state.errorMessage,
+            onDismiss = viewModel::onDismiss,
+            onSave = viewModel::onGuardarNuevo,
+        )
+    }
+
+    state.creadoOk?.let { correo ->
+        AlertDialog(
+            onDismissRequest = viewModel::onDismissCreado,
+            title = { Text("Usuario creado") },
+            text = {
+                Text(
+                    "La cuenta $correo quedó lista. Entrega la contraseña " +
+                        "temporal a la persona y pídele que la cambie al entrar."
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = viewModel::onDismissCreado) { Text("Entendido") }
+            },
+        )
+    }
+
     state.editing?.let { profile ->
         UserDialog(
             profile = profile,
@@ -255,6 +341,131 @@ fun UsersScreen(viewModel: UsersViewModel = hiltViewModel()) {
             onSave = viewModel::onSave,
         )
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun NuevoUsuarioDialog(
+    rol: UserRole,
+    locations: List<Location>,
+    isSaving: Boolean,
+    errorMessage: String?,
+    onDismiss: () -> Unit,
+    onSave: (NuevoUsuario) -> Unit,
+) {
+    var nombre by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var locationId by remember { mutableStateOf<String?>(null) }
+    var expanded by remember { mutableStateOf(false) }
+    var verClave by remember { mutableStateOf(false) }
+
+    val correoValido = email.contains("@") && email.contains(".")
+    val claveValida = password.length >= 8
+    val valido = nombre.isNotBlank() && correoValido && claveValida
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(if (rol == UserRole.PROMOTOR) "Nuevo promotor" else "Nuevo vendedor") },
+        text = {
+            Column {
+                OutlinedTextField(
+                    value = nombre,
+                    onValueChange = { nombre = it },
+                    label = { Text("Nombre") },
+                    singleLine = true,
+                )
+                Spacer(Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = email,
+                    onValueChange = { email = it },
+                    label = { Text("Correo") },
+                    singleLine = true,
+                    isError = email.isNotBlank() && !correoValido,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                )
+                Spacer(Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = password,
+                    onValueChange = { password = it },
+                    label = { Text("Contraseña temporal") },
+                    singleLine = true,
+                    isError = password.isNotBlank() && !claveValida,
+                    supportingText = { Text("Mínimo 8 caracteres") },
+                    visualTransformation = if (verClave) VisualTransformation.None
+                    else PasswordVisualTransformation(),
+                    trailingIcon = {
+                        TextButton(onClick = { verClave = !verClave }) {
+                            Text(if (verClave) "Ocultar" else "Ver")
+                        }
+                    },
+                )
+
+                // El promotor no opera inventario: no lleva tienda.
+                if (rol == UserRole.VENDEDOR) {
+                    Spacer(Modifier.height(8.dp))
+                    ExposedDropdownMenuBox(expanded, { expanded = it }) {
+                        OutlinedTextField(
+                            value = locations.firstOrNull { it.id == locationId }?.nombre
+                                ?: "Sin tienda",
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text("Tienda") },
+                            trailingIcon = {
+                                ExposedDropdownMenuDefaults.TrailingIcon(expanded)
+                            },
+                            modifier = Modifier.menuAnchor(),
+                        )
+                        ExposedDropdownMenu(expanded, { expanded = false }) {
+                            DropdownMenuItem(
+                                text = { Text("Sin tienda") },
+                                onClick = { locationId = null; expanded = false },
+                            )
+                            locations.forEach { loc ->
+                                DropdownMenuItem(
+                                    text = { Text(loc.nombre) },
+                                    onClick = { locationId = loc.id; expanded = false },
+                                )
+                            }
+                        }
+                    }
+                    if (locationId == null) {
+                        Text(
+                            "Sin tienda no podrá operar el punto de venta.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error,
+                        )
+                    }
+                }
+
+                errorMessage?.let {
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        it,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(
+                enabled = valido && !isSaving,
+                onClick = {
+                    onSave(
+                        NuevoUsuario(
+                            email = email.trim(),
+                            password = password,
+                            nombre = nombre.trim(),
+                            rol = rol,
+                            locationId = if (rol == UserRole.VENDEDOR) locationId else null,
+                        )
+                    )
+                },
+            ) { Text(if (isSaving) "Creando…" else "Crear") }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancelar") } },
+    )
 }
 
 @Composable
