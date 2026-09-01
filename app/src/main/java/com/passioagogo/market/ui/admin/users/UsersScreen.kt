@@ -1,6 +1,7 @@
 package com.passioagogo.market.ui.admin.users
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -17,6 +18,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.ScrollableTabRow
+import androidx.compose.material3.Tab
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -25,7 +28,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -67,7 +72,37 @@ data class UsersUiState(
     val isLoading: Boolean = false,
     val isSaving: Boolean = false,
     val errorMessage: String? = null,
-)
+) {
+    fun porRol(rol: UserRole): List<Profile> =
+        profiles.filter { it.rol == rol }.sortedBy { it.nombre.lowercase() }
+
+    /**
+     * Vendedores agrupados por tienda. Los que no tienen asignación van al
+     * final en su propio grupo: son los que no pueden operar y conviene
+     * que salten a la vista.
+     */
+    val vendedoresPorTienda: List<Pair<String, List<Profile>>>
+        get() {
+            val vendedores = porRol(UserRole.VENDEDOR)
+            val nombres = locations.associate { it.id to it.nombre }
+            val conTienda = vendedores
+                .filter { it.locationId != null }
+                .groupBy { it.locationId!! }
+                .map { (id, lista) -> (nombres[id] ?: "Ubicación desconocida") to lista }
+                .sortedBy { it.first.lowercase() }
+            val sinTienda = vendedores.filter { it.locationId == null }
+            return if (sinTienda.isEmpty()) conTienda
+            else conTienda + ("Sin tienda asignada" to sinTienda)
+        }
+}
+
+/** Pestañas, en el orden pedido. */
+private enum class PestanaUsuarios(val etiqueta: String, val rol: UserRole) {
+    CLIENTES("Clientes", UserRole.CLIENTE),
+    VENDEDORES("Vendedores", UserRole.VENDEDOR),
+    PROMOTORES("Promotores", UserRole.PROMOTOR),
+    ADMINS("Administradores", UserRole.ADMIN),
+}
 
 @HiltViewModel
 class UsersViewModel @Inject constructor(
@@ -134,8 +169,24 @@ class UsersViewModel @Inject constructor(
 @Composable
 fun UsersScreen(viewModel: UsersViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsState()
+    var pestana by rememberSaveable { mutableIntStateOf(0) }
+    val pestanas = PestanaUsuarios.entries
 
     Column(Modifier.fillMaxSize()) {
+        // Desplazable: con cuatro rótulos largos no caben fijos en móvil
+        ScrollableTabRow(selectedTabIndex = pestana, edgePadding = 8.dp) {
+            pestanas.forEachIndexed { indice, p ->
+                Tab(
+                    selected = pestana == indice,
+                    onClick = { pestana = indice },
+                    text = {
+                        val cuantos = state.porRol(p.rol).size
+                        Text("${p.etiqueta} ($cuantos)")
+                    },
+                )
+            }
+        }
+
         state.errorMessage?.let {
             Text(
                 it,
@@ -144,40 +195,52 @@ fun UsersScreen(viewModel: UsersViewModel = hiltViewModel()) {
                 modifier = Modifier.padding(16.dp),
             )
         }
-        LazyColumn {
-            items(state.profiles, key = { it.id }) { profile ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { viewModel.onEdit(profile) }
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Column(Modifier.weight(1f)) {
-                        Text(
-                            profile.nombre +
-                                if (profile.id == state.currentUserId) " (tú)" else "",
-                            style = MaterialTheme.typography.bodyLarge,
-                        )
-                        Text(
-                            listOfNotNull(
-                                profile.rol.etiqueta,
-                                state.locations
-                                    .firstOrNull { it.id == profile.locationId }?.nombre,
-                            ).joinToString("  ·  "),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                    if (!profile.activo) {
-                        Text(
-                            "Inactivo",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.error,
-                        )
+
+        val seleccionada = pestanas[pestana]
+        if (seleccionada == PestanaUsuarios.VENDEDORES) {
+            val grupos = state.vendedoresPorTienda
+            if (grupos.isEmpty()) {
+                VacioUsuarios("Sin vendedores registrados")
+            } else {
+                LazyColumn {
+                    grupos.forEach { (tienda, lista) ->
+                        item(key = "h-$tienda") {
+                            EncabezadoGrupo(
+                                texto = tienda,
+                                total = lista.size,
+                                alerta = tienda == "Sin tienda asignada",
+                            )
+                        }
+                        items(lista, key = { it.id }) { profile ->
+                            FilaUsuario(
+                                profile = profile,
+                                esActual = profile.id == state.currentUserId,
+                                // La tienda ya la dice el encabezado
+                                tienda = null,
+                                onClick = { viewModel.onEdit(profile) },
+                            )
+                            HorizontalDivider()
+                        }
                     }
                 }
-                HorizontalDivider()
+            }
+        } else {
+            val lista = state.porRol(seleccionada.rol)
+            if (lista.isEmpty()) {
+                VacioUsuarios("Sin ${seleccionada.etiqueta.lowercase()}")
+            } else {
+                LazyColumn {
+                    items(lista, key = { it.id }) { profile ->
+                        FilaUsuario(
+                            profile = profile,
+                            esActual = profile.id == state.currentUserId,
+                            tienda = state.locations
+                                .firstOrNull { it.id == profile.locationId }?.nombre,
+                            onClick = { viewModel.onEdit(profile) },
+                        )
+                        HorizontalDivider()
+                    }
+                }
             }
         }
     }
@@ -191,6 +254,65 @@ fun UsersScreen(viewModel: UsersViewModel = hiltViewModel()) {
             onDismiss = viewModel::onDismiss,
             onSave = viewModel::onSave,
         )
+    }
+}
+
+@Composable
+private fun EncabezadoGrupo(texto: String, total: Int, alerta: Boolean) {
+    Text(
+        text = "$texto  ($total)",
+        style = MaterialTheme.typography.labelLarge,
+        color = if (alerta) MaterialTheme.colorScheme.error
+        else MaterialTheme.colorScheme.primary,
+        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 4.dp),
+    )
+}
+
+@Composable
+private fun FilaUsuario(
+    profile: Profile,
+    esActual: Boolean,
+    tienda: String?,
+    onClick: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(Modifier.weight(1f)) {
+            Text(
+                profile.nombre + if (esActual) " (tú)" else "",
+                style = MaterialTheme.typography.bodyLarge,
+            )
+            val detalle = listOfNotNull(profile.rol.etiqueta, tienda).joinToString("  ·  ")
+            Text(
+                detalle,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        if (!profile.activo) {
+            Text(
+                "Inactivo",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.error,
+            )
+        }
+    }
+}
+
+@Composable
+private fun VacioUsuarios(texto: String) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(32.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(texto, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
