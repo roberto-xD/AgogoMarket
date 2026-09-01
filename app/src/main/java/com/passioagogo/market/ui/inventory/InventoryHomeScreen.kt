@@ -12,6 +12,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.passioagogo.market.domain.auth.SessionState
+import com.passioagogo.market.ui.inventory.requests.TransferRequestsScreen
 import com.passioagogo.market.ui.inventory.transfers.TransfersListScreen
 
 @Composable
@@ -20,6 +21,8 @@ fun InventoryHomeScreen(
     onOpenTransfer: (String) -> Unit,
     onCreateTransfer: () -> Unit,
     onOpenStockTake: () -> Unit,
+    onOpenSolicitud: (String) -> Unit,
+    onNuevaSolicitud: () -> Unit,
 ) {
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
 
@@ -35,12 +38,21 @@ fun InventoryHomeScreen(
                 onClick = { selectedTab = 1 },
                 text = { Text("Transferencias") },
             )
+            Tab(
+                selected = selectedTab == 2,
+                onClick = { selectedTab = 2 },
+                text = { Text("Solicitudes") },
+            )
         }
         when (selectedTab) {
             0 -> InventoryScreen(session = session, onOpenStockTake = onOpenStockTake)
             1 -> TransfersListScreen(
                 onOpenTransfer = onOpenTransfer,
                 onCreateTransfer = onCreateTransfer,
+            )
+            2 -> TransferRequestsScreen(
+                onOpenRequest = onOpenSolicitud,
+                onNewRequest = onNuevaSolicitud,
             )
         }
     }

@@ -94,6 +94,8 @@ import com.passioagogo.market.ui.admin.stats.StatsScreen
 import com.passioagogo.market.ui.admin.suppliers.SuppliersScreen
 import com.passioagogo.market.ui.admin.users.UsersScreen
 import com.passioagogo.market.ui.inventory.InventoryHomeScreen
+import com.passioagogo.market.ui.inventory.requests.CreateTransferRequestScreen
+import com.passioagogo.market.ui.inventory.requests.TransferRequestDetailScreen
 import com.passioagogo.market.ui.inventory.stocktake.StockTakeScreen
 import com.passioagogo.market.ui.inventory.transfers.CreateTransferScreen
 import com.passioagogo.market.ui.inventory.transfers.TransferDetailScreen
@@ -184,6 +186,8 @@ private fun titleFor(route: String?): String = when (route) {
     "inventario/home" -> "Inventario"
     "inventario/transfer/{transferId}" -> "Transferencia"
     "inventario/transfer_new" -> "Nueva transferencia"
+    "inventario/solicitud/{requestId}" -> "Solicitud de transferencia"
+    "inventario/solicitud_nueva" -> "Nueva solicitud"
     "inventario/stocktake" -> "Registrar existencias"
     "admin/catalog" -> "Catálogo"
     "promotor/carrito" -> "Carrito"
@@ -252,12 +256,19 @@ fun AppScaffold(
 
     // Las notificaciones son de administración: para otros roles se ignoran.
     LaunchedEffect(deepLink) {
-        if (deepLink == null || !session.isAdmin) return@LaunchedEffect
+        if (deepLink == null) return@LaunchedEffect
+        // Las solicitudes de transferencia también le llegan al vendedor
+        // de la ubicación contraparte; el resto son de administración.
+        val soloAdmin = deepLink.tipo != "transferencia"
+        if (soloAdmin && !session.isAdmin) return@LaunchedEffect
         when (deepLink.tipo) {
             "solicitud" -> deepLink.id?.let {
                 navController.navigate("promotor/solicitud/$it")
             }
             "contacto" -> navController.navigate("admin/contact")
+            "transferencia" -> deepLink.id?.let {
+                navController.navigate("inventario/solicitud/$it")
+            }
         }
     }
 
@@ -493,6 +504,12 @@ private fun AppNavHost(
                     onOpenTransfer = { id -> navController.navigate("inventario/transfer/$id") },
                     onCreateTransfer = { navController.navigate("inventario/transfer_new") },
                     onOpenStockTake = { navController.navigate("inventario/stocktake") },
+                    onOpenSolicitud = { id ->
+                        navController.navigate("inventario/solicitud/$id")
+                    },
+                    onNuevaSolicitud = {
+                        navController.navigate("inventario/solicitud_nueva")
+                    },
                 )
             }
             composable(
@@ -503,6 +520,15 @@ private fun AppNavHost(
             }
             composable("inventario/transfer_new") {
                 CreateTransferScreen(onCreated = { navController.popBackStack() })
+            }
+            composable(
+                route = "inventario/solicitud/{requestId}",
+                arguments = listOf(navArgument("requestId") { type = NavType.StringType }),
+            ) {
+                TransferRequestDetailScreen(onBack = { navController.popBackStack() })
+            }
+            composable("inventario/solicitud_nueva") {
+                CreateTransferRequestScreen(onCreated = { navController.popBackStack() })
             }
             // Ajuste directo de existencias: exclusivo de administración
             if (esAdmin) {
