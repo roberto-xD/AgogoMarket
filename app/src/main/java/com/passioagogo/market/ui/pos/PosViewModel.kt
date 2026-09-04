@@ -54,6 +54,9 @@ data class PosUiState(
     val locationId: String? = null,
     val query: String = "",
     val catalog: List<PosItem> = emptyList(),
+    /** Existencia de la ubicación activa, por variante. */
+    val stockDisponible: Map<String, Int> = emptyMap(),
+    val cargandoStock: Boolean = false,
     val cart: Map<String, CartEntry> = emptyMap(),
     val isCheckingOut: Boolean = false,
     val showPaymentDialog: Boolean = false,
@@ -63,20 +66,36 @@ data class PosUiState(
     /** Venta completada: muestra el ticket. */
     val lastSale: Order? = null,
 ) {
+    /**
+     * Solo lo que existe en la ubicación desde la que se vende. Buscar en
+     * todo el catálogo permitiría armar un ticket que el servidor rechazará
+     * al confirmar por falta de stock.
+     */
     val searchResults: List<PosItem>
         get() {
-            if (query.isBlank()) return emptyList()
+            if (query.isBlank() || locationId == null) return emptyList()
             val q = query.trim().lowercase()
-            return catalog.filter {
-                it.producto.lowercase().contains(q) || it.sku.lowercase().contains(q)
-            }.take(15)
+            return catalog
+                .filter { (stockDisponible[it.variantId] ?: 0) > 0 }
+                .filter {
+                    it.producto.lowercase().contains(q) || it.sku.lowercase().contains(q)
+                }
+                .take(15)
         }
+
+    fun disponible(variantId: String): Int = stockDisponible[variantId] ?: 0
+
+    /** Vender más de lo que hay fallaría al cobrar. */
+    fun excedeExistencia(entry: CartEntry): Boolean =
+        entry.cantidad > disponible(entry.item.variantId)
+
+    val hayExcesos: Boolean get() = cart.values.any { excedeExistencia(it) }
 
     /** Estimado del cliente; el total real lo calcula el servidor al cobrar. */
     val totalEstimado: Double get() = cart.values.sumOf { it.importe }
 
     val canCheckout: Boolean
-        get() = !isCheckingOut && locationId != null && cart.isNotEmpty()
+        get() = !isCheckingOut && locationId != null && cart.isNotEmpty() && !hayExcesos
 }
 
 @HiltViewModel
@@ -84,6 +103,7 @@ class PosViewModel @Inject constructor(
     private val salesRepository: SalesRepository,
     private val catalogRepository: CatalogRepository,
     private val locationRepository: LocationRepository,
+    private val inventoryRepository: com.passioagogo.market.domain.inventory.InventoryRepository,
     private val userPreferences: UserPreferences,
     authRepository: AuthRepository,
 ) : ViewModel() {
@@ -115,6 +135,7 @@ class PosViewModel @Inject constructor(
             } else {
                 _uiState.update { it.copy(locationId = session?.profile?.locationId) }
             }
+            _uiState.value.locationId?.let { cargarStock(it) }
         }
 
         // Catálogo vendible en vivo desde el caché
@@ -142,8 +163,36 @@ class PosViewModel @Inject constructor(
     }
 
     fun onLocationSelected(id: String) {
-        _uiState.update { it.copy(locationId = id) }
-        viewModelScope.launch { userPreferences.setActiveLocation(id) }
+        // Cambiar de ubicación invalida el carrito: los precios se conservan
+        // pero la existencia es otra, y arrastrar líneas sin stock confunde.
+        _uiState.update { it.copy(locationId = id, cart = emptyMap(), query = "") }
+        viewModelScope.launch {
+            userPreferences.setActiveLocation(id)
+            cargarStock(id)
+        }
+    }
+
+    /** Refresca la existencia mostrada; útil tras cobrar o si otro vendió. */
+    fun refrescarStock() {
+        val id = _uiState.value.locationId ?: return
+        viewModelScope.launch { cargarStock(id) }
+    }
+
+    private suspend fun cargarStock(locationId: String) {
+        _uiState.update { it.copy(cargandoStock = true) }
+        val result = inventoryRepository.getStock(locationId = locationId)
+        _uiState.update { state ->
+            when (result) {
+                is DataResult.Success -> state.copy(
+                    cargandoStock = false,
+                    stockDisponible = result.data.associate { it.variantId to it.cantidad },
+                )
+                is DataResult.Error -> state.copy(
+                    cargandoStock = false,
+                    errorMessage = result.error.toMessage(),
+                )
+            }
+        }
     }
 
     fun onQueryChange(value: String) = _uiState.update { it.copy(query = value) }
@@ -207,9 +256,14 @@ class PosViewModel @Inject constructor(
                 else -> {
                     val item = _uiState.value.catalog
                         .firstOrNull { it.variantId == variant.id }
+                    val existencia = _uiState.value.disponible(variant.id)
                     if (item == null) {
                         _uiState.update {
                             it.copy(scanMessage = "Producto no disponible: $code")
+                        }
+                    } else if (existencia <= 0) {
+                        _uiState.update {
+                            it.copy(scanMessage = "Sin existencia aquí: ${item.producto}")
                         }
                     } else {
                         onAddItem(item)
@@ -255,5 +309,9 @@ class PosViewModel @Inject constructor(
     }
 
     /** Cierra el ticket y prepara la siguiente venta. */
-    fun onNewSale() = _uiState.update { it.copy(lastSale = null, errorMessage = null) }
+    fun onNewSale() {
+        _uiState.update { it.copy(lastSale = null, errorMessage = null) }
+        // La venta anterior movió el inventario: recargar antes de la siguiente
+        refrescarStock()
+    }
 }

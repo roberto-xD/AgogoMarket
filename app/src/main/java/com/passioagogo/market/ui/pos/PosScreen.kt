@@ -172,6 +172,20 @@ fun PosScreen(viewModel: PosViewModel = hiltViewModel()) {
         }
 
         LazyColumn(Modifier.weight(1f)) {
+            if (state.query.isNotBlank() && state.searchResults.isEmpty()) {
+                item {
+                    Text(
+                        "Sin existencia de \"${state.query}\" en esta ubicación.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(24.dp),
+                    )
+                }
+            }
+
             // Resultados de búsqueda
             items(state.searchResults, key = { "s-${it.variantId}" }) { item ->
                 Row(
@@ -195,8 +209,11 @@ fun PosScreen(viewModel: PosViewModel = hiltViewModel()) {
                     Column(Modifier.weight(1f)) {
                         Text(item.producto, style = MaterialTheme.typography.bodyLarge)
                         Text(
-                            listOf(item.sku, item.atributos).filter { it.isNotBlank() }
-                                .joinToString("  ·  "),
+                            listOf(
+                                item.sku,
+                                item.atributos,
+                                "quedan ${state.disponible(item.variantId)}",
+                            ).filter { it.isNotBlank() }.joinToString("  ·  "),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -216,6 +233,8 @@ fun PosScreen(viewModel: PosViewModel = hiltViewModel()) {
                 items(state.cart.values.toList(), key = { "c-${it.item.variantId}" }) { entry ->
                     CartRow(
                         entry = entry,
+                        disponible = state.disponible(entry.item.variantId),
+                        excede = state.excedeExistencia(entry),
                         onQuantityChange = { qty ->
                             viewModel.onQuantityChange(entry.item.variantId, qty)
                         },
@@ -321,7 +340,12 @@ private fun PosLocationSelector(
 }
 
 @Composable
-private fun CartRow(entry: CartEntry, onQuantityChange: (Int) -> Unit) {
+private fun CartRow(
+    entry: CartEntry,
+    disponible: Int,
+    excede: Boolean,
+    onQuantityChange: (Int) -> Unit,
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -330,6 +354,13 @@ private fun CartRow(entry: CartEntry, onQuantityChange: (Int) -> Unit) {
     ) {
         Column(Modifier.weight(1f)) {
             Text(entry.item.producto, style = MaterialTheme.typography.bodyLarge)
+            if (excede) {
+                Text(
+                    "Solo quedan $disponible",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (entry.tienePromo) {
                     Text(
