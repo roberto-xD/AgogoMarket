@@ -32,17 +32,64 @@ android {
             }
         }
 
-        buildConfigField("String", "SUPABASE_URL", "\"${project.findProperty("SUPABASE_URL") ?: ""}\"")
-        buildConfigField("String", "SUPABASE_KEY", "\"${project.findProperty("SUPABASE_KEY") ?: ""}\"")
     }
 
     buildTypes {
+        /**
+         * Depuración → SANDBOX.
+         *
+         * El applicationIdSuffix es lo que permite tener AMBAS apps
+         * instaladas a la vez en el mismo teléfono: Android las trata como
+         * aplicaciones distintas. Así se prueba una venta de mentira sin
+         * desinstalar la app con la que se cobra de verdad.
+         *
+         * El nombre visible ("Agogo SANDBOX") vive en
+         * src/debug/res/values/strings.xml, no en resValue: declararlo aquí
+         * chocaría con el app_name de src/main y el build fallaría por
+         * recurso duplicado.
+         *
+         * Si SANDBOX_URL no está definida en gradle.properties, cae en las
+         * credenciales de producción: evita que el build falle, pero ojo,
+         * estarías apuntando a datos reales desde debug.
+         */
+        debug {
+            applicationIdSuffix = ".sandbox"
+            versionNameSuffix = "-sandbox"
+
+            buildConfigField(
+                "String",
+                "SUPABASE_URL",
+                "\"${project.findProperty("SANDBOX_URL")
+                    ?: project.findProperty("SUPABASE_URL") ?: ""}\""
+            )
+            buildConfigField(
+                "String",
+                "SUPABASE_KEY",
+                "\"${project.findProperty("SANDBOX_KEY")
+                    ?: project.findProperty("SUPABASE_KEY") ?: ""}\""
+            )
+            buildConfigField("Boolean", "ES_SANDBOX", "true")
+        }
+
+        /** Producción: los datos con los que se transacciona. */
         release {
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+
+            buildConfigField(
+                "String",
+                "SUPABASE_URL",
+                "\"${project.findProperty("SUPABASE_URL") ?: ""}\""
+            )
+            buildConfigField(
+                "String",
+                "SUPABASE_KEY",
+                "\"${project.findProperty("SUPABASE_KEY") ?: ""}\""
+            )
+            buildConfigField("Boolean", "ES_SANDBOX", "false")
         }
     }
     compileOptions {

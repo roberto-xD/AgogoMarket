@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+        Sobrescribe el nombre de src/main solo en la variante de depuración,
+        para distinguir de un vistazo la app de pruebas de la de producción
+        cuando ambas están instaladas en el mismo teléfono.
+    -->
+    <string name="app_name">Agogo SANDBOX</string>
+</resources>

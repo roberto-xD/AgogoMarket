@@ -2,6 +2,7 @@ package com.passioagogo.market.ui.navigation
 
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalActivity
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -70,6 +71,8 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import androidx.compose.ui.text.style.TextAlign
+import com.passioagogo.market.BuildConfig
 import com.passioagogo.market.domain.auth.SessionState
 import com.passioagogo.market.domain.common.UserRole
 import com.passioagogo.market.ui.admin.attributes.AttributePresetsScreen
@@ -370,6 +373,11 @@ fun AppScaffold(
             },
         ) { padding ->
             Column(Modifier.padding(padding)) {
+                // Aviso permanente: con las dos apps instaladas es fácil
+                // confundirse y creer que se está cobrando de verdad.
+                if (BuildConfig.ES_SANDBOX) {
+                    SandboxBanner()
+                }
                 if (session.vendedorSinTienda) {
                     VendedorSinTiendaBanner()
                 }
@@ -676,6 +684,21 @@ private fun AppNavHost(
             }
         }
     }
+}
+
+/** Franja de advertencia del entorno de pruebas. */
+@Composable
+private fun SandboxBanner() {
+    Text(
+        text = "ENTORNO DE PRUEBAS · los datos no son reales",
+        style = MaterialTheme.typography.labelSmall,
+        color = MaterialTheme.colorScheme.onTertiary,
+        textAlign = TextAlign.Center,
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.tertiary)
+            .padding(vertical = 4.dp),
+    )
 }
 
 @Composable
