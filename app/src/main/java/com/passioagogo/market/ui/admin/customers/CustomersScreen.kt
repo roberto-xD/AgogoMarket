@@ -1,5 +1,6 @@
 package com.passioagogo.market.ui.admin.customers
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -107,9 +108,15 @@ class CustomersViewModel @Inject constructor(
 }
 
 @Composable
-fun CustomersScreen(viewModel: CustomersViewModel = hiltViewModel()) {
+fun CustomersScreen(
+    onBack: ()-> Unit,
+    viewModel: CustomersViewModel = hiltViewModel()
+) {
     val state by viewModel.uiState.collectAsState()
 
+    BackHandler(enabled = true) {
+        onBack()
+    }
     Column(Modifier.fillMaxSize()) {
         Row(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),

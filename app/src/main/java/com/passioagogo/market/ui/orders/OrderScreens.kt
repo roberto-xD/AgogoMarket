@@ -63,6 +63,7 @@ private val moneda: NumberFormat = NumberFormat.getCurrencyInstance(Locale("es",
 fun OrdersListScreen(
     onOpenOrder: (String) -> Unit,
     onCreateShipping: () -> Unit,
+    onBack: ()-> Unit,
     viewModel: OrdersViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsState()

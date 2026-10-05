@@ -7,6 +7,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import android.Manifest
 import android.content.pm.PackageManager
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.filled.QrCodeScanner
@@ -87,6 +88,7 @@ fun CatalogAdminScreen(
     onOpenProduct: (String) -> Unit,
     onNewProduct: () -> Unit,
     onViewProduct: (String) -> Unit,
+    onBack: ()-> Unit,
     viewModel: CatalogAdminViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsState()
@@ -362,6 +364,7 @@ private fun CategoryDialog(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProductEditScreen(
+    onBack: ()-> Unit,
     viewModel: ProductEditViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsState()
@@ -373,7 +376,9 @@ fun ProductEditScreen(
         }
         return
     }
-
+    BackHandler(enabled = true) {
+        onBack()
+    }
     Column(
         Modifier
             .fillMaxSize()

@@ -1,5 +1,6 @@
 package com.passioagogo.market.ui.requests
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -167,9 +168,14 @@ class RequestCartViewModel @Inject constructor(
 }
 
 @Composable
-fun RequestCartScreen(viewModel: RequestCartViewModel = hiltViewModel()) {
+fun RequestCartScreen(
+    onBack: ()-> Unit,
+    viewModel: RequestCartViewModel = hiltViewModel()
+) {
     val state by viewModel.uiState.collectAsState()
-
+    BackHandler(enabled = true) {
+        onBack()
+    }
     Column(
         Modifier
             .fillMaxSize()
@@ -362,10 +368,13 @@ class RequestsViewModel @Inject constructor(
 @Composable
 fun RequestsListScreen(
     onOpenRequest: (String) -> Unit,
+    onBack: ()-> Unit,
     viewModel: RequestsViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsState()
-
+    BackHandler(enabled = true) {
+        onBack()
+    }
     LaunchedEffect(Unit) { viewModel.refresh() }
 
     Column(Modifier.fillMaxSize()) {

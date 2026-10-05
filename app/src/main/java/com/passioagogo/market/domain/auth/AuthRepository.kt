@@ -3,6 +3,10 @@ package com.passioagogo.market.domain.auth
 import com.passioagogo.market.core.result.DataError
 import com.passioagogo.market.core.result.DataResult
 import com.passioagogo.market.domain.common.UserRole
+import com.passioagogo.market.ui.navigation.ADMIN_SECTIONS
+import com.passioagogo.market.ui.navigation.CLIENTE_SECTIONS
+import com.passioagogo.market.ui.navigation.PROMOTOR_SECTIONS
+import com.passioagogo.market.ui.navigation.VENDEDOR_SECTIONS
 import kotlinx.coroutines.flow.StateFlow
 
 /** Espejo de public.profiles (02_locations_profiles.sql). */
@@ -44,6 +48,13 @@ sealed interface SessionState {
          */
         val vendedorSinTienda: Boolean
             get() = profile.rol == UserRole.VENDEDOR && profile.locationId == null
+
+        val sections = when(profile.rol){
+            UserRole.ADMIN -> ADMIN_SECTIONS
+            UserRole.PROMOTOR -> PROMOTOR_SECTIONS
+            UserRole.VENDEDOR -> VENDEDOR_SECTIONS
+            UserRole.CLIENTE -> CLIENTE_SECTIONS
+        }
     }
 
     /** Sesión válida pero profiles.activo = false: acceso revocado. */

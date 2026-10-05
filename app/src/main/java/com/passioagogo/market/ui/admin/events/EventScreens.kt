@@ -1,6 +1,7 @@
 package com.passioagogo.market.ui.admin.events
 
 import android.net.Uri
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -139,10 +140,14 @@ class EventsViewModel @Inject constructor(
 fun EventsListScreen(
     onOpenEvent: (String) -> Unit,
     onNewEvent: () -> Unit,
+    onBack: ()-> Unit,
     viewModel: EventsViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsState()
 
+    BackHandler(enabled = true) {
+        onBack()
+    }
     LaunchedEffect(Unit) { viewModel.refresh() }
 
     Box(Modifier.fillMaxSize()) {

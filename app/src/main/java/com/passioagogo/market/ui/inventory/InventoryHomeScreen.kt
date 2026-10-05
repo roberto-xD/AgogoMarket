@@ -17,12 +17,12 @@ import com.passioagogo.market.ui.inventory.transfers.TransfersListScreen
 
 @Composable
 fun InventoryHomeScreen(
-    session: SessionState.Authenticated,
     onOpenTransfer: (String) -> Unit,
     onCreateTransfer: () -> Unit,
     onOpenStockTake: () -> Unit,
     onOpenSolicitud: (String) -> Unit,
     onNuevaSolicitud: () -> Unit,
+    onBack: ()-> Unit,
 ) {
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
 
@@ -45,7 +45,7 @@ fun InventoryHomeScreen(
             )
         }
         when (selectedTab) {
-            0 -> InventoryScreen(session = session, onOpenStockTake = onOpenStockTake)
+            0 -> InventoryScreen(onOpenStockTake = onOpenStockTake)
             1 -> TransfersListScreen(
                 onOpenTransfer = onOpenTransfer,
                 onCreateTransfer = onCreateTransfer,

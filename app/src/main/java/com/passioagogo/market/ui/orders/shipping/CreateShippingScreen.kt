@@ -243,6 +243,7 @@ class CreateShippingViewModel @Inject constructor(
 @Composable
 fun CreateShippingScreen(
     onCreated: (String) -> Unit,
+    onBack: ()-> Unit,
     viewModel: CreateShippingViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsState()

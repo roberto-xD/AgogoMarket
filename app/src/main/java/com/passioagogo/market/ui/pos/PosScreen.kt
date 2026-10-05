@@ -73,7 +73,10 @@ internal val PaymentMethod.etiqueta: String
     }
 
 @Composable
-fun PosScreen(viewModel: PosViewModel = hiltViewModel()) {
+fun PosScreen(
+    onBack: ()-> Unit,
+    viewModel: PosViewModel = hiltViewModel()
+) {
     val state by viewModel.uiState.collectAsState()
 
     // Venta completada: ticket

@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -161,11 +162,17 @@ private fun enviarCorreo(context: Context, message: ContactMessage) {
 }
 
 @Composable
-fun ContactMessagesScreen(viewModel: ContactViewModel = hiltViewModel()) {
+fun ContactMessagesScreen(
+    onBack: ()-> Unit,
+    viewModel: ContactViewModel = hiltViewModel()
+) {
     val state by viewModel.uiState.collectAsState()
 
     LaunchedEffect(Unit) { viewModel.refresh() }
 
+    BackHandler(enabled = true) {
+        onBack()
+    }
     Column(Modifier.fillMaxSize()) {
         Row(
             modifier = Modifier

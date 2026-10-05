@@ -351,6 +351,7 @@ class PromotionEditViewModel @Inject constructor(
 fun PromotionsListScreen(
     onOpenPromotion: (String) -> Unit,
     onNewPromotion: () -> Unit,
+    onBack: ()-> Unit,
     readOnly: Boolean = false,
     viewModel: PromotionsViewModel = hiltViewModel(),
 ) {
@@ -443,6 +444,7 @@ fun PromotionsListScreen(
 @Composable
 fun PromotionEditScreen(
     onSaved: () -> Unit,
+    onBack: ()-> Unit,
     readOnly: Boolean = false,
     viewModel: PromotionEditViewModel = hiltViewModel(),
 ) {

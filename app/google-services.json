@@ -12,7 +12,20 @@
           "package_name": "com.passioagogo.market"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "782959812348-2kfoqoe3ru7l2ficf5eaqhka6edu341d.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.passioagogo.market",
+            "certificate_hash": "e559d38692200b4423f07432a2d8d2f77a43244f"
+          }
+        },
+        {
+          "client_id": "782959812348-dqv9mg6h92qj5fvi19cfq6jj9nrm881t.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyABm2DANg1fiKVgzQYcYEDgcbef7D_fRx4"
@@ -20,7 +33,41 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "782959812348-dqv9mg6h92qj5fvi19cfq6jj9nrm881t.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:782959812348:android:fbeda21b88c7f686088179",
+        "android_client_info": {
+          "package_name": "com.passioagogo.market.sandbox"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "782959812348-dqv9mg6h92qj5fvi19cfq6jj9nrm881t.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyABm2DANg1fiKVgzQYcYEDgcbef7D_fRx4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "782959812348-dqv9mg6h92qj5fvi19cfq6jj9nrm881t.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

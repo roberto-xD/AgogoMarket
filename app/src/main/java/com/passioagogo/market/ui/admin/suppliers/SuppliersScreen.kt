@@ -1,5 +1,6 @@
 package com.passioagogo.market.ui.admin.suppliers
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -158,9 +159,15 @@ class SuppliersViewModel @Inject constructor(
 }
 
 @Composable
-fun SuppliersScreen(viewModel: SuppliersViewModel = hiltViewModel()) {
+fun SuppliersScreen(
+    onBack: ()-> Unit,
+    viewModel: SuppliersViewModel = hiltViewModel()
+) {
     val state by viewModel.uiState.collectAsState()
 
+    BackHandler(enabled = true) {
+        onBack()
+    }
     Box(Modifier.fillMaxSize()) {
         Column(Modifier.fillMaxSize()) {
             Row(

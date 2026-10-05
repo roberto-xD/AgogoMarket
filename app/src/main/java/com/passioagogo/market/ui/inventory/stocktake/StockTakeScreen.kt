@@ -2,6 +2,7 @@ package com.passioagogo.market.ui.inventory.stocktake
 
 import android.Manifest
 import android.content.pm.PackageManager
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -289,7 +290,10 @@ class StockTakeViewModel @Inject constructor(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StockTakeScreen(viewModel: StockTakeViewModel = hiltViewModel()) {
+fun StockTakeScreen(
+    onBack: ()-> Unit,
+    viewModel: StockTakeViewModel = hiltViewModel()
+) {
     val state by viewModel.uiState.collectAsState()
     val context = LocalContext.current
     val teclado = LocalSoftwareKeyboardController.current
@@ -304,6 +308,9 @@ fun StockTakeScreen(viewModel: StockTakeViewModel = hiltViewModel()) {
         return
     }
 
+    BackHandler(enabled = true) {
+        onBack()
+    }
     // ---------- Escáner a pantalla completa ----------
     if (state.showScanner) {
         Dialog(

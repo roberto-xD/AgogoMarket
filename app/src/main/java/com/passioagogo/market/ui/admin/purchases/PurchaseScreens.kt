@@ -1,5 +1,6 @@
 package com.passioagogo.market.ui.admin.purchases
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -59,10 +60,13 @@ private val moneda: NumberFormat = NumberFormat.getCurrencyInstance(Locale("es",
 fun PurchasesListScreen(
     onOpenPurchase: (String) -> Unit,
     onCreatePurchase: () -> Unit,
+    onBack: ()-> Unit,
     viewModel: PurchasesViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsState()
-
+    BackHandler(enabled = true) {
+        onBack()
+    }
     LaunchedEffect(Unit) { viewModel.refresh() }
 
     Box(Modifier.fillMaxSize()) {

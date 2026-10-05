@@ -1,5 +1,6 @@
 package com.passioagogo.market.ui.admin.stats
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -143,9 +144,15 @@ class StatsViewModel @Inject constructor(
 }
 
 @Composable
-fun StatsScreen(viewModel: StatsViewModel = hiltViewModel()) {
+fun StatsScreen(
+    onBack: ()-> Unit,
+    viewModel: StatsViewModel = hiltViewModel()
+) {
     val state by viewModel.uiState.collectAsState()
 
+    BackHandler(enabled = true) {
+        onBack()
+    }
     LaunchedEffect(Unit) { viewModel.load() }
 
     Column(Modifier.fillMaxSize()) {

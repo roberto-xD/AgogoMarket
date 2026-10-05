@@ -1,5 +1,6 @@
 package com.passioagogo.market.ui.admin.users
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -204,7 +205,10 @@ class UsersViewModel @Inject constructor(
 }
 
 @Composable
-fun UsersScreen(viewModel: UsersViewModel = hiltViewModel()) {
+fun UsersScreen(
+    onBack: ()-> Unit,
+    viewModel: UsersViewModel = hiltViewModel()
+) {
     val state by viewModel.uiState.collectAsState()
     var pestana by rememberSaveable { mutableIntStateOf(0) }
     val pestanas = PestanaUsuarios.entries
@@ -215,6 +219,9 @@ fun UsersScreen(viewModel: UsersViewModel = hiltViewModel()) {
     val puedeCrear = seleccionadaFab == PestanaUsuarios.VENDEDORES ||
         seleccionadaFab == PestanaUsuarios.PROMOTORES
 
+    BackHandler(enabled = true) {
+        onBack()
+    }
     Box(Modifier.fillMaxSize()) {
     Column(Modifier.fillMaxSize()) {
         // Desplazable: con cuatro rótulos largos no caben fijos en móvil

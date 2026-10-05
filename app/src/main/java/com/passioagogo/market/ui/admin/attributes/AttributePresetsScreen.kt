@@ -1,5 +1,6 @@
 package com.passioagogo.market.ui.admin.attributes
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -156,9 +157,15 @@ class PresetsViewModel @Inject constructor(
 }
 
 @Composable
-fun AttributePresetsScreen(viewModel: PresetsViewModel = hiltViewModel()) {
+fun AttributePresetsScreen(
+    onBack: ()-> Unit,
+    viewModel: PresetsViewModel = hiltViewModel()
+) {
     val state by viewModel.uiState.collectAsState()
 
+    BackHandler(enabled = true) {
+        onBack()
+    }
     Box(Modifier.fillMaxSize()) {
         Column(Modifier.fillMaxSize()) {
             Row(

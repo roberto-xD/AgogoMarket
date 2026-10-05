@@ -1,6 +1,7 @@
 package com.passioagogo.market.ui.admin.gallery
 
 import android.net.Uri
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -106,10 +107,14 @@ class GalleryListViewModel @Inject constructor(
 fun GalleryListScreen(
     onOpenItem: (String) -> Unit,
     onNewItem: () -> Unit,
+    onBack: ()-> Unit,
     viewModel: GalleryListViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsState()
 
+    BackHandler(enabled = true) {
+        onBack()
+    }
     LaunchedEffect(Unit) { viewModel.refresh() }
 
     Box(Modifier.fillMaxSize()) {
@@ -381,10 +386,14 @@ class GalleryEditViewModel @Inject constructor(
 @Composable
 fun GalleryEditScreen(
     onSaved: () -> Unit,
+    onBack: ()-> Unit,
     viewModel: GalleryEditViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsState()
 
+    BackHandler(enabled = true) {
+        onBack()
+    }
     LaunchedEffect(state.saved) { if (state.saved) onSaved() }
 
     val picker = rememberLauncherForActivityResult(

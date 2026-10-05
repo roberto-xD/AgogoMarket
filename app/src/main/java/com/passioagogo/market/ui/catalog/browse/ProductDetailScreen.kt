@@ -4,6 +4,7 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
@@ -150,6 +151,7 @@ private fun copiar(context: Context, etiqueta: String, texto: String) {
 @Composable
 fun ProductDetailScreen(
     viewModel: ProductDetailViewModel = hiltViewModel(),
+    onBack: ()-> Unit
 ) {
     val state by viewModel.uiState.collectAsState()
     val context = LocalContext.current
@@ -164,6 +166,10 @@ fun ProductDetailScreen(
         return
     }
     val producto = pw.product
+
+    BackHandler(enabled = true) {
+        onBack()
+    }
 
     Column(
         Modifier

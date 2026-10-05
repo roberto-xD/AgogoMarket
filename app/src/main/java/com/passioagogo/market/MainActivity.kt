@@ -9,7 +9,7 @@ import androidx.activity.enableEdgeToEdge
 import com.passioagogo.market.core.push.EXTRA_ID
 import com.passioagogo.market.core.push.EXTRA_TIPO
 import com.passioagogo.market.ui.navigation.DeepLinkDestino
-import com.passioagogo.market.ui.session.AppRoot
+import com.passioagogo.market.ui.screens.MainScreen
 import com.passioagogo.market.ui.theme.PassioAgogoMarketTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -32,7 +32,7 @@ class MainActivity : ComponentActivity() {
         val deepLink = leerDeepLink(intent)
         setContent {
             PassioAgogoMarketTheme {
-                AppRoot(deepLink = deepLink)
+                MainScreen(deepLink = deepLink)
             }
         }
     }

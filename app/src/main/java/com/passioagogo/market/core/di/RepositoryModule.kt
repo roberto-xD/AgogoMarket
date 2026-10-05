@@ -25,9 +25,6 @@ import com.passioagogo.market.data.promotions.PromotionRepositoryImpl
 import com.passioagogo.market.data.requests.OrderRequestRepository
 import com.passioagogo.market.data.transferrequests.TransferRequestRepository
 import com.passioagogo.market.data.transferrequests.TransferRequestRepositoryImpl
-import com.passioagogo.market.data.requests.OrderRequestRepository
-import com.passioagogo.market.data.transferrequests.TransferRequestRepository
-import com.passioagogo.market.data.transferrequests.TransferRequestRepositoryImplImpl
 import com.passioagogo.market.data.purchases.PurchaseRepositoryImpl
 import com.passioagogo.market.data.stats.StatsRepository
 import com.passioagogo.market.data.stats.StatsRepositoryImpl
@@ -35,6 +32,7 @@ import com.passioagogo.market.data.users.ProfilesAdminRepository
 import com.passioagogo.market.data.users.ProfilesAdminRepositoryImpl
 import com.passioagogo.market.domain.promotions.PromotionRepository
 import com.passioagogo.market.data.purchases.SupplierRepositoryImpl
+import com.passioagogo.market.data.requests.OrderRequestRepositoryImpl
 import com.passioagogo.market.data.sales.SalesRepositoryImpl
 import com.passioagogo.market.domain.purchases.PurchaseRepository
 import com.passioagogo.market.domain.purchases.SupplierRepository

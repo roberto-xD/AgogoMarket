@@ -1,5 +1,6 @@
 package com.passioagogo.market.ui.admin.locations
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -132,9 +133,15 @@ class LocationsViewModel @Inject constructor(
 }
 
 @Composable
-fun LocationsScreen(viewModel: LocationsViewModel = hiltViewModel()) {
+fun LocationsScreen(
+    onBack: ()-> Unit,
+    viewModel: LocationsViewModel = hiltViewModel()
+) {
     val state by viewModel.uiState.collectAsState()
 
+    BackHandler(enabled = true) {
+        onBack()
+    }
     Box(Modifier.fillMaxSize()) {
         Column(Modifier.fillMaxSize()) {
             state.errorMessage?.let {

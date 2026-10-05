@@ -1,5 +1,6 @@
 package com.passioagogo.market.ui.requests
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -231,7 +232,9 @@ fun RequestDetailScreen(
         }
         return
     }
-
+    BackHandler(enabled = true) {
+        onBack()
+    }
     Column(
         Modifier
             .fillMaxSize()

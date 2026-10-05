@@ -51,7 +51,6 @@ private val moneda: NumberFormat = NumberFormat.getCurrencyInstance(Locale("es",
 
 @Composable
 fun InventoryScreen(
-    session: SessionState.Authenticated,
     onOpenStockTake: () -> Unit,
     viewModel: InventoryViewModel = hiltViewModel(),
 ) {

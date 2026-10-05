@@ -1,5 +1,6 @@
 package com.passioagogo.market.ui.admin.guides
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -110,10 +111,14 @@ class GuidesViewModel @Inject constructor(
 fun GuidesListScreen(
     onOpenGuide: (String) -> Unit,
     onNewGuide: () -> Unit,
+    onBack: ()-> Unit,
     viewModel: GuidesViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsState()
 
+    BackHandler(enabled = true) {
+        onBack()
+    }
     LaunchedEffect(Unit) { viewModel.refresh() }
 
     Box(Modifier.fillMaxSize()) {
