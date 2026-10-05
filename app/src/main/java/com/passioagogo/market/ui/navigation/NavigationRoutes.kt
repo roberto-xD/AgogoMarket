@@ -31,7 +31,8 @@ sealed class NavigationRoutes{
     @Serializable data object Attributes: NavigationRoutes()
 
     @Serializable data class Request(
-        val idRequest: String
+        // El nombre debe coincidir con la clave que lee RequestDetailViewModel
+        val requestId: String
     ): NavigationRoutes()
     @Serializable data object OrdersList: NavigationRoutes()
     @Serializable data class Order(
@@ -41,12 +42,13 @@ sealed class NavigationRoutes{
 
     @Serializable data object GalleryList: NavigationRoutes()
     @Serializable data class GalleryItem(
-        val id: String? = null
+        // El nombre debe coincidir con la clave que lee GalleryEditViewModel
+        val itemId: String? = null
     ): NavigationRoutes()
     @Serializable data object ContactMessages: NavigationRoutes()
     @Serializable data object EventList: NavigationRoutes()
     @Serializable data class EventEdit(
-        val enetId: String? = null
+        val eventId: String? = null
     ): NavigationRoutes()
     @Serializable data object GuidesList: NavigationRoutes()
     @Serializable data class GuidesEdit(

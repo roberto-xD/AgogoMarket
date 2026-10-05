@@ -48,7 +48,8 @@ internal fun DrawerScreen(
     userName: String,
     userRol: String,
     sections: List<DrawerSection>,
-    currentScreen: String,
+    /** Sección activa, para resaltarla en el menú. */
+    currentSection: DrawerSection?,
     drawerState: DrawerState,
     navigateToSection: (route: NavigationRoutes) -> Unit,
     onSignOut: () -> Unit,
@@ -69,7 +70,7 @@ internal fun DrawerScreen(
                         NavigationDrawerItem(
                             label = { Text(section.label) },
                             icon = { Icon(section.icon, contentDescription = null) },
-                            selected = currentScreen == section.label,
+                            selected = currentSection == section,
                             onClick = {
                                 scope.launch { drawerState.close() }
                                 navigateToSection(section.route)
@@ -101,7 +102,7 @@ internal fun DrawerScreen(
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text(currentScreen) },
+                    title = { Text(currentSection?.label.orEmpty()) },
                     navigationIcon = {
                         IconButton(onClick = { scope.launch { drawerState.open() } }) {
                             Icon(Icons.Filled.Menu, contentDescription = "Abrir menú")
@@ -156,7 +157,7 @@ private fun Preview() {
         drawerState = drawerState,
         userName = profile.nombre,
         userRol = profile.rol.name,
-        currentScreen = "",
+        currentSection = null,
         sections = sections,
         navigateToSection = {},
         onSignOut = {}

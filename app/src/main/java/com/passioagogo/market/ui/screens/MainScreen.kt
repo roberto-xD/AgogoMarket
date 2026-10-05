@@ -30,6 +30,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
+import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.passioagogo.market.BuildConfig
@@ -140,9 +141,23 @@ private fun AppScaffold(
         onBack()
     }
 
+    // El deep link llega desde una notificación; se navega una sola vez.
+    // Las solicitudes de transferencia también le llegan al vendedor de la
+    // ubicación contraparte; el resto son de administración.
     LaunchedEffect(deepLink) {
-        if (deepLink == null) return@LaunchedEffect
+        val destino = deepLink ?: return@LaunchedEffect
+        val soloAdmin = destino.tipo != "transferencia"
+        if (soloAdmin && !session.isAdmin) return@LaunchedEffect
 
+        when (destino.tipo) {
+            "solicitud" -> destino.id?.let {
+                navController.navigate(NavigationRoutes.Request(it))
+            }
+            "contacto" -> navController.navigate(NavigationRoutes.ContactMessages)
+            "transferencia" -> destino.id?.let {
+                navController.navigate(NavigationRoutes.InventoryTransferRequest(it))
+            }
+        }
     }
 
     DrawerScreen(
@@ -150,7 +165,11 @@ private fun AppScaffold(
         userRol = session.profile.rol.name,
         sections = session.sections,
         onSignOut = onSignOut,
-        currentScreen = session.sections.find { it.route == currentDestination }?.label.orEmpty(),
+        // Las rutas tipadas no son comparables con NavDestination: se
+        // contrastan por el nombre cualificado que genera la serialización.
+        currentSection = session.sections.find { section ->
+            currentDestination?.hasRoute(section.route::class) == true
+        },
         drawerState = drawerState,
         navigateToSection = { route ->
             navController.navigate(route)
