@@ -58,10 +58,12 @@ import com.passioagogo.market.data.wheel.WheelPrize
 import com.passioagogo.market.data.wheel.WheelPrizeDraft
 import com.passioagogo.market.data.wheel.WheelSpin
 import com.passioagogo.market.data.wheel.WheelTerm
+import com.passioagogo.market.data.wheel.WheelTermVar
 
 private enum class PestanaRuleta(val etiqueta: String) {
     PREMIOS("Premios"),
     CODIGOS("Códigos"),
+    DATOS("Datos"),
     BASES("Bases"),
 }
 
@@ -121,8 +123,8 @@ fun WheelScreen(
                             val sufijo = when (p) {
                                 PestanaRuleta.CODIGOS ->
                                     if (state.pendientes > 0) " (${state.pendientes})" else ""
-                                PestanaRuleta.BASES ->
-                                    if (state.terminosPendientes > 0) " ⚠" else ""
+                                PestanaRuleta.DATOS ->
+                                    if (state.variablesPendientes > 0) " ⚠" else ""
                                 else -> ""
                             }
                             Text(p.etiqueta + sufijo)
@@ -143,6 +145,7 @@ fun WheelScreen(
             when (pestanas[pestana]) {
                 PestanaRuleta.PREMIOS -> PremiosTab(state, viewModel)
                 PestanaRuleta.CODIGOS -> CodigosTab(state, viewModel)
+                PestanaRuleta.DATOS -> DatosTab(state, viewModel)
                 PestanaRuleta.BASES -> BasesTab(state, viewModel)
             }
         }
@@ -168,10 +171,20 @@ fun WheelScreen(
         )
     }
 
+    state.editandoVariable?.let { variable ->
+        VariableDialog(
+            variable = variable,
+            isSaving = state.isSaving,
+            onDismiss = viewModel::onCerrarVariable,
+            onSave = { valor -> viewModel.onGuardarVariable(variable.clave, valor) },
+        )
+    }
+
     state.editandoTermino?.let { term ->
         TerminoDialog(
             term = term,
             isSaving = state.isSaving,
+            render = state::render,
             onDismiss = viewModel::onCerrarTermino,
             onSave = viewModel::onGuardarTermino,
         )
@@ -483,12 +496,104 @@ private fun FilaCodigo(spin: WheelSpin, onCanjear: () -> Unit) {
     }
 }
 
+// ============ Datos de las bases ============
+
+@Composable
+private fun DatosTab(state: WheelUiState, viewModel: WheelViewModel) {
+    LazyColumn {
+        item {
+            Text(
+                "Estos valores rellenan los marcadores del texto legal. " +
+                    "Cambiar una fecha aquí la actualiza en todas las cláusulas " +
+                    "que la usen.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            )
+        }
+        items(state.termVars, key = { it.clave }) { variable ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { viewModel.onEditarVariable(variable) }
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(Modifier.weight(1f)) {
+                    Text(variable.etiqueta, style = MaterialTheme.typography.bodyLarge)
+                    Text(
+                        variable.valor.ifBlank { "Sin definir" },
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = if (variable.pendiente) MaterialTheme.colorScheme.error
+                        else MaterialTheme.colorScheme.primary,
+                    )
+                    variable.descripcion?.let {
+                        Text(
+                            it,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+                if (variable.pendiente) {
+                    Icon(
+                        Icons.Filled.Warning,
+                        contentDescription = "Sin definir",
+                        tint = MaterialTheme.colorScheme.error,
+                    )
+                }
+            }
+            HorizontalDivider()
+        }
+    }
+}
+
+@Composable
+private fun VariableDialog(
+    variable: WheelTermVar,
+    isSaving: Boolean,
+    onDismiss: () -> Unit,
+    onSave: (String) -> Unit,
+) {
+    var valor by remember { mutableStateOf(variable.valor) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(variable.etiqueta) },
+        text = {
+            Column {
+                variable.descripcion?.let {
+                    Text(
+                        it,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Spacer(Modifier.height(8.dp))
+                }
+                OutlinedTextField(
+                    value = valor,
+                    onValueChange = { valor = it },
+                    label = { Text("Valor") },
+                    supportingText = { Text("Marcador: {{${variable.clave}}}") },
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(
+                enabled = !isSaving,
+                onClick = { onSave(valor.trim()) },
+            ) { Text(if (isSaving) "Guardando…" else "Guardar") }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancelar") } },
+    )
+}
+
 // ============ Bases ============
 
 @Composable
 private fun BasesTab(state: WheelUiState, viewModel: WheelViewModel) {
     LazyColumn {
-        if (state.terminosPendientes > 0) {
+        if (state.variablesPendientes > 0) {
             item {
                 Card(
                     colors = CardDefaults.cardColors(
@@ -506,8 +611,8 @@ private fun BasesTab(state: WheelUiState, viewModel: WheelViewModel) {
                         )
                         Spacer(Modifier.width(12.dp))
                         Text(
-                            "${state.terminosPendientes} cláusula(s) con huecos sin " +
-                                "rellenar. Revísalas antes de publicar la promoción.",
+                            "${state.variablesPendientes} dato(s) sin definir en la " +
+                                "pestaña Datos. Complétalos antes de publicar.",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onErrorContainer,
                         )
@@ -529,19 +634,23 @@ private fun BasesTab(state: WheelUiState, viewModel: WheelViewModel) {
                         "${term.orden}. ${term.titulo}",
                         style = MaterialTheme.typography.bodyLarge,
                     )
+                    // Vista previa con los valores ya sustituidos: es como
+                    // lo verá el público, no el texto con marcadores.
                     Text(
-                        term.cuerpo,
+                        state.render(term.cuerpo),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 2,
                     )
-                }
-                if (term.tienePendientes) {
-                    Icon(
-                        Icons.Filled.Warning,
-                        contentDescription = "Tiene huecos por rellenar",
-                        tint = MaterialTheme.colorScheme.error,
-                    )
+                    val huerfanos = state.huerfanos(term)
+                    if (huerfanos.isNotEmpty()) {
+                        Text(
+                            "Marcador sin variable: " +
+                                huerfanos.joinToString(", ") { "{{$it}}" },
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error,
+                        )
+                    }
                 }
                 if (!term.activo) {
                     Text(
@@ -560,6 +669,7 @@ private fun BasesTab(state: WheelUiState, viewModel: WheelViewModel) {
 private fun TerminoDialog(
     term: WheelTerm,
     isSaving: Boolean,
+    render: (String) -> String,
     onDismiss: () -> Unit,
     onSave: (WheelTerm) -> Unit,
 ) {
@@ -588,9 +698,23 @@ private fun TerminoDialog(
                     onValueChange = { cuerpo = it },
                     label = { Text("Texto") },
                     minLines = 6,
-                    supportingText = { Text("${cuerpo.length}/2000") },
+                    supportingText = {
+                        Text(
+                            "${cuerpo.length}/2000 · usa {{clave}} para insertar " +
+                                "un dato de la pestaña Datos"
+                        )
+                    },
                     isError = cuerpo.length > 2000,
                 )
+                if (cuerpo.contains("{{")) {
+                    Spacer(Modifier.height(8.dp))
+                    Text("Vista previa", style = MaterialTheme.typography.labelMedium)
+                    Text(
+                        render(cuerpo),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
                 Spacer(Modifier.height(8.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Checkbox(checked = activo, onCheckedChange = { activo = it })

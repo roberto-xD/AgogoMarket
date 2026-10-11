@@ -48,13 +48,26 @@ data class WheelSpin(
 data class WheelTerm(
     val id: String,
     val titulo: String,
+    /** Texto con marcadores {{clave}} sin sustituir: es lo que se edita. */
     val cuerpo: String,
     val orden: Int,
     val activo: Boolean,
 ) {
-    /** El borrador sembrado deja huecos entre corchetes por rellenar. */
-    val tienePendientes: Boolean
-        get() = Regex("\\[[^\\]]+\\]").containsMatchIn(cuerpo)
+    /** Marcadores presentes en esta cláusula. */
+    val marcadores: List<String>
+        get() = Regex("\\{\\{([a-z0-9_]+)\\}\\}")
+            .findAll(cuerpo).map { it.groupValues[1] }.toList()
+}
+
+/** Valor reutilizable que rellena los {{marcadores}} de las bases. */
+data class WheelTermVar(
+    val clave: String,
+    val etiqueta: String,
+    val valor: String,
+    val descripcion: String?,
+    val orden: Int,
+) {
+    val pendiente: Boolean get() = valor.isBlank()
 }
 
 // ============ DTOs ============
@@ -114,6 +127,20 @@ data class WheelTermDto(
 }
 
 @Serializable
+data class WheelTermVarDto(
+    val clave: String,
+    val etiqueta: String,
+    val valor: String = "",
+    val descripcion: String? = null,
+    val orden: Int = 0,
+) {
+    fun toDomain() = WheelTermVar(
+        clave = clave, etiqueta = etiqueta, valor = valor,
+        descripcion = descripcion, orden = orden,
+    )
+}
+
+@Serializable
 data class SiteSettingDto(val clave: String, val valor: String)
 
 // ============ Repositorio ============
@@ -142,6 +169,10 @@ interface WheelRepository {
     suspend fun getTerms(): DataResult<List<WheelTerm>>
     suspend fun updateTerm(term: WheelTerm): DataResult<WheelTerm>
 
+    /** Valores que rellenan los marcadores del texto. */
+    suspend fun getTermVars(): DataResult<List<WheelTermVar>>
+    suspend fun updateTermVar(clave: String, valor: String): DataResult<Unit>
+
     // -- Interruptor de la sección en la web --
     suspend fun isRuletaVisible(): DataResult<Boolean>
     suspend fun setRuletaVisible(visible: Boolean): DataResult<Unit>
@@ -157,6 +188,7 @@ class WheelRepositoryImpl @Inject constructor(
         const val PRIZES = "wheel_prizes"
         const val SPINS = "wheel_spins"
         const val TERMS = "wheel_terms"
+        const val TERM_VARS = "wheel_term_vars"
         const val SETTINGS = "site_settings"
         const val CLAVE_RULETA = "ruleta_visible"
     }
@@ -278,6 +310,24 @@ class WheelRepositoryImpl @Inject constructor(
             }.decodeSingle<WheelTermDto>()
         }.map { it.toDomain() }
     }
+
+    override suspend fun getTermVars(): DataResult<List<WheelTermVar>> = withContext(io) {
+        safeSupabaseCall {
+            postgrest.from(TERM_VARS).select {
+                order("orden", Order.ASCENDING)
+            }.decodeList<WheelTermVarDto>()
+        }.map { list -> list.map { it.toDomain() } }
+    }
+
+    override suspend fun updateTermVar(clave: String, valor: String): DataResult<Unit> =
+        withContext(io) {
+            safeSupabaseCall {
+                postgrest.from(TERM_VARS).update({
+                    set("valor", valor)
+                }) { filter { eq("clave", clave) } }
+                Unit
+            }
+        }
 
     // ---------- Interruptor ----------
 

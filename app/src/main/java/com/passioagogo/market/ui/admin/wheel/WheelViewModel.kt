@@ -8,6 +8,7 @@ import com.passioagogo.market.data.wheel.WheelPrizeDraft
 import com.passioagogo.market.data.wheel.WheelRepository
 import com.passioagogo.market.data.wheel.WheelSpin
 import com.passioagogo.market.data.wheel.WheelTerm
+import com.passioagogo.market.data.wheel.WheelTermVar
 import com.passioagogo.market.ui.common.toMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -22,6 +23,7 @@ data class WheelUiState(
     val prizes: List<WheelPrize> = emptyList(),
     val spins: List<WheelSpin> = emptyList(),
     val terms: List<WheelTerm> = emptyList(),
+    val termVars: List<WheelTermVar> = emptyList(),
     val soloPendientes: Boolean = true,
     /** Resultado de verificar un código reclamado. */
     val busqueda: String = "",
@@ -30,6 +32,7 @@ data class WheelUiState(
     val editandoPremio: WheelPrize? = null,
     val creandoPremio: Boolean = false,
     val editandoTermino: WheelTerm? = null,
+    val editandoVariable: WheelTermVar? = null,
     val isLoading: Boolean = false,
     val isSaving: Boolean = false,
     val errorMessage: String? = null,
@@ -44,8 +47,23 @@ data class WheelUiState(
 
     val pendientes: Int get() = spins.count { !it.canjeado }
 
-    /** Cláusulas con huecos [ ] sin rellenar del borrador sembrado. */
-    val terminosPendientes: Int get() = terms.count { it.tienePendientes }
+    /** Variables sin valor: bloquean publicar la promoción. */
+    val variablesPendientes: Int get() = termVars.count { it.pendiente }
+
+    /** Texto con los marcadores ya sustituidos, para la vista previa. */
+    fun render(cuerpo: String): String {
+        var r = cuerpo
+        termVars.forEach { v ->
+            r = r.replace("{{${v.clave}}}", v.valor.ifBlank { "—" })
+        }
+        return r
+    }
+
+    /** Marcadores usados en el texto que no tienen variable definida. */
+    fun huerfanos(term: WheelTerm): List<String> {
+        val claves = termVars.map { it.clave }.toSet()
+        return term.marcadores.filterNot { it in claves }
+    }
 }
 
 @HiltViewModel
@@ -64,6 +82,7 @@ class WheelViewModel @Inject constructor(
             val prizes = repository.getPrizes()
             val spins = repository.getSpins(_uiState.value.soloPendientes)
             val terms = repository.getTerms()
+            val vars = repository.getTermVars()
             val visible = repository.isRuletaVisible()
 
             _uiState.update { state ->
@@ -72,6 +91,7 @@ class WheelViewModel @Inject constructor(
                     prizes = (prizes as? DataResult.Success)?.data ?: state.prizes,
                     spins = (spins as? DataResult.Success)?.data ?: state.spins,
                     terms = (terms as? DataResult.Success)?.data ?: state.terms,
+                    termVars = (vars as? DataResult.Success)?.data ?: state.termVars,
                     visible = (visible as? DataResult.Success)?.data ?: state.visible,
                     errorMessage = (prizes as? DataResult.Error)?.error?.toMessage(),
                 )
@@ -194,6 +214,24 @@ class WheelViewModel @Inject constructor(
 
     fun onEditarTermino(term: WheelTerm) = _uiState.update { it.copy(editandoTermino = term) }
     fun onCerrarTermino() = _uiState.update { it.copy(editandoTermino = null) }
+
+    fun onEditarVariable(v: WheelTermVar) = _uiState.update { it.copy(editandoVariable = v) }
+    fun onCerrarVariable() = _uiState.update { it.copy(editandoVariable = null) }
+
+    fun onGuardarVariable(clave: String, valor: String) {
+        _uiState.update { it.copy(isSaving = true, errorMessage = null) }
+        viewModelScope.launch {
+            when (val r = repository.updateTermVar(clave, valor)) {
+                is DataResult.Success -> {
+                    _uiState.update { it.copy(isSaving = false, editandoVariable = null) }
+                    refresh()
+                }
+                is DataResult.Error -> _uiState.update {
+                    it.copy(isSaving = false, errorMessage = r.error.toMessage())
+                }
+            }
+        }
+    }
 
     fun onGuardarTermino(term: WheelTerm) {
         _uiState.update { it.copy(isSaving = true, errorMessage = null) }
