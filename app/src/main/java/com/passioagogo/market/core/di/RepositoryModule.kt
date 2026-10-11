@@ -29,7 +29,11 @@ import com.passioagogo.market.data.purchases.PurchaseRepositoryImpl
 import com.passioagogo.market.data.stats.StatsRepository
 import com.passioagogo.market.data.stats.StatsRepositoryImpl
 import com.passioagogo.market.data.users.ProfilesAdminRepository
-import com.passioagogo.market.data.users.ProfilesAdminRepositoryImpl
+import com.passioagogo.market.data.wheel.WheelRepository
+import com.passioagogo.market.data.wheel.WheelRepositoryImpl
+import com.passioagogo.market.data.users.ProfilesAdminRepository
+import com.passioagogo.market.data.wheel.WheelRepository
+import com.passioagogo.market.data.wheel.WheelRepositoryImplImpl
 import com.passioagogo.market.domain.promotions.PromotionRepository
 import com.passioagogo.market.data.purchases.SupplierRepositoryImpl
 import com.passioagogo.market.data.requests.OrderRequestRepositoryImpl
@@ -133,4 +137,8 @@ abstract class RepositoryModule {
     abstract fun bindTransferRequestRepository(
         impl: TransferRequestRepositoryImpl,
     ): TransferRequestRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindWheelRepository(impl: WheelRepositoryImpl): WheelRepository
 }
