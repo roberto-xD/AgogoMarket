@@ -1,0 +1,23 @@
+# ============================================================
+# Plantilla de credenciales · AgogoMarket
+#
+# Copia este archivo como `local.properties` (en la raíz del proyecto)
+# y rellena los valores. `local.properties` está en .gitignore: nunca
+# se sube al repositorio.
+#
+# Android Studio añade aquí también la ruta del SDK; no la borres si
+# ya existe.
+#   sdk.dir=/ruta/a/Android/Sdk
+# ============================================================
+
+# ---------- Producción (variante release) ----------
+# Project Settings → API → Project URL y anon public key
+SUPABASE_URL=https://TU_PROYECTO.supabase.co
+SUPABASE_KEY=TU_ANON_KEY
+
+# ---------- Sandbox (variante debug) ----------
+# Si se dejan vacíos, la variante debug usa las credenciales de
+# producción: el build no falla, pero estarías escribiendo en datos
+# reales desde una app marcada como de pruebas.
+SANDBOX_URL=https://TU_SANDBOX.supabase.co
+SANDBOX_KEY=TU_ANON_KEY_DEL_SANDBOX

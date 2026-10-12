@@ -1,3 +1,24 @@
+import java.util.Properties
+
+/**
+ * Credenciales desde local.properties.
+ *
+ * Ese archivo está en .gitignore por defecto en todo proyecto Android, así
+ * que las claves dejan de viajar en el repositorio. El respaldo a
+ * project.findProperty permite seguir inyectándolas por línea de comandos
+ * o variables de entorno en un servidor de integración, donde no existe
+ * local.properties.
+ */
+val localProperties = Properties().apply {
+    val archivo = rootProject.file("local.properties")
+    if (archivo.exists()) archivo.inputStream().use { load(it) }
+}
+
+fun credencial(clave: String): String =
+    localProperties.getProperty(clave)
+        ?: project.findProperty(clave)?.toString()
+        ?: ""
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
@@ -59,14 +80,12 @@ android {
             buildConfigField(
                 "String",
                 "SUPABASE_URL",
-                "\"${project.findProperty("SANDBOX_URL")
-                    ?: project.findProperty("SUPABASE_URL") ?: ""}\""
+                "\"${credencial("SANDBOX_URL").ifBlank { credencial("SUPABASE_URL") }}\""
             )
             buildConfigField(
                 "String",
                 "SUPABASE_KEY",
-                "\"${project.findProperty("SANDBOX_KEY")
-                    ?: project.findProperty("SUPABASE_KEY") ?: ""}\""
+                "\"${credencial("SANDBOX_KEY").ifBlank { credencial("SUPABASE_KEY") }}\""
             )
             buildConfigField("Boolean", "ES_SANDBOX", "true")
         }
@@ -79,16 +98,8 @@ android {
                 "proguard-rules.pro"
             )
 
-            buildConfigField(
-                "String",
-                "SUPABASE_URL",
-                "\"${project.findProperty("SUPABASE_URL") ?: ""}\""
-            )
-            buildConfigField(
-                "String",
-                "SUPABASE_KEY",
-                "\"${project.findProperty("SUPABASE_KEY") ?: ""}\""
-            )
+            buildConfigField("String", "SUPABASE_URL", "\"${credencial("SUPABASE_URL")}\"")
+            buildConfigField("String", "SUPABASE_KEY", "\"${credencial("SUPABASE_KEY")}\"")
             buildConfigField("Boolean", "ES_SANDBOX", "false")
         }
     }
