@@ -38,8 +38,8 @@ android {
         applicationId = "com.passioagogo.market"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "1.0.0.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -77,17 +77,16 @@ android {
             applicationIdSuffix = ".sandbox"
             versionNameSuffix = "-sandbox"
 
-            buildConfigField(
-                "String",
-                "SUPABASE_URL",
-                "\"${credencial("SANDBOX_URL").ifBlank { credencial("SUPABASE_URL") }}\""
-            )
-            buildConfigField(
-                "String",
-                "SUPABASE_KEY",
-                "\"${credencial("SANDBOX_KEY").ifBlank { credencial("SUPABASE_KEY") }}\""
-            )
+            buildConfigField("String", "SUPABASE_URL", "\"${credencial("SANDBOX_URL")}\"")
+            buildConfigField("String", "SUPABASE_KEY", "\"${credencial("SANDBOX_KEY")}\"")
             buildConfigField("Boolean", "ES_SANDBOX", "true")
+        }
+        create("prod") {
+            buildConfigField("String", "SUPABASE_URL", "\"${credencial("SUPABASE_URL")}\"")
+            buildConfigField("String", "SUPABASE_KEY", "\"${credencial("SUPABASE_KEY")}\"")
+            buildConfigField("Boolean", "ES_SANDBOX", "false")
+            isDebuggable = true
+            isJniDebuggable = true
         }
 
         /** Producción: los datos con los que se transacciona. */
@@ -97,10 +96,10 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-
             buildConfigField("String", "SUPABASE_URL", "\"${credencial("SUPABASE_URL")}\"")
             buildConfigField("String", "SUPABASE_KEY", "\"${credencial("SUPABASE_KEY")}\"")
             buildConfigField("Boolean", "ES_SANDBOX", "false")
+            signingConfig = signingConfigs.getByName("release")
         }
     }
     compileOptions {

@@ -31,13 +31,11 @@ import com.passioagogo.market.data.stats.StatsRepositoryImpl
 import com.passioagogo.market.data.users.ProfilesAdminRepository
 import com.passioagogo.market.data.wheel.WheelRepository
 import com.passioagogo.market.data.wheel.WheelRepositoryImpl
-import com.passioagogo.market.data.users.ProfilesAdminRepository
-import com.passioagogo.market.data.wheel.WheelRepository
-import com.passioagogo.market.data.wheel.WheelRepositoryImplImpl
 import com.passioagogo.market.domain.promotions.PromotionRepository
 import com.passioagogo.market.data.purchases.SupplierRepositoryImpl
 import com.passioagogo.market.data.requests.OrderRequestRepositoryImpl
 import com.passioagogo.market.data.sales.SalesRepositoryImpl
+import com.passioagogo.market.data.users.ProfilesAdminRepositoryImpl
 import com.passioagogo.market.domain.purchases.PurchaseRepository
 import com.passioagogo.market.domain.purchases.SupplierRepository
 import com.passioagogo.market.domain.auth.AuthRepository

@@ -73,9 +73,8 @@ import com.passioagogo.market.domain.auth.SessionState
 import com.passioagogo.market.domain.catalog.CatalogRepository
 import com.passioagogo.market.domain.inventory.InventoryRepository
 import com.passioagogo.market.domain.inventory.Location
+import com.passioagogo.market.domain.inventory.LocationRepository
 import com.passioagogo.market.domain.inventory.MotivoAjuste
-import com.passioagogo.market.domain.inventory.Location
-import com.passioagogo.market.domain.inventory.MotivoAjusteRepository
 import com.passioagogo.market.ui.common.toMessage
 import com.passioagogo.market.ui.inventory.stock.MotivoSelector
 import com.passioagogo.market.ui.inventory.transfers.VariantInfo
