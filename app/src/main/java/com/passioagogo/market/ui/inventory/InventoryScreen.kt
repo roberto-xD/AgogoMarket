@@ -80,7 +80,9 @@ fun InventoryScreen(
                     Icon(Icons.Filled.Refresh, contentDescription = "Actualizar")
                 }
             }
-            if (state.isAdmin) {
+            // También el vendedor, acotado a su tienda. Sin tienda no hay
+            // existencias que ajustar.
+            if (state.isAdmin || !state.sinTienda) {
                 TextButton(onClick = onOpenStockTake) {
                     Icon(Icons.Filled.EditNote, contentDescription = null)
                     Text("  Registrar existencias")

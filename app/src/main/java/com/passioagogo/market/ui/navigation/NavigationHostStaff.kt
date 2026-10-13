@@ -4,6 +4,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import com.passioagogo.market.ui.inventory.InventoryHomeScreen
+import com.passioagogo.market.ui.inventory.stocktake.StockTakeScreen
 import com.passioagogo.market.ui.inventory.requests.CreateTransferRequestScreen
 import com.passioagogo.market.ui.inventory.requests.TransferRequestDetailScreen
 import com.passioagogo.market.ui.inventory.transfers.CreateTransferScreen
@@ -19,6 +20,13 @@ internal fun NavGraphBuilder.NavigationHostStaff(
 ) {
     composable<NavigationRoutes.PointOfSale> {
         PosScreen(
+            onBack = onBack,
+        )
+    }
+    // Registrar existencias: el vendedor solo puede ajustar su propia
+    // ubicación, y el servidor lo verifica además en fn_ajustar_existencia.
+    composable<NavigationRoutes.StockTake> {
+        StockTakeScreen(
             onBack = onBack,
         )
     }

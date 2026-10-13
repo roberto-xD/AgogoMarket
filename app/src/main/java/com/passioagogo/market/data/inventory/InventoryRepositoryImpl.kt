@@ -10,9 +10,10 @@ import com.passioagogo.market.data.inventory.remote.dto.NewStockTransferItemDto
 import com.passioagogo.market.data.inventory.remote.dto.StockActualDto
 import com.passioagogo.market.data.inventory.remote.dto.StockDto
 import com.passioagogo.market.data.inventory.remote.dto.StockTransferDto
-import com.passioagogo.market.data.inventory.remote.dto.StockUpsertDto
 import com.passioagogo.market.domain.common.TransferStatus
+import com.passioagogo.market.domain.inventory.AjusteInventario
 import com.passioagogo.market.domain.inventory.InventoryRepository
+import com.passioagogo.market.domain.inventory.MotivoAjuste
 import com.passioagogo.market.domain.inventory.StockItem
 import com.passioagogo.market.domain.inventory.StockTransfer
 import com.passioagogo.market.domain.inventory.TransferDraft
@@ -25,6 +26,43 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
+
+/** Valor que espera el enum de PostgreSQL. */
+private fun MotivoAjuste.valorSql(): String = when (this) {
+    MotivoAjuste.CONTEO -> "conteo"
+    MotivoAjuste.ALTA_INICIAL -> "alta_inicial"
+    MotivoAjuste.MERMA -> "merma"
+    MotivoAjuste.DANO -> "dano"
+    MotivoAjuste.ROBO -> "robo"
+    MotivoAjuste.DEVOLUCION -> "devolucion"
+    MotivoAjuste.CORRECCION -> "correccion"
+    MotivoAjuste.OTRO -> "otro"
+}
+
+@Serializable
+private data class AjusteInventarioDto(
+    val id: String,
+    @SerialName("created_at") val createdAt: String? = null,
+    val ubicacion: String,
+    val producto: String,
+    val sku: String,
+    @SerialName("cantidad_anterior") val cantidadAnterior: Int,
+    @SerialName("cantidad_nueva") val cantidadNueva: Int,
+    val diferencia: Int,
+    val motivo: MotivoAjuste,
+    val nota: String? = null,
+    val responsable: String? = null,
+) {
+    fun toDomain() = AjusteInventario(
+        id = id, createdAt = createdAt, ubicacion = ubicacion, producto = producto,
+        sku = sku, cantidadAnterior = cantidadAnterior, cantidadNueva = cantidadNueva,
+        diferencia = diferencia, motivo = motivo, nota = nota, responsable = responsable,
+    )
+}
 
 private fun StockActualDto.toDomain() = StockItem(
     locationId = locationId, tienda = tienda, variantId = variantId,
@@ -49,6 +87,8 @@ class InventoryRepositoryImpl @Inject constructor(
     private companion object {
         const val STOCK = "stock"
         const val STOCK_VIEW = "v_stock_actual"
+        const val AJUSTES_VIEW = "v_ajustes_inventario"
+        const val RPC_AJUSTAR = "fn_ajustar_existencia"
         const val TRANSFERS = "stock_transfers"
         const val TRANSFER_ITEMS = "stock_transfer_items"
         val TRANSFER_COLUMNS = Columns.raw("*, stock_transfer_items(*)")
@@ -83,17 +123,42 @@ class InventoryRepositoryImpl @Inject constructor(
             }.map { rows -> rows.firstOrNull()?.cantidad ?: 0 }
         }
 
-    override suspend fun setStock(
+    override suspend fun ajustarExistencia(
         variantId: String,
         locationId: String,
         cantidad: Int,
+        motivo: MotivoAjuste,
+        nota: String?,
     ): DataResult<Unit> = withContext(io) {
         safeSupabaseCall {
-            postgrest.from(STOCK).upsert(
-                StockUpsertDto(variantId = variantId, locationId = locationId, cantidad = cantidad)
-            ) { onConflict = "variant_id,location_id" }
+            // El RPC mueve stock y escribe la bitácora en una sola
+            // transacción: hacerlo en dos pasos dejaría existencias
+            // cambiadas sin registro si se cae la red entre ambos.
+            postgrest.rpc(
+                RPC_AJUSTAR,
+                buildJsonObject {
+                    put("p_variant", variantId)
+                    put("p_location", locationId)
+                    put("p_cantidad", cantidad)
+                    put("p_motivo", motivo.valorSql())
+                    nota?.takeIf { it.isNotBlank() }?.let { put("p_nota", it) }
+                },
+            )
             Unit
         }
+    }
+
+    override suspend fun getAjustes(
+        locationId: String?,
+        limite: Int,
+    ): DataResult<List<AjusteInventario>> = withContext(io) {
+        safeSupabaseCall {
+            postgrest.from(AJUSTES_VIEW).select {
+                filter { locationId?.let { eq("location_id", it) } }
+                order("created_at", Order.DESCENDING)
+                limit(limite.toLong())
+            }.decodeList<AjusteInventarioDto>()
+        }.map { list -> list.map { it.toDomain() } }
     }
 
     // ============ Transferencias ============

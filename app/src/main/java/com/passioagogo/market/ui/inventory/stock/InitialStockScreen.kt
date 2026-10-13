@@ -48,7 +48,9 @@ import com.passioagogo.market.core.result.DataResult
 import com.passioagogo.market.domain.catalog.CatalogRepository
 import com.passioagogo.market.domain.inventory.InventoryRepository
 import com.passioagogo.market.domain.inventory.Location
-import com.passioagogo.market.domain.inventory.LocationRepository
+import com.passioagogo.market.domain.inventory.MotivoAjuste
+import com.passioagogo.market.domain.inventory.Location
+import com.passioagogo.market.domain.inventory.MotivoAjusteRepository
 import com.passioagogo.market.ui.common.toMessage
 import com.passioagogo.market.ui.inventory.transfers.VariantInfo
 import com.passioagogo.market.ui.inventory.transfers.variantIndex
@@ -70,6 +72,8 @@ data class InitialStockUiState(
     val actuales: Map<String, Int> = emptyMap(),
     /** Cantidades escritas por el usuario, sin guardar aún. */
     val edits: Map<String, String> = emptyMap(),
+    /** Queda en la bitácora: por qué se ajusta. */
+    val motivo: MotivoAjuste = MotivoAjuste.ALTA_INICIAL,
     val isLoading: Boolean = true,
     val isSaving: Boolean = false,
     val showConfirm: Boolean = false,
@@ -150,6 +154,8 @@ class InitialStockViewModel @Inject constructor(
         it.copy(edits = it.edits + (variantId to texto), successMessage = null)
     }
 
+    fun onMotivo(motivo: MotivoAjuste) = _uiState.update { it.copy(motivo = motivo) }
+
     fun onAskSave() = _uiState.update { it.copy(showConfirm = true) }
     fun onDismissConfirm() = _uiState.update { it.copy(showConfirm = false) }
 
@@ -164,7 +170,13 @@ class InitialStockViewModel @Inject constructor(
             var guardados = 0
             var error: String? = null
             for ((variantId, cantidad) in cambios) {
-                when (val r = inventoryRepository.setStock(variantId, locationId, cantidad)) {
+                val r = inventoryRepository.ajustarExistencia(
+                    variantId = variantId,
+                    locationId = locationId,
+                    cantidad = cantidad,
+                    motivo = state.motivo,
+                )
+                when (r) {
                     is DataResult.Success -> guardados++
                     is DataResult.Error -> {
                         error = r.error.toMessage()
@@ -353,11 +365,19 @@ fun InitialStockScreen(viewModel: InitialStockViewModel = hiltViewModel()) {
             onDismissRequest = viewModel::onDismissConfirm,
             title = { Text("Actualizar existencias") },
             text = {
-                Text(
-                    "Se fijará la existencia de ${state.cambios.size} producto(s) en " +
-                        "esta ubicación. Es un ajuste directo: no genera compra ni " +
-                        "movimiento de inventario."
-                )
+                Column {
+                    Text(
+                        "Se fijará la existencia de ${state.cambios.size} producto(s) en " +
+                            "esta ubicación. Es un ajuste directo: no genera compra ni " +
+                            "movimiento de inventario, pero queda registrado con tu " +
+                            "nombre en la bitácora."
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    MotivoSelector(
+                        motivo = state.motivo,
+                        onMotivo = viewModel::onMotivo,
+                    )
+                }
             },
             confirmButton = {
                 TextButton(onClick = viewModel::onSave) { Text("Confirmar") }
@@ -368,3 +388,48 @@ fun InitialStockScreen(viewModel: InitialStockViewModel = hiltViewModel()) {
         )
     }
 }
+
+
+/** Desplegable de motivos: acotado para que la bitácora se pueda agrupar. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MotivoSelector(
+    motivo: MotivoAjuste,
+    onMotivo: (MotivoAjuste) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    ExposedDropdownMenuBox(expanded, { expanded = it }) {
+        OutlinedTextField(
+            value = motivo.etiqueta,
+            onValueChange = {},
+            readOnly = true,
+            label = { Text("Motivo del ajuste") },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
+            modifier = modifier
+                .menuAnchor()
+                .fillMaxWidth(),
+        )
+        ExposedDropdownMenu(expanded, { expanded = false }) {
+            MotivoAjuste.entries.forEach { opcion ->
+                DropdownMenuItem(
+                    text = { Text(opcion.etiqueta) },
+                    onClick = { onMotivo(opcion); expanded = false },
+                )
+            }
+        }
+    }
+}
+
+val MotivoAjuste.etiqueta: String
+    get() = when (this) {
+        MotivoAjuste.CONTEO -> "Conteo físico"
+        MotivoAjuste.ALTA_INICIAL -> "Alta de inventario"
+        MotivoAjuste.MERMA -> "Merma"
+        MotivoAjuste.DANO -> "Producto dañado"
+        MotivoAjuste.ROBO -> "Faltante o robo"
+        MotivoAjuste.DEVOLUCION -> "Devolución de cliente"
+        MotivoAjuste.CORRECCION -> "Corrección de captura"
+        MotivoAjuste.OTRO -> "Otro"
+    }

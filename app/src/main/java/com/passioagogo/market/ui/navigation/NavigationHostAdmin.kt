@@ -21,7 +21,6 @@ import com.passioagogo.market.ui.admin.stats.StatsScreen
 import com.passioagogo.market.ui.admin.suppliers.SuppliersScreen
 import com.passioagogo.market.ui.admin.wheel.WheelScreen
 import com.passioagogo.market.ui.admin.users.UsersScreen
-import com.passioagogo.market.ui.inventory.stocktake.StockTakeScreen
 import com.passioagogo.market.ui.requests.RequestDetailScreen
 
 internal fun NavGraphBuilder.NavigationHostAdmin(
@@ -30,11 +29,6 @@ internal fun NavGraphBuilder.NavigationHostAdmin(
 ){
     composable<NavigationRoutes.EditProduct>{
         ProductEditScreen(
-            onBack = onBack,
-        )
-    }
-    composable<NavigationRoutes.StockTake> {
-        StockTakeScreen(
             onBack = onBack,
         )
     }

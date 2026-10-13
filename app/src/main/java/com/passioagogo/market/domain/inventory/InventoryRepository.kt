@@ -2,6 +2,8 @@ package com.passioagogo.market.domain.inventory
 
 import com.passioagogo.market.core.result.DataResult
 import com.passioagogo.market.domain.common.LocationType
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import com.passioagogo.market.domain.common.TransferStatus
 import kotlinx.serialization.json.JsonObject
 
@@ -19,6 +21,34 @@ data class LocationDraft(
     val nombre: String,
     val direccion: String? = null,
     val tipo: LocationType = LocationType.TIENDA,
+)
+
+/** Por qué se ajustó una existencia. Acotado para poder agrupar la bitácora. */
+@Serializable
+enum class MotivoAjuste {
+    @SerialName("conteo") CONTEO,
+    @SerialName("alta_inicial") ALTA_INICIAL,
+    @SerialName("merma") MERMA,
+    @SerialName("dano") DANO,
+    @SerialName("robo") ROBO,
+    @SerialName("devolucion") DEVOLUCION,
+    @SerialName("correccion") CORRECCION,
+    @SerialName("otro") OTRO,
+}
+
+/** Fila de v_ajustes_inventario. */
+data class AjusteInventario(
+    val id: String,
+    val createdAt: String?,
+    val ubicacion: String,
+    val producto: String,
+    val sku: String,
+    val cantidadAnterior: Int,
+    val cantidadNueva: Int,
+    val diferencia: Int,
+    val motivo: MotivoAjuste,
+    val nota: String?,
+    val responsable: String?,
 )
 
 /** Fila de v_stock_actual: existencia con contexto para mostrar. */
@@ -91,8 +121,24 @@ interface InventoryRepository {
     /** Cantidad puntual variante+ubicación (validación rápida en POS). */
     suspend fun getQuantity(variantId: String, locationId: String): DataResult<Int>
 
-    /** Ajuste manual absoluto de stock (solo admin). */
-    suspend fun setStock(variantId: String, locationId: String, cantidad: Int): DataResult<Unit>
+    /**
+     * Fija la existencia y deja constancia en la bitácora, en una sola
+     * transacción del servidor. El admin ajusta cualquier ubicación; el
+     * vendedor, solo la suya.
+     */
+    suspend fun ajustarExistencia(
+        variantId: String,
+        locationId: String,
+        cantidad: Int,
+        motivo: MotivoAjuste,
+        nota: String? = null,
+    ): DataResult<Unit>
+
+    /** Bitácora de ajustes; RLS acota lo que ve cada rol. */
+    suspend fun getAjustes(
+        locationId: String? = null,
+        limite: Int = 100,
+    ): DataResult<List<AjusteInventario>>
 
     // -- Transferencias --
 

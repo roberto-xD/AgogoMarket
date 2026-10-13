@@ -68,11 +68,16 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.passioagogo.market.core.preferences.UserPreferences
 import com.passioagogo.market.core.result.DataResult
+import com.passioagogo.market.domain.auth.AuthRepository
+import com.passioagogo.market.domain.auth.SessionState
 import com.passioagogo.market.domain.catalog.CatalogRepository
 import com.passioagogo.market.domain.inventory.InventoryRepository
 import com.passioagogo.market.domain.inventory.Location
-import com.passioagogo.market.domain.inventory.LocationRepository
+import com.passioagogo.market.domain.inventory.MotivoAjuste
+import com.passioagogo.market.domain.inventory.Location
+import com.passioagogo.market.domain.inventory.MotivoAjusteRepository
 import com.passioagogo.market.ui.common.toMessage
+import com.passioagogo.market.ui.inventory.stock.MotivoSelector
 import com.passioagogo.market.ui.inventory.transfers.VariantInfo
 import com.passioagogo.market.ui.inventory.transfers.variantIndex
 import com.passioagogo.market.ui.pos.scanner.BarcodeScannerView
@@ -97,6 +102,8 @@ data class ConteoLinea(
 
 data class StockTakeUiState(
     val locations: List<Location> = emptyList(),
+    /** El vendedor ajusta solo su tienda: no elige ubicación. */
+    val ubicacionFija: Boolean = false,
     val locationId: String? = null,
     val query: String = "",
     val catalog: List<VariantInfo> = emptyList(),
@@ -112,6 +119,8 @@ data class StockTakeUiState(
     val scanMessage: String? = null,
     val errorMessage: String? = null,
     val showConfirm: Boolean = false,
+    /** Queda en la bitácora: por qué se ajusta. */
+    val motivo: MotivoAjuste = MotivoAjuste.CONTEO,
     val resultado: String? = null,
 ) {
     val searchResults: List<VariantInfo>
@@ -134,22 +143,36 @@ class StockTakeViewModel @Inject constructor(
     private val locationRepository: LocationRepository,
     private val catalogRepository: CatalogRepository,
     private val userPreferences: UserPreferences,
+    authRepository: AuthRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(StockTakeUiState())
     val uiState: StateFlow<StockTakeUiState> = _uiState.asStateFlow()
 
     init {
+        val sesion = authRepository.sessionState.value as? SessionState.Authenticated
+        val esAdmin = sesion?.isAdmin == true
+        val miTienda = sesion?.profile?.locationId
+
         viewModelScope.launch {
             val locs = locationRepository.getLocations()
             val index = catalogRepository.variantIndex()
-            val guardada = userPreferences.activeLocationId.first()
             val lista = (locs as? DataResult.Success)?.data ?: emptyList()
-            val inicial = guardada?.takeIf { id -> lista.any { it.id == id } }
+
+            // El admin recupera la última ubicación usada; el vendedor queda
+            // fijo en la suya, que es la única que el servidor le permite.
+            val inicial = if (esAdmin) {
+                userPreferences.activeLocationId.first()
+                    ?.takeIf { id -> lista.any { it.id == id } }
+            } else {
+                miTienda
+            }
+
             _uiState.update {
                 it.copy(
                     isLoading = false,
-                    locations = lista,
+                    locations = if (esAdmin) lista else lista.filter { l -> l.id == miTienda },
+                    ubicacionFija = !esAdmin,
                     locationId = inicial,
                     catalog = index.values.sortedBy { v -> v.producto },
                     variantIndex = index,
@@ -160,6 +183,7 @@ class StockTakeViewModel @Inject constructor(
     }
 
     fun onLocationSelected(id: String) {
+        if (_uiState.value.ubicacionFija) return
         // Cambiar de ubicación descarta el conteo: las cantidades no son
         // trasladables de una tienda a otra.
         _uiState.update {
@@ -182,6 +206,8 @@ class StockTakeViewModel @Inject constructor(
     fun onQueryChange(v: String) = _uiState.update { it.copy(query = v) }
     fun onOpenScanner() = _uiState.update { it.copy(showScanner = true, scanMessage = null) }
     fun onCloseScanner() = _uiState.update { it.copy(showScanner = false, scanMessage = null) }
+    fun onMotivo(motivo: MotivoAjuste) = _uiState.update { it.copy(motivo = motivo) }
+
     fun onAskConfirm() = _uiState.update { it.copy(showConfirm = true) }
     fun onDismissConfirm() = _uiState.update { it.copy(showConfirm = false) }
     fun onDismissResultado() = _uiState.update { it.copy(resultado = null) }
@@ -260,10 +286,11 @@ class StockTakeViewModel @Inject constructor(
             state.lineas.forEach { (variantId, linea) ->
                 val cantidad = linea.contado.toIntOrNull() ?: return@forEach
                 when (
-                    val r = inventoryRepository.setStock(
+                    val r = inventoryRepository.ajustarExistencia(
                         variantId = variantId,
                         locationId = state.locationId!!,
                         cantidad = cantidad,
+                        motivo = state.motivo,
                     )
                 ) {
                     is DataResult.Success -> aplicadas++
@@ -354,8 +381,12 @@ fun StockTakeScreen(
             .padding(16.dp)
     ) {
         var expanded by remember { mutableStateOf(false) }
-        ExposedDropdownMenuBox(expanded, { expanded = it }) {
+        ExposedDropdownMenuBox(
+            expanded = expanded && !state.ubicacionFija,
+            onExpandedChange = { if (!state.ubicacionFija) expanded = it },
+        ) {
             OutlinedTextField(
+                enabled = !state.ubicacionFija,
                 value = state.locations.firstOrNull { it.id == state.locationId }?.nombre ?: "",
                 onValueChange = {},
                 readOnly = true,
@@ -541,12 +572,19 @@ fun StockTakeScreen(
             onDismissRequest = viewModel::onDismissConfirm,
             title = { Text("Aplicar existencias") },
             text = {
-                Text(
-                    "Se fijará la existencia de ${state.lineas.size} producto(s) " +
-                        "($conCambio con cambio) en la ubicación seleccionada.\n\n" +
-                        "Este ajuste no genera compra ni venta: es una corrección " +
-                        "directa del inventario."
-                )
+                Column {
+                    Text(
+                        "Se fijará la existencia de ${state.lineas.size} producto(s) " +
+                            "($conCambio con cambio) en la ubicación seleccionada.\n\n" +
+                            "Este ajuste no genera compra ni venta: es una corrección " +
+                            "directa que queda registrada en la bitácora."
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    MotivoSelector(
+                        motivo = state.motivo,
+                        onMotivo = viewModel::onMotivo,
+                    )
+                }
             },
             confirmButton = {
                 TextButton(onClick = viewModel::onAplicar) { Text("Aplicar") }
