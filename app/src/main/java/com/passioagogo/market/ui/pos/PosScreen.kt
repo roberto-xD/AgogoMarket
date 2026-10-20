@@ -212,9 +212,11 @@ fun PosScreen(
                     Column(Modifier.weight(1f)) {
                         Text(item.producto, style = MaterialTheme.typography.bodyLarge)
                         Text(
-                            listOf(
+                            listOfNotNull(
+                                item.titulo,
                                 item.sku,
-                                item.atributos,
+                                // Si hay título, los atributos ya no hacen falta
+                                item.atributos.takeIf { item.titulo == null },
                                 "quedan ${state.disponible(item.variantId)}",
                             ).filter { it.isNotBlank() }.joinToString("  ·  "),
                             style = MaterialTheme.typography.bodySmall,

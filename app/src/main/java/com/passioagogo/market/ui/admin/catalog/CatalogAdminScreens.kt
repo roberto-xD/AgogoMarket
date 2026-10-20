@@ -597,9 +597,15 @@ fun ProductEditScreen(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Column(Modifier.weight(1f)) {
-                        Text(variant.sku, style = MaterialTheme.typography.bodyLarge)
                         Text(
-                            "Precio ${variant.precioVenta} · Costo ${variant.costo}",
+                            variant.titulo ?: variant.sku,
+                            style = MaterialTheme.typography.bodyLarge,
+                        )
+                        Text(
+                            listOfNotNull(
+                                variant.titulo?.let { variant.sku },
+                                "Precio ${variant.precioVenta} · Costo ${variant.costo}",
+                            ).joinToString("  ·  "),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -660,6 +666,22 @@ private fun VariantDialog(
         title = { Text(if (dialog.editing == null) "Nueva variante" else "Editar variante") },
         text = {
             Column(Modifier.verticalScroll(rememberScrollState())) {
+                OutlinedTextField(
+                    value = dialog.titulo,
+                    onValueChange = { onChange(dialog.copy(titulo = it)) },
+                    label = { Text("Título de la variante") },
+                    placeholder = { Text("Chocolate 1 kg, Talla M…") },
+                    singleLine = true,
+                    isError = dialog.titulo.length > 80,
+                    supportingText = {
+                        Text(
+                            if (dialog.titulo.length > 80) "Máximo 80 caracteres"
+                            else "Opcional: si lo dejas vacío se identifica por sus atributos"
+                        )
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Spacer(Modifier.height(8.dp))
                 OutlinedTextField(
                     value = dialog.sku,
                     onValueChange = { onChange(dialog.copy(sku = it)) },

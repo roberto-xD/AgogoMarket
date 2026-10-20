@@ -27,7 +27,12 @@ data class VariantInfo(
     val sku: String,
     val atributos: String,
     val costo: Double = 0.0,
-)
+    /** Título de la variante; null = se identifica por sus atributos. */
+    val titulo: String? = null,
+) {
+    /** Cómo distinguirla dentro de su producto. */
+    val detalle: String get() = titulo ?: atributos
+}
 
 /** Aplana el catálogo cacheado a un índice variantId → info. */
 internal suspend fun CatalogRepository.variantIndex(): Map<String, VariantInfo> {
@@ -46,6 +51,7 @@ internal suspend fun CatalogRepository.variantIndex(): Map<String, VariantInfo> 
                     "$k: ${value.toString().trim('"')}"
                 },
                 costo = v.costo,
+                titulo = v.titulo,
             )
         }
     }.associateBy { it.variantId }
@@ -223,7 +229,9 @@ data class CreateTransferUiState(
             if (query.isBlank()) return emptyList()
             val q = query.trim().lowercase()
             return catalog.filter {
-                it.producto.lowercase().contains(q) || it.sku.lowercase().contains(q)
+                it.producto.lowercase().contains(q) ||
+                    it.sku.lowercase().contains(q) ||
+                    it.titulo?.lowercase()?.contains(q) == true
             }.take(15)
         }
 

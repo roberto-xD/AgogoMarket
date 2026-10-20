@@ -44,6 +44,7 @@ data class ProductVariantEntity(
     @PrimaryKey val id: String,
     val productId: String,
     val sku: String,
+    val titulo: String?,
     val attributesJson: String,
     val precioVenta: Double,
     val costo: Double,

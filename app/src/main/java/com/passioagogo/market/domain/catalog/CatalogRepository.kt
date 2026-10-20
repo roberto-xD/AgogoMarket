@@ -31,6 +31,8 @@ data class ProductVariant(
     val id: String,
     val productId: String,
     val sku: String,
+    /** Nombre corto para distinguirla; null = se identifica por sus atributos. */
+    val titulo: String?,
     val attributes: JsonObject,
     val precioVenta: Double,
     val costo: Double,
@@ -64,6 +66,7 @@ data class ProductDraft(
 data class VariantDraft(
     val productId: String,
     val sku: String,
+    val titulo: String? = null,
     val attributes: JsonObject = JsonObject(emptyMap()),
     val precioVenta: Double,
     val costo: Double = 0.0,

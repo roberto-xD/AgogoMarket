@@ -43,7 +43,7 @@ fun ProductDto.toEntity() = ProductEntity(
 )
 
 fun ProductVariantDto.toEntity() = ProductVariantEntity(
-    id = id, productId = productId, sku = sku,
+    id = id, productId = productId, sku = sku, titulo = titulo,
     attributesJson = attributes.toString(),
     precioVenta = precioVenta, costo = costo,
     activo = activo, updatedAt = updatedAt,
@@ -66,7 +66,7 @@ fun ProductEntity.toDomain() = Product(
 )
 
 fun ProductVariantEntity.toDomain() = ProductVariant(
-    id = id, productId = productId, sku = sku,
+    id = id, productId = productId, sku = sku, titulo = titulo,
     attributes = attributesJson.toJsonObject(),
     precioVenta = precioVenta, costo = costo, activo = activo,
 )

@@ -32,6 +32,8 @@ data class PosItem(
     val producto: String,
     val sku: String,
     val atributos: String,
+    /** Título de la variante; null = se distingue por sus atributos. */
+    val titulo: String? = null,
     val precioLista: Double,
     val portada: String? = null,
 )
@@ -78,7 +80,9 @@ data class PosUiState(
             return catalog
                 .filter { (stockDisponible[it.variantId] ?: 0) > 0 }
                 .filter {
-                    it.producto.lowercase().contains(q) || it.sku.lowercase().contains(q)
+                    it.producto.lowercase().contains(q) ||
+                        it.sku.lowercase().contains(q) ||
+                        it.titulo?.lowercase()?.contains(q) == true
                 }
                 .take(15)
         }
@@ -151,6 +155,7 @@ class PosViewModel @Inject constructor(
                                 .joinToString(" · ") { (k, value) ->
                                     "$k: ${value.jsonPrimitive.content}"
                                 },
+                            titulo = v.titulo,
                             precioLista = v.precioVenta,
                             portada = pw.product.imagenes.firstOrNull(),
                         )

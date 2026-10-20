@@ -47,6 +47,8 @@ data class ProductVariantDto(
     val id: String,
     @SerialName("product_id") val productId: String,
     val sku: String,
+    /** Nombre corto para distinguirla; null = se identifica por sus atributos. */
+    val titulo: String? = null,
     val attributes: JsonObject = JsonObject(emptyMap()),
     @SerialName("precio_venta") val precioVenta: Double,
     val costo: Double = 0.0,
@@ -80,6 +82,7 @@ data class NewProductDto(
 data class NewProductVariantDto(
     @SerialName("product_id") val productId: String,
     val sku: String,
+    val titulo: String? = null,
     val attributes: JsonObject = JsonObject(emptyMap()),
     @SerialName("precio_venta") val precioVenta: Double,
     val costo: Double = 0.0,

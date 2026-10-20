@@ -175,6 +175,7 @@ class CatalogRepositoryImpl @Inject constructor(
                     NewProductVariantDto(
                         productId = draft.productId,
                         sku = draft.sku,
+                        titulo = draft.titulo,
                         attributes = draft.attributes,
                         precioVenta = draft.precioVenta,
                         costo = draft.costo,
@@ -189,6 +190,7 @@ class CatalogRepositoryImpl @Inject constructor(
             safeSupabaseCall {
                 postgrest.from(VARIANTS).update({
                     set("sku", variant.sku)
+                    set("titulo", variant.titulo)
                     set("attributes", variant.attributes)
                     set("precio_venta", variant.precioVenta)
                     set("costo", variant.costo)

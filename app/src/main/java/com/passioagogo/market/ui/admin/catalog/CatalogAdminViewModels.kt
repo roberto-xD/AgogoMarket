@@ -208,6 +208,7 @@ data class VariantDialogState(
     /** null = creando */
     val editing: ProductVariant? = null,
     val sku: String = "",
+    val titulo: String = "",
     val precio: String = "",
     val costo: String = "",
     val attributesText: String = "",
@@ -215,6 +216,8 @@ data class VariantDialogState(
 ) {
     val canSave: Boolean
         get() = sku.isNotBlank() && precio.toDoubleOrNull() != null &&
+            // El servidor limita el título a 80 caracteres
+            titulo.length <= 80 &&
             (costo.isBlank() || costo.toDoubleOrNull() != null)
 }
 
@@ -398,6 +401,7 @@ class ProductEditViewModel @Inject constructor(
             variantDialog = VariantDialogState(
                 editing = variant,
                 sku = variant.sku,
+                titulo = variant.titulo.orEmpty(),
                 precio = variant.precioVenta.toString(),
                 costo = variant.costo.toString(),
                 attributesText = variant.attributes.toAttributesText(),
@@ -443,6 +447,7 @@ class ProductEditViewModel @Inject constructor(
                     VariantDraft(
                         productId = productId,
                         sku = dialog.sku.trim(),
+                        titulo = dialog.titulo.trim().ifBlank { null },
                         attributes = dialog.attributesText.toAttributesJson(),
                         precioVenta = dialog.precio.toDouble(),
                         costo = dialog.costo.toDoubleOrNull() ?: 0.0,
@@ -452,6 +457,7 @@ class ProductEditViewModel @Inject constructor(
                 catalogRepository.updateVariant(
                     editing.copy(
                         sku = dialog.sku.trim(),
+                        titulo = dialog.titulo.trim().ifBlank { null },
                         attributes = dialog.attributesText.toAttributesJson(),
                         precioVenta = dialog.precio.toDouble(),
                         costo = dialog.costo.toDoubleOrNull() ?: 0.0,
