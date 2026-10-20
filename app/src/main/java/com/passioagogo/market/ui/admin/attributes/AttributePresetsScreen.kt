@@ -49,6 +49,8 @@ import com.passioagogo.market.core.result.DataResult
 import com.passioagogo.market.data.attributes.AttributePreset
 import com.passioagogo.market.data.attributes.AttributePresetDraft
 import com.passioagogo.market.data.attributes.AttributePresetRepository
+import com.passioagogo.market.domain.catalog.CatalogRepository
+import com.passioagogo.market.domain.catalog.Category
 import com.passioagogo.market.ui.common.toMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -60,6 +62,9 @@ import kotlinx.coroutines.launch
 
 data class PresetsUiState(
     val presets: List<AttributePreset> = emptyList(),
+    val categorias: List<Category> = emptyList(),
+    /** presetId → categorías asociadas. Vacío = universal. */
+    val vinculos: Map<String, List<String>> = emptyMap(),
     val showInactive: Boolean = false,
     val editing: AttributePreset? = null,
     val creating: Boolean = false,
@@ -78,12 +83,20 @@ data class PresetsUiState(
 @HiltViewModel
 class PresetsViewModel @Inject constructor(
     private val repository: AttributePresetRepository,
+    private val catalogRepository: CatalogRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(PresetsUiState())
     val uiState: StateFlow<PresetsUiState> = _uiState.asStateFlow()
 
-    init { refresh() }
+    init {
+        viewModelScope.launch {
+            catalogRepository.observeCategories(includeInactive = false).collect { cats ->
+                _uiState.update { it.copy(categorias = cats) }
+            }
+        }
+        refresh()
+    }
 
     fun onToggleInactive(show: Boolean) = _uiState.update { it.copy(showInactive = show) }
     fun onEdit(preset: AttributePreset) = _uiState.update { it.copy(editing = preset) }
@@ -94,9 +107,17 @@ class PresetsViewModel @Inject constructor(
         _uiState.update { it.copy(isLoading = true, errorMessage = null) }
         viewModelScope.launch {
             val result = repository.getPresets(includeInactive = true)
+            val vinculos = repository.getCategorias()
             _uiState.update { state ->
                 when (result) {
-                    is DataResult.Success -> state.copy(isLoading = false, presets = result.data)
+                    is DataResult.Success -> state.copy(
+                        isLoading = false,
+                        presets = result.data,
+                        vinculos = (vinculos as? DataResult.Success)?.data
+                            ?.groupBy { it.presetId }
+                            ?.mapValues { (_, v) -> v.map { it.categoryId } }
+                            ?: state.vinculos,
+                    )
                     is DataResult.Error ->
                         state.copy(isLoading = false, errorMessage = result.error.toMessage())
                 }
@@ -145,6 +166,21 @@ class PresetsViewModel @Inject constructor(
             repository.updatePreset(preset.copy(orden = vecino.orden))
             repository.updatePreset(vecino.copy(orden = preset.orden))
             refresh()
+        }
+    }
+
+    fun onGuardarCategorias(presetId: String, categoryIds: List<String>) {
+        _uiState.update { it.copy(isSaving = true, errorMessage = null) }
+        viewModelScope.launch {
+            when (val r = repository.setCategorias(presetId, categoryIds)) {
+                is DataResult.Success -> {
+                    _uiState.update { it.copy(isSaving = false, editing = null) }
+                    refresh()
+                }
+                is DataResult.Error -> _uiState.update {
+                    it.copy(isSaving = false, errorMessage = r.error.toMessage())
+                }
+            }
         }
     }
 
@@ -248,6 +284,18 @@ fun AttributePresetsScreen(
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     )
+                                    val asociadas = state.vinculos[preset.id].orEmpty()
+                                    Text(
+                                        if (asociadas.isEmpty()) {
+                                            "Se sugiere en todas las categorías"
+                                        } else {
+                                            "Sugerida en: " + asociadas.mapNotNull { id ->
+                                                state.categorias.firstOrNull { it.id == id }?.nombre
+                                            }.joinToString(", ")
+                                        },
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.primary,
+                                    )
                                 }
                                 IconButton(onClick = { viewModel.onMove(preset, arriba = true) }) {
                                     Icon(Icons.Filled.ArrowUpward, contentDescription = "Subir")
@@ -278,9 +326,12 @@ fun AttributePresetsScreen(
             editing = null,
             isSaving = state.isSaving,
             errorMessage = state.errorMessage,
+            categorias = state.categorias,
+            categoriasActuales = emptyList(),
             onDismiss = viewModel::onDismiss,
             onSaveNew = viewModel::onCreate,
             onSaveEdit = {},
+            onSaveCategorias = {},
         )
     }
     state.editing?.let { preset ->
@@ -288,9 +339,12 @@ fun AttributePresetsScreen(
             editing = preset,
             isSaving = state.isSaving,
             errorMessage = state.errorMessage,
+            categorias = state.categorias,
+            categoriasActuales = state.vinculos[preset.id].orEmpty(),
             onDismiss = viewModel::onDismiss,
             onSaveNew = {},
             onSaveEdit = viewModel::onUpdate,
+            onSaveCategorias = { ids -> viewModel.onGuardarCategorias(preset.id, ids) },
         )
     }
 }
@@ -300,10 +354,14 @@ private fun PresetDialog(
     editing: AttributePreset?,
     isSaving: Boolean,
     errorMessage: String?,
+    categorias: List<Category>,
+    categoriasActuales: List<String>,
     onDismiss: () -> Unit,
     onSaveNew: (AttributePresetDraft) -> Unit,
     onSaveEdit: (AttributePreset) -> Unit,
+    onSaveCategorias: (List<String>) -> Unit,
 ) {
+    var seleccionadas by remember { mutableStateOf(categoriasActuales.toSet()) }
     var emoji by remember { mutableStateOf(editing?.emoji ?: "") }
     var identificador by remember { mutableStateOf(editing?.identificador ?: "") }
     var clave by remember { mutableStateOf(editing?.clave ?: "") }
@@ -368,6 +426,44 @@ private fun PresetDialog(
                     )
                 }
                 if (editing != null) {
+                    Spacer(Modifier.height(12.dp))
+                    Text(
+                        "Categorías donde se sugiere",
+                        style = MaterialTheme.typography.labelMedium,
+                    )
+                    Text(
+                        "Sin ninguna marcada se sugiere en todas. Marcar una " +
+                            "categoría padre la sugiere también en sus subcategorías.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    LazyColumn(Modifier.height(180.dp)) {
+                        items(categorias, key = { it.id }) { cat ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        seleccionadas = if (cat.id in seleccionadas) {
+                                            seleccionadas - cat.id
+                                        } else {
+                                            seleccionadas + cat.id
+                                        }
+                                    },
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Checkbox(
+                                    checked = cat.id in seleccionadas,
+                                    onCheckedChange = { marcada ->
+                                        seleccionadas = if (marcada) seleccionadas + cat.id
+                                        else seleccionadas - cat.id
+                                    },
+                                )
+                                Text(cat.nombre, style = MaterialTheme.typography.bodyMedium)
+                            }
+                        }
+                    }
+
                     Spacer(Modifier.height(8.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Checkbox(checked = activo, onCheckedChange = { activo = it })
@@ -397,6 +493,11 @@ private fun PresetDialog(
                             )
                         )
                     } else {
+                        // Dos escrituras: la etiqueta y sus vínculos viven en
+                        // tablas distintas.
+                        if (seleccionadas.toSet() != categoriasActuales.toSet()) {
+                            onSaveCategorias(seleccionadas.toList())
+                        }
                         onSaveEdit(
                             editing.copy(
                                 clave = clave.trim().lowercase(),

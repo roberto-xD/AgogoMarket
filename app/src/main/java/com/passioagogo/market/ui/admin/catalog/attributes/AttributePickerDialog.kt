@@ -43,12 +43,14 @@ import com.passioagogo.market.core.result.DataResult
 import com.passioagogo.market.data.attributes.AttributePreset
 import com.passioagogo.market.data.attributes.AttributePresetDraft
 import com.passioagogo.market.data.attributes.AttributePresetRepository
+import com.passioagogo.market.domain.catalog.CatalogRepository
 import com.passioagogo.market.ui.common.toMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
@@ -57,6 +59,8 @@ import kotlinx.serialization.json.jsonPrimitive
 
 data class AttributePickerUiState(
     val presets: List<AttributePreset> = emptyList(),
+    /** ids de etiquetas relevantes para la categoría del producto. */
+    val sugeridos: Set<String> = emptySet(),
     /** ids de los presets marcados. */
     val seleccionados: Set<String> = emptySet(),
     /**
@@ -73,14 +77,24 @@ data class AttributePickerUiState(
 @HiltViewModel
 class AttributePickerViewModel @Inject constructor(
     private val repository: AttributePresetRepository,
+    private val catalogRepository: CatalogRepository,
 ) : ViewModel() {
+
+    /** Etiquetas que tienen alguna categoría asociada; el resto son universales. */
+    private var conVinculoGlobal: Set<String> = emptySet()
 
     private val _uiState = MutableStateFlow(AttributePickerUiState())
     val uiState: StateFlow<AttributePickerUiState> = _uiState.asStateFlow()
 
-    /** Carga los presets y marca los que ya están en [actuales]. */
-    fun init(actuales: JsonObject) {
+    /**
+     * Carga los presets y marca los que ya están en [actuales].
+     *
+     * [categoryId] solo ordena: las etiquetas de esa categoría y sus
+     * ancestros salen primero. Ninguna se oculta.
+     */
+    fun init(actuales: JsonObject, categoryId: String?) {
         viewModelScope.launch {
+            calcularSugeridos(categoryId)
             when (val result = repository.getPresets()) {
                 is DataResult.Success -> {
                     val presets = result.data
@@ -101,6 +115,9 @@ class AttributePickerViewModel @Inject constructor(
                             presets = presets,
                             seleccionados = marcados,
                             extras = extras,
+                            // Las universales no se conocían hasta tener la lista
+                            sugeridos = it.sugeridos + presets.map { p -> p.id }
+                                .filterNot { id -> id in conVinculoGlobal },
                         )
                     }
                 }
@@ -126,6 +143,47 @@ class AttributePickerViewModel @Inject constructor(
             state.copy(
                 seleccionados = state.seleccionados - mismaClave + preset.id,
                 extras = state.extras - preset.clave,
+            )
+        }
+    }
+
+    /**
+     * Relevancia: una etiqueta se sugiere si no tiene ninguna categoría
+     * asociada (universal) o si está asociada a la categoría del producto
+     * o a cualquiera de sus ancestros.
+     *
+     * La jerarquía se recorre con las categorías del caché, así no hace
+     * falta una llamada extra al servidor.
+     */
+    private suspend fun calcularSugeridos(categoryId: String?) {
+        val vinculos = (repository.getCategorias() as? DataResult.Success)?.data.orEmpty()
+        if (vinculos.isEmpty()) return  // nada asociado todavía: todo es universal
+
+        val conVinculo = vinculos.map { it.presetId }.toSet()
+        conVinculoGlobal = conVinculo
+        val categorias = catalogRepository.observeCategories(includeInactive = true).first()
+
+        // Cadena de ancestros, con tope por si algún parent_id formara ciclo
+        val ancestros = mutableSetOf<String>()
+        var actual = categoryId
+        var saltos = 0
+        while (actual != null && saltos < 20) {
+            ancestros += actual
+            actual = categorias.firstOrNull { it.id == actual }?.parentId
+            saltos++
+        }
+
+        val relevantes = vinculos
+            .filter { it.categoryId in ancestros }
+            .map { it.presetId }
+            .toSet()
+
+        _uiState.update { state ->
+            state.copy(
+                sugeridos = relevantes + state.presets
+                    .map { it.id }
+                    .filterNot { it in conVinculo }  // universales
+                    .toSet(),
             )
         }
     }
@@ -182,13 +240,15 @@ class AttributePickerViewModel @Inject constructor(
 @Composable
 fun AttributePickerDialog(
     actuales: JsonObject,
+    /** Ordena las sugerencias; null las deja todas en un solo grupo. */
+    categoryId: String? = null,
     onDismiss: () -> Unit,
     onConfirm: (JsonObject) -> Unit,
     viewModel: AttributePickerViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsState()
 
-    LaunchedEffect(Unit) { viewModel.init(actuales) }
+    LaunchedEffect(Unit) { viewModel.init(actuales, categoryId) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -204,32 +264,56 @@ fun AttributePickerDialog(
                         CircularProgressIndicator()
                     }
                 } else {
+                    // Primero lo propio de la categoría; el resto sigue
+                    // disponible debajo. La relación es una comodidad, no
+                    // un filtro: cualquier etiqueta se puede usar siempre.
+                    val sugeridas = state.presets.filter { it.id in state.sugeridos }
+                    val otras = state.presets.filterNot { it.id in state.sugeridos }
+
+                    if (otras.isNotEmpty() && sugeridas.isNotEmpty()) {
+                        Text(
+                            "Sugeridas para esta categoría",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                        Spacer(Modifier.height(4.dp))
+                    }
+
                     FlowRow(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalArrangement = Arrangement.spacedBy(4.dp),
                     ) {
-                        state.presets.forEach { preset ->
+                        sugeridas.forEach { preset ->
                             FilterChip(
                                 selected = preset.id in state.seleccionados,
                                 onClick = { viewModel.onToggle(preset) },
                                 label = { Text(preset.etiqueta) },
                             )
                         }
-                        // Última chip: abre el mini formulario
-                        AssistChip(
-                            onClick = viewModel::onShowForm,
-                            label = { Text("Agregar") },
-                            leadingIcon = {
-                                Icon(
-                                    Icons.Filled.Add,
-                                    contentDescription = null,
-                                    modifier = Modifier.width(18.dp),
-                                )
-                            },
-                            colors = AssistChipDefaults.assistChipColors(
-                                labelColor = MaterialTheme.colorScheme.primary,
-                            ),
+                        if (otras.isEmpty()) ChipAgregar(viewModel::onShowForm)
+                    }
+
+                    if (otras.isNotEmpty()) {
+                        Spacer(Modifier.height(12.dp))
+                        Text(
+                            if (sugeridas.isEmpty()) "Etiquetas" else "Otras etiquetas",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
+                        Spacer(Modifier.height(4.dp))
+                        FlowRow(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            otras.forEach { preset ->
+                                FilterChip(
+                                    selected = preset.id in state.seleccionados,
+                                    onClick = { viewModel.onToggle(preset) },
+                                    label = { Text(preset.etiqueta) },
+                                )
+                            }
+                            ChipAgregar(viewModel::onShowForm)
+                        }
                     }
 
                     if (state.extras.isNotEmpty()) {
@@ -271,6 +355,26 @@ fun AttributePickerDialog(
             ) { Text("Continuar") }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Cancelar") } },
+    )
+}
+
+/** Última chip: abre el mini formulario de alta. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun ChipAgregar(onClick: () -> Unit) {
+    AssistChip(
+        onClick = onClick,
+        label = { Text("Agregar") },
+        leadingIcon = {
+            Icon(
+                Icons.Filled.Add,
+                contentDescription = null,
+                modifier = Modifier.width(18.dp),
+            )
+        },
+        colors = AssistChipDefaults.assistChipColors(
+            labelColor = MaterialTheme.colorScheme.primary,
+        ),
     )
 }
 

@@ -457,6 +457,7 @@ fun ProductEditScreen(
         if (showProductAttrs) {
             AttributePickerDialog(
                 actuales = state.attributesText.toAttributesJson(),
+                categoryId = state.categoryId,
                 onDismiss = { showProductAttrs = false },
                 onConfirm = { json ->
                     viewModel.onAttributesChange(json.toAttributesText())
@@ -628,6 +629,7 @@ fun ProductEditScreen(
         VariantDialog(
             dialog = dialog,
             isSaving = state.isSaving,
+            categoryId = state.categoryId,
             onChange = viewModel::onVariantDialogChange,
             onGenerateSku = viewModel::onGenerateSku,
             onDismiss = viewModel::onDismissVariantDialog,
@@ -640,6 +642,7 @@ fun ProductEditScreen(
 private fun VariantDialog(
     dialog: VariantDialogState,
     isSaving: Boolean,
+    categoryId: String?,
     onChange: (VariantDialogState) -> Unit,
     onGenerateSku: () -> Unit,
     onDismiss: () -> Unit,
@@ -738,6 +741,8 @@ private fun VariantDialog(
     if (showAttrs) {
         AttributePickerDialog(
             actuales = dialog.attributesText.toAttributesJson(),
+            // La variante hereda la categoría de su producto
+            categoryId = categoryId,
             onDismiss = { showAttrs = false },
             onConfirm = { json ->
                 onChange(dialog.copy(attributesText = json.toAttributesText()))

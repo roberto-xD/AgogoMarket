@@ -29,6 +29,12 @@ data class AttributePreset(
     val etiqueta: String get() = listOfNotNull(emoji, identificador).joinToString(" ")
 }
 
+/** Vínculo etiqueta ↔ categoría: solo ordena sugerencias, no restringe. */
+data class PresetCategoria(
+    val presetId: String,
+    val categoryId: String,
+)
+
 data class AttributePresetDraft(
     val clave: String,
     val valor: String,
@@ -53,6 +59,12 @@ data class AttributePresetDto(
 }
 
 @Serializable
+data class PresetCategoriaDto(
+    @SerialName("preset_id") val presetId: String,
+    @SerialName("category_id") val categoryId: String,
+)
+
+@Serializable
 data class NewAttributePresetDto(
     val clave: String,
     val valor: String,
@@ -63,6 +75,10 @@ data class NewAttributePresetDto(
 
 interface AttributePresetRepository {
     suspend fun getPresets(includeInactive: Boolean = false): DataResult<List<AttributePreset>>
+
+    /** Vínculos con categorías; una etiqueta sin vínculos es universal. */
+    suspend fun getCategorias(): DataResult<List<PresetCategoria>>
+    suspend fun setCategorias(presetId: String, categoryIds: List<String>): DataResult<Unit>
     suspend fun createPreset(draft: AttributePresetDraft): DataResult<AttributePreset>
     suspend fun updatePreset(preset: AttributePreset): DataResult<AttributePreset>
     /** Borrado lógico: los productos que ya usan el par no se ven afectados. */
@@ -75,7 +91,10 @@ class AttributePresetRepositoryImpl @Inject constructor(
     @IoDispatcher private val io: CoroutineDispatcher,
 ) : AttributePresetRepository {
 
-    private companion object { const val TABLE = "attribute_presets" }
+    private companion object {
+        const val TABLE = "attribute_presets"
+        const val TABLE_CATEGORIAS = "attribute_preset_categories"
+    }
 
     override suspend fun getPresets(
         includeInactive: Boolean,
@@ -87,6 +106,31 @@ class AttributePresetRepositoryImpl @Inject constructor(
                 order("created_at", Order.ASCENDING)
             }.decodeList<AttributePresetDto>()
         }.map { list -> list.map { it.toDomain() } }
+    }
+
+    override suspend fun getCategorias(): DataResult<List<PresetCategoria>> = withContext(io) {
+        safeSupabaseCall {
+            postgrest.from(TABLE_CATEGORIAS).select().decodeList<PresetCategoriaDto>()
+        }.map { list -> list.map { PresetCategoria(it.presetId, it.categoryId) } }
+    }
+
+    override suspend fun setCategorias(
+        presetId: String,
+        categoryIds: List<String>,
+    ): DataResult<Unit> = withContext(io) {
+        safeSupabaseCall {
+            // Reemplazo completo: más simple que calcular altas y bajas, y
+            // el volumen por etiqueta es de unas pocas filas.
+            postgrest.from(TABLE_CATEGORIAS).delete {
+                filter { eq("preset_id", presetId) }
+            }
+            if (categoryIds.isNotEmpty()) {
+                postgrest.from(TABLE_CATEGORIAS).insert(
+                    categoryIds.map { PresetCategoriaDto(presetId, it) }
+                )
+            }
+            Unit
+        }
     }
 
     override suspend fun createPreset(
