@@ -58,7 +58,11 @@ data class StockActualDto(
     val variante: JsonObject = JsonObject(emptyMap()),
     val cantidad: Int,
     val costo: Double,
-    @SerialName("valor_inventario") val valorInventario: Double,
+    @SerialName("precio_venta") val precioVenta: Double = 0.0,
+    /** cantidad × costo: lo que costó la mercancía. */
+    @SerialName("costo_inventario") val costoInventario: Double = 0.0,
+    /** cantidad × precio de lista: lo que ingresaría al venderla. */
+    @SerialName("valor_venta") val valorVenta: Double = 0.0,
 )
 
 // ============ 04 · stock_transfers ============

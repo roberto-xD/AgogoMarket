@@ -67,7 +67,8 @@ private data class AjusteInventarioDto(
 private fun StockActualDto.toDomain() = StockItem(
     locationId = locationId, tienda = tienda, variantId = variantId,
     sku = sku, producto = producto, categoria = categoria, variante = variante,
-    cantidad = cantidad, costo = costo, valorInventario = valorInventario,
+    cantidad = cantidad, costo = costo, precioVenta = precioVenta,
+    costoInventario = costoInventario, valorVenta = valorVenta,
 )
 
 private fun StockTransferDto.toDomain() = StockTransfer(

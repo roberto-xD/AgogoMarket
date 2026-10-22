@@ -62,7 +62,11 @@ data class StockItem(
     val variante: JsonObject,
     val cantidad: Int,
     val costo: Double,
-    val valorInventario: Double,
+    val precioVenta: Double,
+    /** cantidad × costo. */
+    val costoInventario: Double,
+    /** cantidad × precio de lista, sin descuentos. */
+    val valorVenta: Double,
 )
 
 data class StockTransfer(

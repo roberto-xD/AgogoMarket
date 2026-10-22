@@ -44,7 +44,23 @@ data class InventoryUiState(
             }
         }
 
-    val valorTotal: Double get() = filteredItems.sumOf { it.valorInventario }
+    /** Lo que costó la mercancía en existencia. */
+    val costoTotal: Double get() = filteredItems.sumOf { it.costoInventario }
+
+    /** Lo que ingresaría al venderla toda a precio de lista. */
+    val valorVentaTotal: Double get() = filteredItems.sumOf { it.valorVenta }
+
+    /** Diferencia entre ambos: margen potencial, no ganancia realizada. */
+    val margenPotencial: Double get() = valorVentaTotal - costoTotal
+
+    val margenPorcentaje: Double
+        get() = if (valorVentaTotal == 0.0) 0.0
+        else margenPotencial / valorVentaTotal * 100
+
+    /** Variantes sin costo capturado: inflan el margen artificialmente. */
+    val sinCosto: Int get() = filteredItems.count { it.costo == 0.0 }
+
+    val unidadesTotales: Int get() = filteredItems.sumOf { it.cantidad }
 }
 
 @HiltViewModel
