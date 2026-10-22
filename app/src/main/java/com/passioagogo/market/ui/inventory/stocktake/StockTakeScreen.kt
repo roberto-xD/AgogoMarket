@@ -95,7 +95,14 @@ data class ConteoLinea(
     val actual: Int,
     val contado: String,
 ) {
-    val contadoValido: Boolean get() = contado.toIntOrNull()?.let { it >= 0 } == true
+    /**
+     * Vacío significa «no toco esta línea». Así el campo arranca limpio y
+     * no hay que borrar la cantidad actual antes de teclear la nueva; la
+     * actual se muestra como sugerencia dentro del propio campo.
+     */
+    val sinCambio: Boolean get() = contado.isBlank()
+    val contadoValido: Boolean
+        get() = sinCambio || contado.toIntOrNull()?.let { it >= 0 } == true
     val diferencia: Int? get() = contado.toIntOrNull()?.minus(actual)
 }
 
@@ -131,8 +138,11 @@ data class StockTakeUiState(
             }.take(15)
         }
 
+    /** Líneas con cantidad escrita: son las únicas que se aplicarán. */
+    val lineasConCambio: Int get() = lineas.values.count { !it.sinCambio }
+
     val canSave: Boolean
-        get() = !isSaving && locationId != null && lineas.isNotEmpty() &&
+        get() = !isSaving && locationId != null && lineasConCambio > 0 &&
             lineas.values.all { it.contadoValido }
 }
 
@@ -224,7 +234,7 @@ class StockTakeViewModel @Inject constructor(
                     info.variantId to ConteoLinea(
                         info = info,
                         actual = actual,
-                        contado = actual.toString(),
+                        contado = "",
                     )
                     ),
             )
@@ -246,7 +256,7 @@ class StockTakeViewModel @Inject constructor(
     fun onCargarExistentes() = _uiState.update { state ->
         val nuevas = state.stockActual.mapNotNull { (variantId, cantidad) ->
             val info = state.variantIndex[variantId] ?: return@mapNotNull null
-            variantId to ConteoLinea(info = info, actual = cantidad, contado = cantidad.toString())
+            variantId to ConteoLinea(info = info, actual = cantidad, contado = "")
         }.toMap()
         state.copy(lineas = state.lineas + nuevas)
     }
@@ -283,6 +293,7 @@ class StockTakeViewModel @Inject constructor(
             var aplicadas = 0
             val fallos = mutableListOf<String>()
             state.lineas.forEach { (variantId, linea) ->
+                // Sin valor escrito no hay nada que ajustar en esa línea
                 val cantidad = linea.contado.toIntOrNull() ?: return@forEach
                 when (
                     val r = inventoryRepository.ajustarExistencia(
@@ -447,7 +458,7 @@ fun StockTakeScreen(
         ) {
             Text(
                 if (state.isSaving) "Aplicando…"
-                else "Aplicar a ${state.lineas.size} producto(s)"
+                else "Aplicar a ${state.lineasConCambio} producto(s)"
             )
         }
         Spacer(Modifier.height(8.dp))
@@ -519,9 +530,15 @@ fun StockTakeScreen(
                             Text(
                                 buildString {
                                     append(linea.info.sku)
-                                    append("  ·  actual: ${linea.actual}")
-                                    linea.diferencia?.let { d ->
-                                        if (d != 0) append("  ·  ${if (d > 0) "+$d" else "$d"}")
+                                    if (linea.sinCambio) {
+                                        append("  ·  actual: ${linea.actual}")
+                                    } else {
+                                        append("  ·  ${linea.actual} → ${linea.contado}")
+                                        linea.diferencia?.let { d ->
+                                            if (d != 0) {
+                                                append("  ·  ${if (d > 0) "+$d" else "$d"}")
+                                            }
+                                        }
                                     }
                                 },
                                 style = MaterialTheme.typography.bodySmall,
@@ -534,6 +551,9 @@ fun StockTakeScreen(
                             value = linea.contado,
                             onValueChange = { viewModel.onContadoChange(id, it) },
                             label = { Text("Real") },
+                            // La cantidad actual como sugerencia: el campo
+                            // arranca vacío y se teclea sin borrar nada.
+                            placeholder = { Text(linea.actual.toString()) },
                             singleLine = true,
                             isError = !linea.contadoValido,
                             keyboardOptions = KeyboardOptions(
@@ -566,15 +586,15 @@ fun StockTakeScreen(
     }
 
     if (state.showConfirm) {
-        val conCambio = state.lineas.values.count { (it.diferencia ?: 0) != 0 }
+        val conCambio = state.lineasConCambio
         AlertDialog(
             onDismissRequest = viewModel::onDismissConfirm,
             title = { Text("Aplicar existencias") },
             text = {
                 Column {
                     Text(
-                        "Se fijará la existencia de ${state.lineas.size} producto(s) " +
-                            "($conCambio con cambio) en la ubicación seleccionada.\n\n" +
+                        "Se fijará la existencia de $conCambio producto(s) " +
+                            "en la ubicación seleccionada.\n\n" +
                             "Este ajuste no genera compra ni venta: es una corrección " +
                             "directa que queda registrada en la bitácora."
                     )

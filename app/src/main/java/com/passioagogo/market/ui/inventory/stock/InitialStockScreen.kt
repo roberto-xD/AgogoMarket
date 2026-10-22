@@ -79,8 +79,15 @@ data class InitialStockUiState(
     val errorMessage: String? = null,
     val successMessage: String? = null,
 ) {
-    fun cantidadMostrada(variantId: String): String =
-        edits[variantId] ?: (actuales[variantId] ?: 0).toString()
+    /**
+     * Vacío mientras no se escriba: la cantidad actual se muestra como
+     * sugerencia dentro del campo, así no hay que borrarla antes de
+     * teclear la nueva.
+     */
+    fun cantidadMostrada(variantId: String): String = edits[variantId].orEmpty()
+
+    /** Lo que se ve atenuado en el campo cuando aún no se ha escrito. */
+    fun cantidadActual(variantId: String): Int = actuales[variantId] ?: 0
 
     /** Solo se escriben las variantes cuya cantidad cambió y es válida. */
     val cambios: Map<String, Int>
@@ -305,6 +312,9 @@ fun InitialStockScreen(viewModel: InitialStockViewModel = hiltViewModel()) {
                         OutlinedTextField(
                             value = texto,
                             onValueChange = { viewModel.onCantidadChange(info.variantId, it) },
+                            // Sugerencia dentro del campo: no hay que borrar
+                            // la cantidad actual para escribir la nueva.
+                            placeholder = { Text(actual.toString()) },
                             singleLine = true,
                             isError = texto.toIntOrNull()?.let { it < 0 } ?: texto.isNotBlank(),
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
