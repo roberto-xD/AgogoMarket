@@ -287,6 +287,32 @@ private fun ResumenInventarioSheet(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
 
+            Spacer(Modifier.height(12.dp))
+
+            // Qué entra en el cálculo. Mirando solo los números no hay forma
+            // de saber que responden al filtro activo; con una búsqueda
+            // puesta, las cifras son de un subconjunto.
+            Card(
+                colors = CardDefaults.cardColors(
+                    containerColor = if (state.query.isBlank()) {
+                        MaterialTheme.colorScheme.surfaceVariant
+                    } else {
+                        MaterialTheme.colorScheme.tertiaryContainer
+                    },
+                ),
+            ) {
+                Text(
+                    state.alcanceResumen,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = if (state.query.isBlank()) {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    } else {
+                        MaterialTheme.colorScheme.onTertiaryContainer
+                    },
+                    modifier = Modifier.padding(12.dp),
+                )
+            }
+
             Spacer(Modifier.height(20.dp))
             CifraResumen(
                 etiqueta = "Costo del inventario",

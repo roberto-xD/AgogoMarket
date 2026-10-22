@@ -61,6 +61,32 @@ data class InventoryUiState(
     val sinCosto: Int get() = filteredItems.count { it.costo == 0.0 }
 
     val unidadesTotales: Int get() = filteredItems.sumOf { it.cantidad }
+
+    /** Nombre de la ubicación activa; null cuando se ven todas. */
+    fun nombreUbicacion(): String? =
+        selectedLocationId?.let { id -> locations.firstOrNull { it.id == id }?.nombre }
+
+    /**
+     * Describe qué entra en los totales. Las cifras se calculan sobre lo
+     * que está filtrado, no sobre todo el inventario, y eso no es evidente
+     * mirando solo los números.
+     */
+    val alcanceResumen: String
+        get() {
+            val ubicacion = nombreUbicacion()
+            val base = when {
+                ubicacion != null -> "las existencias de $ubicacion"
+                isAdmin -> "las existencias de todas las ubicaciones"
+                else -> "las existencias de tu tienda"
+            }
+            return if (query.isBlank()) {
+                "Estas cifras corresponden a $base."
+            } else {
+                "Estas cifras corresponden solo a los resultados de la búsqueda " +
+                    "\"${query.trim()}\" dentro de $base. Limpia el buscador para " +
+                    "ver el total."
+            }
+        }
 }
 
 @HiltViewModel
