@@ -20,13 +20,10 @@ import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -49,6 +46,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.passioagogo.market.domain.auth.SessionState
 import com.passioagogo.market.domain.inventory.StockItem
+import com.passioagogo.market.ui.common.SelectorUbicacion
 import java.text.NumberFormat
 import java.util.Locale
 import kotlinx.serialization.json.jsonPrimitive
@@ -70,9 +68,11 @@ fun InventoryScreen(
         Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
             if (state.isAdmin) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    LocationSelector(
-                        state = state,
+                    SelectorUbicacion(
+                        locations = state.locations,
+                        locationId = state.selectedLocationId,
                         onSelected = viewModel::onLocationSelected,
+                        opcionTodas = "Todas las ubicaciones",
                         modifier = Modifier.weight(1f),
                     )
                     IconButton(onClick = viewModel::refresh, enabled = !state.isLoading) {
@@ -170,53 +170,6 @@ fun InventoryScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun LocationSelector(
-    state: InventoryUiState,
-    onSelected: (String?) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    var expanded by remember { mutableStateOf(false) }
-    val selectedName = state.locations
-        .firstOrNull { it.id == state.selectedLocationId }?.nombre
-        ?: "Todas las ubicaciones"
-
-    ExposedDropdownMenuBox(
-        expanded = expanded,
-        onExpandedChange = { expanded = it },
-        modifier = modifier,
-    ) {
-        OutlinedTextField(
-            value = selectedName,
-            onValueChange = {},
-            readOnly = true,
-            label = { Text("Ubicación") },
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
-            modifier = Modifier
-                .menuAnchor()
-                .fillMaxWidth(),
-        )
-        ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            DropdownMenuItem(
-                text = { Text("Todas las ubicaciones") },
-                onClick = {
-                    expanded = false
-                    onSelected(null)
-                },
-            )
-            state.locations.forEach { location ->
-                DropdownMenuItem(
-                    text = { Text(location.nombre) },
-                    onClick = {
-                        expanded = false
-                        onSelected(location.id)
-                    },
-                )
-            }
-        }
-    }
-}
 
 @Composable
 private fun StockRow(item: StockItem, showLocation: Boolean) {

@@ -17,10 +17,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -51,6 +48,7 @@ import com.passioagogo.market.domain.inventory.InventoryRepository
 import com.passioagogo.market.domain.inventory.Location
 import com.passioagogo.market.domain.inventory.LocationRepository
 import com.passioagogo.market.domain.inventory.MotivoAjuste
+import com.passioagogo.market.ui.common.SelectorUbicacion
 import com.passioagogo.market.ui.common.toMessage
 import com.passioagogo.market.ui.inventory.stock.etiqueta
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -147,33 +145,13 @@ fun AdjustmentsScreen(viewModel: AdjustmentsViewModel = hiltViewModel()) {
 
     Column(Modifier.fillMaxSize()) {
         if (state.esAdmin) {
-            var expanded by remember { mutableStateOf(false) }
-            ExposedDropdownMenuBox(expanded, { expanded = it }) {
-                OutlinedTextField(
-                    value = state.locations.firstOrNull { it.id == state.locationId }?.nombre
-                        ?: "Todas las ubicaciones",
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text("Ubicación") },
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
-                    modifier = Modifier
-                        .menuAnchor()
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                )
-                ExposedDropdownMenu(expanded, { expanded = false }) {
-                    DropdownMenuItem(
-                        text = { Text("Todas las ubicaciones") },
-                        onClick = { viewModel.onLocation(null); expanded = false },
-                    )
-                    state.locations.forEach { loc ->
-                        DropdownMenuItem(
-                            text = { Text(loc.nombre) },
-                            onClick = { viewModel.onLocation(loc.id); expanded = false },
-                        )
-                    }
-                }
-            }
+            SelectorUbicacion(
+                locations = state.locations,
+                locationId = state.locationId,
+                onSelected = viewModel::onLocation,
+                opcionTodas = "Todas las ubicaciones",
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            )
         }
 
         Row(

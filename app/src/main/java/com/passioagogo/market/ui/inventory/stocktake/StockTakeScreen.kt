@@ -32,10 +32,7 @@ import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -76,6 +73,7 @@ import com.passioagogo.market.domain.inventory.Location
 import com.passioagogo.market.domain.inventory.LocationRepository
 import com.passioagogo.market.domain.inventory.MotivoAjuste
 import com.passioagogo.market.ui.common.toMessage
+import com.passioagogo.market.ui.common.SelectorUbicacion
 import com.passioagogo.market.ui.inventory.stock.MotivoSelector
 import com.passioagogo.market.ui.inventory.transfers.VariantInfo
 import com.passioagogo.market.ui.inventory.transfers.variantIndex
@@ -390,40 +388,16 @@ fun StockTakeScreen(
             .imePadding()
             .padding(16.dp)
     ) {
-        var expanded by remember { mutableStateOf(false) }
         Row(verticalAlignment = Alignment.CenterVertically) {
-            // El dropdown ocupa siempre el mismo ancho: el botón de al lado
-            // reserva su hueco aunque esté oculto, así nada se desplaza
-            // cuando aparece o desaparece.
-            ExposedDropdownMenuBox(
-                expanded = expanded && !state.ubicacionFija,
-                onExpandedChange = { if (!state.ubicacionFija) expanded = it },
+            // Se contrae a una chip una vez elegida: durante el conteo ya
+            // no se cambia y esa fila completa deja de ganarse su espacio.
+            SelectorUbicacion(
+                locations = state.locations,
+                locationId = state.locationId,
+                onSelected = { id -> id?.let(viewModel::onLocationSelected) },
+                enabled = !state.ubicacionFija,
                 modifier = Modifier.weight(1f),
-            ) {
-                OutlinedTextField(
-                    enabled = !state.ubicacionFija,
-                    value = state.locations.firstOrNull { it.id == state.locationId }?.nombre
-                        ?: "",
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text("Ubicación") },
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
-                    modifier = Modifier
-                        .menuAnchor()
-                        .fillMaxWidth(),
-                )
-                ExposedDropdownMenu(expanded, { expanded = false }) {
-                    state.locations.forEach { location ->
-                        DropdownMenuItem(
-                            text = { Text(location.nombre) },
-                            onClick = {
-                                expanded = false
-                                viewModel.onLocationSelected(location.id)
-                            },
-                        )
-                    }
-                }
-            }
+            )
 
             Box(Modifier.width(48.dp), contentAlignment = Alignment.Center) {
                 // Visible desde que hay ubicación, aunque el stock aún se

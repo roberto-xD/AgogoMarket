@@ -60,6 +60,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.passioagogo.market.ui.pos.scanner.BarcodeScannerView
 import com.passioagogo.market.domain.common.PaymentMethod
 import com.passioagogo.market.domain.sales.Order
+import com.passioagogo.market.ui.common.SelectorUbicacion
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -136,7 +137,13 @@ fun PosScreen(
 
         Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
             if (state.isAdmin) {
-                PosLocationSelector(state, viewModel::onLocationSelected)
+                SelectorUbicacion(
+                    locations = state.locations,
+                    locationId = state.locationId,
+                    onSelected = { id -> id?.let(viewModel::onLocationSelected) },
+                    etiqueta = "Vender desde",
+                    modifier = Modifier.fillMaxWidth(),
+                )
                 Spacer(Modifier.height(8.dp))
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -310,39 +317,6 @@ fun PosScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun PosLocationSelector(
-    state: PosUiState,
-    onSelected: (String) -> Unit,
-) {
-    var expanded by remember { mutableStateOf(false) }
-    val selectedName = state.locations.firstOrNull { it.id == state.locationId }?.nombre ?: ""
-
-    ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
-        OutlinedTextField(
-            value = selectedName,
-            onValueChange = {},
-            readOnly = true,
-            label = { Text("Vender desde") },
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
-            modifier = Modifier
-                .menuAnchor()
-                .fillMaxWidth(),
-        )
-        ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            state.locations.forEach { location ->
-                DropdownMenuItem(
-                    text = { Text(location.nombre) },
-                    onClick = {
-                        expanded = false
-                        onSelected(location.id)
-                    },
-                )
-            }
-        }
-    }
-}
 
 @Composable
 private fun CartRow(
