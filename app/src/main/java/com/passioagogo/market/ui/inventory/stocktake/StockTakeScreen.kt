@@ -391,30 +391,58 @@ fun StockTakeScreen(
             .padding(16.dp)
     ) {
         var expanded by remember { mutableStateOf(false) }
-        ExposedDropdownMenuBox(
-            expanded = expanded && !state.ubicacionFija,
-            onExpandedChange = { if (!state.ubicacionFija) expanded = it },
-        ) {
-            OutlinedTextField(
-                enabled = !state.ubicacionFija,
-                value = state.locations.firstOrNull { it.id == state.locationId }?.nombre ?: "",
-                onValueChange = {},
-                readOnly = true,
-                label = { Text("Ubicación") },
-                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
-                modifier = Modifier
-                    .menuAnchor()
-                    .fillMaxWidth(),
-            )
-            ExposedDropdownMenu(expanded, { expanded = false }) {
-                state.locations.forEach { location ->
-                    DropdownMenuItem(
-                        text = { Text(location.nombre) },
-                        onClick = {
-                            expanded = false
-                            viewModel.onLocationSelected(location.id)
-                        },
-                    )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            // El dropdown ocupa siempre el mismo ancho: el botón de al lado
+            // reserva su hueco aunque esté oculto, así nada se desplaza
+            // cuando aparece o desaparece.
+            ExposedDropdownMenuBox(
+                expanded = expanded && !state.ubicacionFija,
+                onExpandedChange = { if (!state.ubicacionFija) expanded = it },
+                modifier = Modifier.weight(1f),
+            ) {
+                OutlinedTextField(
+                    enabled = !state.ubicacionFija,
+                    value = state.locations.firstOrNull { it.id == state.locationId }?.nombre
+                        ?: "",
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Ubicación") },
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
+                    modifier = Modifier
+                        .menuAnchor()
+                        .fillMaxWidth(),
+                )
+                ExposedDropdownMenu(expanded, { expanded = false }) {
+                    state.locations.forEach { location ->
+                        DropdownMenuItem(
+                            text = { Text(location.nombre) },
+                            onClick = {
+                                expanded = false
+                                viewModel.onLocationSelected(location.id)
+                            },
+                        )
+                    }
+                }
+            }
+
+            Box(Modifier.width(48.dp), contentAlignment = Alignment.Center) {
+                // Visible desde que hay ubicación, aunque el stock aún se
+                // esté consultando: así no «aparece tarde». Queda inactivo
+                // hasta que haya algo que cargar.
+                if (state.locationId != null && state.query.isBlank()) {
+                    IconButton(
+                        enabled = state.stockActual.isNotEmpty(),
+                        onClick = viewModel::onCargarExistentes,
+                    ) {
+                        Icon(
+                            Icons.Filled.AllInbox,
+                            contentDescription = if (state.stockActual.isEmpty()) {
+                                "Sin productos con existencia"
+                            } else {
+                                "Cargar los ${state.stockActual.size} productos con existencia"
+                            },
+                        )
+                    }
                 }
             }
         }
@@ -440,14 +468,6 @@ fun StockTakeScreen(
                 },
             ) {
                 Icon(Icons.Filled.QrCodeScanner, contentDescription = "Escanear")
-            }
-            if (state.stockActual.isNotEmpty() && state.query.isBlank()){
-                IconButton(
-                    enabled = state.locationId != null,
-                    onClick = viewModel::onCargarExistentes,
-                ) {
-                    Icon(Icons.Filled.AllInbox , contentDescription = "Carga todo")
-                }
             }
         }
         Spacer(Modifier.height(8.dp))
