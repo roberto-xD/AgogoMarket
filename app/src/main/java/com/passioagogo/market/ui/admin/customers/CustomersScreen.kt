@@ -71,7 +71,6 @@ data class CustomersUiState(
     val viendoDirecciones: Customer? = null,
     val claveDesbloqueada: Boolean = false,
     val tieneArchivoClave: Boolean = false,
-    val pidiendoClave: Boolean = false,
     val cargandoDirecciones: Boolean = false,
     /** Ya descifradas; se arman al abrir y se sueltan al cerrar. */
     val direcciones: List<DireccionDescifrada> = emptyList(),
@@ -149,7 +148,14 @@ class CustomersViewModel @Inject constructor(
     }
 
     fun onCerrarPasoClave() = _uiState.update {
-        it.copy(pasoClave = null, errorClave = null, publicaGenerada = null)
+        // También se suelta el cliente en consulta: si se cancela el
+        // desbloqueo, no debe quedar una ficha esperando abrirse.
+        it.copy(
+            pasoClave = null,
+            errorClave = null,
+            publicaGenerada = null,
+            viendoDirecciones = if (it.claveDesbloqueada) it.viendoDirecciones else null,
+        )
     }
 
     /**
@@ -189,6 +195,21 @@ class CustomersViewModel @Inject constructor(
     /** Contenido para exportar como respaldo. */
     fun contenidoArchivoClave(): String? = adminKeyStore.contenidoArchivo()
 
+    /**
+     * Abre la clave con la contraseña y devuelve su pública.
+     *
+     * Deja la clave desbloqueada de paso: si la contraseña era correcta,
+     * no tiene sentido volver a pedirla.
+     */
+    fun publicaClave(contrasena: String): String? {
+        if (!adminKeyStore.desbloqueada.value) {
+            val abierta = adminKeyStore.desbloquear(contrasena)
+            if (abierta.isFailure) return null
+            _uiState.update { it.copy(claveDesbloqueada = true) }
+        }
+        return adminKeyStore.publicaB64()
+    }
+
     fun onOlvidarArchivo() {
         adminKeyStore.olvidarArchivo()
         revisarClave()
@@ -214,7 +235,14 @@ class CustomersViewModel @Inject constructor(
                 viendoDirecciones = customer,
                 claveDesbloqueada = adminKeyStore.desbloqueada.value,
                 tieneArchivoClave = adminKeyStore.tieneArchivo(),
-                pidiendoClave = !adminKeyStore.desbloqueada.value,
+                // Un único estado para el diálogo visible: tener dos en
+                // paralelo dejaba el diálogo abierto sin reaccionar al
+                // desbloqueo, que es justo lo que pasaba antes.
+                pasoClave = when {
+                    adminKeyStore.desbloqueada.value -> null
+                    adminKeyStore.tieneArchivo() -> PasoClave.DESBLOQUEAR
+                    else -> PasoClave.FALTA_ARCHIVO
+                },
                 errorClave = null,
             )
         }
@@ -227,13 +255,13 @@ class CustomersViewModel @Inject constructor(
         it.copy(
             viendoDirecciones = null,
             direcciones = emptyList(),
-            pidiendoClave = false,
+            pasoClave = null,
             errorClave = null,
         )
     }
 
     fun onCancelarClave() = _uiState.update {
-        it.copy(pidiendoClave = false, viendoDirecciones = null, errorClave = null)
+        it.copy(pasoClave = null, viendoDirecciones = null, errorClave = null)
     }
 
     fun onDesbloquear(contrasena: String) {
@@ -255,7 +283,7 @@ class CustomersViewModel @Inject constructor(
                     isSaving = false,
                     claveDesbloqueada = true,
                     tieneArchivoClave = true,
-                    pidiendoClave = false,
+                    pasoClave = null,
                 )
             }
             _uiState.value.viendoDirecciones?.profileId?.let { cargarDirecciones(it) }
@@ -454,6 +482,7 @@ fun CustomersScreen(
             onDismiss = viewModel::onCerrarPasoClave,
             onDesbloquear = viewModel::onDesbloquear,
             onImportar = viewModel::onImportarClave,
+            onCopiarPublica = viewModel::publicaClave,
         )
         PasoClave.CREAR -> CrearClaveDialog(
             direccionesExistentes = state.direccionesGuardadas,
@@ -469,17 +498,6 @@ fun CustomersScreen(
             onDismiss = viewModel::onCerrarPasoClave,
         )
         null -> Unit
-    }
-
-    if (state.pidiendoClave) {
-        DesbloquearClaveDialog(
-            tieneArchivo = state.tieneArchivoClave,
-            isWorking = state.isSaving,
-            errorMessage = state.errorClave,
-            onDismiss = viewModel::onCancelarClave,
-            onDesbloquear = viewModel::onDesbloquear,
-            onImportar = viewModel::onImportarClave,
-        )
     }
 
     state.viendoDirecciones?.let { customer ->

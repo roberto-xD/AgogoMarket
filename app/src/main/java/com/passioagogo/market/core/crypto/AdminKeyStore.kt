@@ -84,6 +84,24 @@ class AdminKeyStore @Inject constructor(
             par
         }
 
+    /**
+     * Deriva la clave pública a partir de la privada ya desbloqueada.
+     *
+     * Evita tener que guardarla: la pública se reconstruye del módulo y el
+     * exponente de la privada, así que siempre se puede volver a copiar
+     * aunque no se anotara al generarla.
+     *
+     * Requiere la clave desbloqueada.
+     */
+    fun publicaB64(): String? {
+        val rsa = privada as? java.security.interfaces.RSAPrivateCrtKey ?: return null
+        return runCatching {
+            val spec = java.security.spec.RSAPublicKeySpec(rsa.modulus, rsa.publicExponent)
+            val publica = java.security.KeyFactory.getInstance("RSA").generatePublic(spec)
+            java.util.Base64.getEncoder().encodeToString(publica.encoded)  // SPKI
+        }.getOrNull()
+    }
+
     /** Contenido del archivo guardado, para exportarlo como respaldo. */
     fun contenidoArchivo(): String? = archivo.takeIf { it.exists() }?.readText()
 

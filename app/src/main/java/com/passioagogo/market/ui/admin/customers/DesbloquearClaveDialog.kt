@@ -1,5 +1,9 @@
 package com.passioagogo.market.ui.admin.customers
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
@@ -7,6 +11,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -38,6 +43,12 @@ fun DesbloquearClaveDialog(
     onDismiss: () -> Unit,
     onDesbloquear: (contrasena: String) -> Unit,
     onImportar: (contenidoJson: String, contrasena: String) -> Unit,
+    /**
+     * Abre la clave con la contraseña dada y devuelve su pública.
+     * Recibe la contraseña porque la pública se deriva de la privada, que
+     * en este punto todavía no está desbloqueada.
+     */
+    onCopiarPublica: ((contrasena: String) -> String?)? = null,
 ) {
     val context = LocalContext.current
     var contrasena by remember { mutableStateOf("") }
@@ -131,6 +142,44 @@ fun DesbloquearClaveDialog(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.error,
                     )
+                }
+
+                // La pública se deriva de la privada, así que se puede
+                // recuperar en cualquier momento: no hace falta haberla
+                // anotado al generar la clave.
+                if (onCopiarPublica != null && tieneArchivo) {
+                    Spacer(Modifier.height(12.dp))
+                    HorizontalDivider()
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        "¿Necesitas la clave pública para registrarla en la base?",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    TextButton(
+                        enabled = contrasena.length >= 12,
+                        onClick = {
+                            val publica = onCopiarPublica(contrasena)
+                            if (publica != null) {
+                                val cb = context.getSystemService(Context.CLIPBOARD_SERVICE)
+                                    as ClipboardManager
+                                cb.setPrimaryClip(
+                                    ClipData.newPlainText("Clave pública", publica)
+                                )
+                                Toast.makeText(
+                                    context,
+                                    "Clave pública copiada",
+                                    Toast.LENGTH_SHORT,
+                                ).show()
+                            } else {
+                                Toast.makeText(
+                                    context,
+                                    "No se pudo abrir la clave con esa contraseña",
+                                    Toast.LENGTH_SHORT,
+                                ).show()
+                            }
+                        },
+                    ) { Text("Copiar clave pública") }
                 }
             }
         },
