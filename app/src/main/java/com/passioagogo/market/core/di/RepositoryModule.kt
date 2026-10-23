@@ -3,8 +3,6 @@ package com.passioagogo.market.core.di
 import com.passioagogo.market.data.addresses.AddressRepository
 import com.passioagogo.market.data.addresses.AddressRepositoryImpl
 import com.passioagogo.market.data.attributes.AttributePresetRepository
-import com.passioagogo.market.data.addresses.AddressRepository
-import com.passioagogo.market.data.addresses.AddressRepositoryImpl
 import com.passioagogo.market.data.attributes.AttributePresetRepositoryImpl
 import com.passioagogo.market.data.catalog.CatalogRepositoryImpl
 import com.passioagogo.market.data.catalog.ProductImageRepository

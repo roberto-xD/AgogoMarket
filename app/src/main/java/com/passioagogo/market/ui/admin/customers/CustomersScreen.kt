@@ -72,9 +72,20 @@ data class CustomersUiState(
         get() = if (showInactive) customers else customers.filter { it.activo }
 }
 
+/** Una dirección lista para mostrar, o el motivo por el que no se pudo abrir. */
+data class DireccionDescifrada(
+    val id: String,
+    val etiqueta: String?,
+    val datos: DireccionClara?,
+    /** Se envolvió con otra clave (rotación) o el bulto está corrupto. */
+    val noSePudoAbrir: Boolean,
+)
+
 @HiltViewModel
 class CustomersViewModel @Inject constructor(
     private val customerRepository: CustomerRepository,
+    private val addressRepository: AddressRepository,
+    private val adminKeyStore: AdminKeyStore,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CustomersUiState())
