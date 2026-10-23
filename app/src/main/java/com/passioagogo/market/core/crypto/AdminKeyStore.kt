@@ -67,6 +67,26 @@ class AdminKeyStore @Inject constructor(
         _desbloqueada.value = true
     }
 
+    /**
+     * Genera un par nuevo y deja el archivo cifrado en el dispositivo.
+     *
+     * Devuelve la pública (para registrarla en `crypto_keys`) y el
+     * contenido del archivo, que el administrador DEBE exportar y guardar
+     * fuera del teléfono: si desinstala la app sin copia, las direcciones
+     * ya guardadas quedan ilegibles para siempre.
+     */
+    fun generar(contrasenaMaestra: String, id: String): Result<AdminKeyTool.ParGenerado> =
+        runCatching {
+            val par = AdminKeyTool.generarPar(contrasenaMaestra, id)
+            archivo.writeText(par.archivoPrivada)
+            privada = AdminKeyTool.abrirPrivada(par.archivoPrivada, contrasenaMaestra)
+            _desbloqueada.value = true
+            par
+        }
+
+    /** Contenido del archivo guardado, para exportarlo como respaldo. */
+    fun contenidoArchivo(): String? = archivo.takeIf { it.exists() }?.readText()
+
     /** Suelta la clave. Se llama al cerrar sesión. */
     fun bloquear() {
         privada = null

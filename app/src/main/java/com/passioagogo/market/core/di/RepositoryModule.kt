@@ -2,6 +2,8 @@ package com.passioagogo.market.core.di
 
 import com.passioagogo.market.data.addresses.AddressRepository
 import com.passioagogo.market.data.addresses.AddressRepositoryImpl
+import com.passioagogo.market.data.addresses.CryptoKeyRepository
+import com.passioagogo.market.data.addresses.CryptoKeyRepositoryImpl
 import com.passioagogo.market.data.attributes.AttributePresetRepository
 import com.passioagogo.market.data.attributes.AttributePresetRepositoryImpl
 import com.passioagogo.market.data.catalog.CatalogRepositoryImpl
@@ -145,4 +147,10 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindAddressRepository(impl: AddressRepositoryImpl): AddressRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindCryptoKeyRepository(
+        impl: CryptoKeyRepositoryImpl,
+    ): CryptoKeyRepository
 }
