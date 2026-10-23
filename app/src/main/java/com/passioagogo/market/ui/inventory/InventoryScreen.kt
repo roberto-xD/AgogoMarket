@@ -41,10 +41,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.passioagogo.market.domain.auth.SessionState
 import com.passioagogo.market.domain.inventory.StockItem
 import com.passioagogo.market.ui.common.SelectorUbicacion
 import java.text.NumberFormat

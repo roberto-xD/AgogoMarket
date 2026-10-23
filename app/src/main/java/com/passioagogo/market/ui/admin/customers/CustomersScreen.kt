@@ -106,8 +106,13 @@ class CustomersViewModel @Inject constructor(
     private val adminKeyStore: AdminKeyStore,
     private val cryptoKeyRepository: CryptoKeyRepository,
 ) : ViewModel() {
+    private val _uiState = MutableStateFlow(CustomersUiState())
+    val uiState: StateFlow<CustomersUiState> = _uiState.asStateFlow()
 
-    init { revisarClave() }
+    init {
+        revisarClave()
+        refresh()
+    }
 
     /** Estado del archivo de la clave, para el indicador de la cabecera. */
     fun revisarClave() {
@@ -189,11 +194,6 @@ class CustomersViewModel @Inject constructor(
         revisarClave()
         _uiState.update { it.copy(pasoClave = null) }
     }
-
-    private val _uiState = MutableStateFlow(CustomersUiState())
-    val uiState: StateFlow<CustomersUiState> = _uiState.asStateFlow()
-
-    init { refresh() }
 
     fun onToggleInactive(show: Boolean) = _uiState.update { it.copy(showInactive = show) }
     // ============ Direcciones ============
