@@ -13,6 +13,7 @@ import javax.inject.Inject
 class SessionViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     private val pushTokenRepository: PushTokenRepository,
+    private val adminKeyStore: com.passioagogo.market.core.crypto.AdminKeyStore,
 ) : ViewModel() {
 
     val sessionState = authRepository.sessionState
@@ -32,6 +33,9 @@ class SessionViewModel @Inject constructor(
     fun onRetry() = viewModelScope.launch { authRepository.refreshProfile() }
 
     fun onSignOut() = viewModelScope.launch {
+        // La clave privada no debe sobrevivir a la sesión: si otra persona
+        // entra en este dispositivo, no abriría direcciones ajenas.
+        adminKeyStore.bloquear()
         // Antes de cerrar: si no, el siguiente usuario de este teléfono
         // heredaría las notificaciones del anterior.
         pushTokenRepository.eliminarTokenActual()

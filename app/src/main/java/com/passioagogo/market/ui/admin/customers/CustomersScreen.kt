@@ -15,6 +15,10 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -33,6 +37,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.passioagogo.market.core.result.DataResult
 import com.passioagogo.market.data.customers.Customer
+import com.passioagogo.market.core.crypto.AdminKeyStore
+import com.passioagogo.market.data.addresses.AddressRepository
+import com.passioagogo.market.data.addresses.DireccionClara
+import com.passioagogo.market.data.addresses.jsonDireccion
 import com.passioagogo.market.data.customers.CustomerRepository
 import com.passioagogo.market.ui.common.toMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -49,6 +57,16 @@ data class CustomersUiState(
     val editing: Customer? = null,
     val isSaving: Boolean = false,
     val errorMessage: String? = null,
+    // ---- Direcciones cifradas ----
+    /** Cliente cuyas direcciones se están consultando. */
+    val viendoDirecciones: Customer? = null,
+    val claveDesbloqueada: Boolean = false,
+    val tieneArchivoClave: Boolean = false,
+    val pidiendoClave: Boolean = false,
+    val cargandoDirecciones: Boolean = false,
+    /** Ya descifradas; se arman al abrir y se sueltan al cerrar. */
+    val direcciones: List<DireccionDescifrada> = emptyList(),
+    val errorClave: String? = null,
 ) {
     val visible: List<Customer>
         get() = if (showInactive) customers else customers.filter { it.activo }
@@ -65,6 +83,108 @@ class CustomersViewModel @Inject constructor(
     init { refresh() }
 
     fun onToggleInactive(show: Boolean) = _uiState.update { it.copy(showInactive = show) }
+    // ============ Direcciones ============
+
+    /**
+     * Abre las direcciones de un cliente. Si la clave no está desbloqueada
+     * pide primero la contraseña maestra.
+     */
+    fun onVerDirecciones(customer: Customer) {
+        if (customer.profileId == null) {
+            _uiState.update {
+                it.copy(errorMessage = "Este cliente no tiene cuenta en el sitio")
+            }
+            return
+        }
+        _uiState.update {
+            it.copy(
+                viendoDirecciones = customer,
+                claveDesbloqueada = adminKeyStore.desbloqueada.value,
+                tieneArchivoClave = adminKeyStore.tieneArchivo(),
+                pidiendoClave = !adminKeyStore.desbloqueada.value,
+                errorClave = null,
+            )
+        }
+        if (adminKeyStore.desbloqueada.value) cargarDirecciones(customer.profileId)
+    }
+
+    fun onCerrarDirecciones() = _uiState.update {
+        // Las direcciones en claro no se conservan en memoria más de lo
+        // necesario: se descartan al cerrar la ficha.
+        it.copy(
+            viendoDirecciones = null,
+            direcciones = emptyList(),
+            pidiendoClave = false,
+            errorClave = null,
+        )
+    }
+
+    fun onCancelarClave() = _uiState.update {
+        it.copy(pidiendoClave = false, viendoDirecciones = null, errorClave = null)
+    }
+
+    fun onDesbloquear(contrasena: String) {
+        _uiState.update { it.copy(isSaving = true, errorClave = null) }
+        val resultado = adminKeyStore.desbloquear(contrasena)
+        aplicarResultadoClave(resultado)
+    }
+
+    fun onImportarClave(contenidoJson: String, contrasena: String) {
+        _uiState.update { it.copy(isSaving = true, errorClave = null) }
+        val resultado = adminKeyStore.importar(contenidoJson, contrasena)
+        aplicarResultadoClave(resultado)
+    }
+
+    private fun aplicarResultadoClave(resultado: Result<Unit>) {
+        if (resultado.isSuccess) {
+            _uiState.update {
+                it.copy(
+                    isSaving = false,
+                    claveDesbloqueada = true,
+                    tieneArchivoClave = true,
+                    pidiendoClave = false,
+                )
+            }
+            _uiState.value.viendoDirecciones?.profileId?.let { cargarDirecciones(it) }
+        } else {
+            // Mensaje único a propósito: distinguir «contraseña mala» de
+            // «archivo corrupto» ayudaría a quien prueba contraseñas.
+            _uiState.update {
+                it.copy(
+                    isSaving = false,
+                    errorClave = "No se pudo abrir con esos datos. Revisa la " +
+                        "contraseña y el archivo.",
+                )
+            }
+        }
+    }
+
+    private fun cargarDirecciones(profileId: String) {
+        _uiState.update { it.copy(cargandoDirecciones = true) }
+        viewModelScope.launch {
+            val result = addressRepository.getDirecciones(profileId)
+            val descifradas = (result as? DataResult.Success)?.data.orEmpty().map { dir ->
+                val claro = adminKeyStore.descifrar(dir.contenido, dir.iv, dir.dkAdmin)
+                DireccionDescifrada(
+                    id = dir.id,
+                    etiqueta = dir.etiqueta,
+                    datos = claro?.let {
+                        runCatching { jsonDireccion.decodeFromString<DireccionClara>(it) }
+                            .getOrNull()
+                    },
+                    noSePudoAbrir = claro == null,
+                )
+            }
+            _uiState.update {
+                it.copy(
+                    cargandoDirecciones = false,
+                    direcciones = descifradas,
+                    errorMessage = (result as? DataResult.Error)?.error?.toMessage(),
+                )
+            }
+        }
+    }
+
     fun onEdit(customer: Customer) = _uiState.update { it.copy(editing = customer) }
     fun onDismiss() = _uiState.update { it.copy(editing = null) }
 
@@ -162,12 +282,16 @@ fun CustomersScreen(
                             )
                         }
                     }
+                    // Solo quien tiene cuenta en el sitio puede haber
+                    // capturado una dirección cifrada.
                     if (customer.profileId != null) {
-                        Text(
-                            "Con cuenta",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.primary,
-                        )
+                        IconButton(onClick = { viewModel.onVerDirecciones(customer) }) {
+                            Icon(
+                                Icons.Outlined.Home,
+                                contentDescription = "Ver direcciones",
+                                tint = MaterialTheme.colorScheme.primary,
+                            )
+                        }
                     }
                     if (!customer.activo) {
                         Text(
@@ -179,6 +303,28 @@ fun CustomersScreen(
                 }
                 HorizontalDivider()
             }
+        }
+    }
+
+    if (state.pidiendoClave) {
+        DesbloquearClaveDialog(
+            tieneArchivo = state.tieneArchivoClave,
+            isWorking = state.isSaving,
+            errorMessage = state.errorClave,
+            onDismiss = viewModel::onCancelarClave,
+            onDesbloquear = viewModel::onDesbloquear,
+            onImportar = viewModel::onImportarClave,
+        )
+    }
+
+    state.viendoDirecciones?.let { customer ->
+        if (state.claveDesbloqueada) {
+            DireccionesSheet(
+                customer = customer,
+                direcciones = state.direcciones,
+                cargando = state.cargandoDirecciones,
+                onDismiss = viewModel::onCerrarDirecciones,
+            )
         }
     }
 
