@@ -33,7 +33,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.passioagogo.market.data.addresses.DireccionClara
-import com.passioagogo.market.data.customers.Customer
 
 /**
  * Muestra las direcciones ya descifradas de un cliente.
@@ -45,7 +44,7 @@ import com.passioagogo.market.data.customers.Customer
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DireccionesSheet(
-    customer: Customer,
+    nombreCliente: String,
     direcciones: List<DireccionDescifrada>,
     cargando: Boolean,
     onDismiss: () -> Unit,
@@ -61,7 +60,7 @@ fun DireccionesSheet(
         ) {
             Text("Direcciones", style = MaterialTheme.typography.titleLarge)
             Text(
-                customer.nombre,
+                nombreCliente,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

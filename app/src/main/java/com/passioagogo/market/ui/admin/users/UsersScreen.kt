@@ -109,9 +109,14 @@ data class UsersUiState(
         }
 }
 
-/** Pestañas, en el orden pedido. */
+/**
+ * Pestañas de personal.
+ *
+ * Los clientes NO están aquí: viven en la pantalla de Clientes, que los
+ * muestra junto a las fichas de mostrador. Esta pantalla gestiona roles y
+ * tienda asignada, y un cliente no tiene ninguna de las dos cosas.
+ */
 private enum class PestanaUsuarios(val etiqueta: String, val rol: UserRole) {
-    CLIENTES("Clientes", UserRole.CLIENTE),
     VENDEDORES("Vendedores", UserRole.VENDEDOR),
     PROMOTORES("Promotores", UserRole.PROMOTOR),
     ADMINS("Administradores", UserRole.ADMIN),
@@ -237,6 +242,14 @@ fun UsersScreen(
                 )
             }
         }
+
+        Text(
+            "Los clientes se gestionan en la sección Clientes, junto con las " +
+                "fichas de mostrador.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+        )
 
         state.errorMessage?.let {
             Text(

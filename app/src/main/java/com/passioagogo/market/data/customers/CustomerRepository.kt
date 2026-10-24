@@ -74,6 +74,26 @@ data class AddressDraft(
 interface CustomerRepository {
     suspend fun getCustomers(includeInactive: Boolean = false): DataResult<List<Customer>>
     suspend fun createCustomer(draft: CustomerDraft): DataResult<Customer>
+
+    /**
+     * Enlaza una ficha de mostrador con la cuenta web de la misma persona.
+     * A partir de ahí comparten historial y la ficha hereda sus direcciones.
+     */
+    suspend fun vincularPerfil(customerId: String, profileId: String): DataResult<Unit>
+
+    /** Deshace el enlace, por si se unieron dos personas distintas. */
+    suspend fun desvincularPerfil(customerId: String): DataResult<Unit>
+
+    /**
+     * Crea la ficha de quien solo tenía cuenta web, ya enlazada.
+     * Se usa al venderle por primera vez: sin ficha, sus compras quedarían
+     * fuera del historial por cliente.
+     */
+    suspend fun crearDesdePerfil(
+        profileId: String,
+        nombre: String,
+        email: String?,
+    ): DataResult<Customer>
     suspend fun updateCustomer(customer: Customer): DataResult<Customer>
     suspend fun getAddresses(customerId: String): DataResult<List<ShippingAddress>>
     suspend fun createAddress(draft: AddressDraft): DataResult<ShippingAddress>
@@ -82,6 +102,13 @@ interface CustomerRepository {
 }
 
 // ============ DTOs ============
+
+@Serializable
+data class NewCustomerConPerfilDto(
+    val nombre: String,
+    val email: String? = null,
+    @SerialName("profile_id") val profileId: String,
+)
 
 @Serializable
 data class CustomerDto(
@@ -184,6 +211,44 @@ class CustomerRepositoryImpl @Inject constructor(
                 ) { select() }.decodeSingle<CustomerDto>()
             }.map { it.toDomain() }
         }
+
+    override suspend fun vincularPerfil(
+        customerId: String,
+        profileId: String,
+    ): DataResult<Unit> = withContext(io) {
+        safeSupabaseCall {
+            postgrest.from(TABLE).update({ set("profile_id", profileId) }) {
+                filter { eq("id", customerId) }
+            }
+            Unit
+        }
+    }
+
+    override suspend fun desvincularPerfil(customerId: String): DataResult<Unit> =
+        withContext(io) {
+            safeSupabaseCall {
+                postgrest.from(TABLE).update({ set("profile_id", null as String?) }) {
+                    filter { eq("id", customerId) }
+                }
+                Unit
+            }
+        }
+
+    override suspend fun crearDesdePerfil(
+        profileId: String,
+        nombre: String,
+        email: String?,
+    ): DataResult<Customer> = withContext(io) {
+        safeSupabaseCall {
+            postgrest.from(TABLE).insert(
+                NewCustomerConPerfilDto(
+                    nombre = nombre,
+                    email = email,
+                    profileId = profileId,
+                )
+            ) { select() }.decodeSingle<CustomerDto>()
+        }.map { it.toDomain() }
+    }
 
     override suspend fun updateCustomer(customer: Customer): DataResult<Customer> =
         withContext(io) {

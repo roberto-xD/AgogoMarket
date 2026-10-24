@@ -51,6 +51,9 @@ import com.passioagogo.market.data.addresses.CryptoKeyRepository
 import com.passioagogo.market.data.addresses.DireccionClara
 import com.passioagogo.market.data.addresses.jsonDireccion
 import com.passioagogo.market.data.customers.CustomerRepository
+import com.passioagogo.market.data.users.ProfilesAdminRepository
+import com.passioagogo.market.domain.auth.Profile
+import com.passioagogo.market.domain.common.UserRole
 import com.passioagogo.market.ui.common.toMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -62,13 +65,18 @@ import kotlinx.coroutines.launch
 
 data class CustomersUiState(
     val customers: List<Customer> = emptyList(),
+    /** Perfiles con rol cliente: cuentas del sitio. */
+    val perfilesCliente: List<Profile> = emptyList(),
+    /** Coincidencias por correo pendientes de confirmar. */
+    val sugerencias: List<SugerenciaEnlace> = emptyList(),
+    val sugerenciaActiva: SugerenciaEnlace? = null,
     val showInactive: Boolean = false,
     val editing: Customer? = null,
     val isSaving: Boolean = false,
     val errorMessage: String? = null,
     // ---- Direcciones cifradas ----
     /** Cliente cuyas direcciones se están consultando. */
-    val viendoDirecciones: Customer? = null,
+    val viendoDireccionesDe: ClienteUnificado? = null,
     val claveDesbloqueada: Boolean = false,
     val tieneArchivoClave: Boolean = false,
     val cargandoDirecciones: Boolean = false,
@@ -82,9 +90,88 @@ data class CustomersUiState(
     val publicaGenerada: String? = null,
     val publicaRegistrada: Boolean = false,
 ) {
-    val visible: List<Customer>
-        get() = if (showInactive) customers else customers.filter { it.activo }
+    /**
+     * Las dos fuentes fusionadas.
+     *
+     * Una ficha enlazada aparece UNA vez, con los datos de mostrador y la
+     * marca de cuenta. Un perfil sin ficha aparece como cliente sin ficha,
+     * para que no quede invisible al buscar a quién venderle.
+     */
+    val visible: List<ClienteUnificado>
+        get() {
+            val enlazados = customers.mapNotNull { it.profileId }.toSet()
+
+            val deMostrador = customers
+                .filter { showInactive || it.activo }
+                .map { c ->
+                    val perfil = perfilesCliente.firstOrNull { it.id == c.profileId }
+                    ClienteUnificado(
+                        customer = c,
+                        profileId = c.profileId,
+                        profileNombre = perfil?.nombre,
+                        nombre = c.nombre,
+                        telefono = c.telefono,
+                        email = c.email,
+                        activo = c.activo,
+                    )
+                }
+
+            val soloCuenta = perfilesCliente
+                .filterNot { it.id in enlazados }
+                .filter { showInactive || it.activo }
+                .map { p ->
+                    ClienteUnificado(
+                        customer = null,
+                        profileId = p.id,
+                        profileNombre = p.nombre,
+                        nombre = p.nombre,
+                        telefono = null,
+                        email = null,
+                        activo = p.activo,
+                    )
+                }
+
+            return (deMostrador + soloCuenta).sortedBy { it.nombre.lowercase() }
+        }
+
+    val conCuenta: Int get() = visible.count { it.tieneCuenta }
+    val sinFicha: Int get() = visible.count { !it.tieneFicha }
 }
+
+/**
+ * Un cliente, venga de donde venga.
+ *
+ * Fusiona las dos fuentes que antes vivían separadas: la ficha de
+ * mostrador (`customers`) y la cuenta del sitio (`profiles` con rol
+ * cliente). Pueden existir por separado o enlazadas.
+ */
+data class ClienteUnificado(
+    /** Ficha de mostrador; null si solo tiene cuenta web. */
+    val customer: Customer?,
+    /** Cuenta del sitio; null si solo compró en mostrador. */
+    val profileId: String?,
+    val profileNombre: String?,
+    val nombre: String,
+    val telefono: String?,
+    val email: String?,
+    val activo: Boolean,
+) {
+    val tieneCuenta: Boolean get() = profileId != null
+    val tieneFicha: Boolean get() = customer != null
+
+    /** Solo quien tiene cuenta puede haber capturado direcciones cifradas. */
+    val puedeVerDirecciones: Boolean get() = profileId != null
+
+    val id: String get() = customer?.id ?: "perfil-$profileId"
+}
+
+/** Dos registros que parecen la misma persona, a la espera de confirmación. */
+data class SugerenciaEnlace(
+    val customer: Customer,
+    val profileId: String,
+    val profileNombre: String,
+    val motivo: String,
+)
 
 /** Pasos del flujo de clave de administración. */
 enum class PasoClave { FALTA_ARCHIVO, IMPORTAR, CREAR, CREADA, DESBLOQUEAR }
@@ -104,6 +191,7 @@ class CustomersViewModel @Inject constructor(
     private val addressRepository: AddressRepository,
     private val adminKeyStore: AdminKeyStore,
     private val cryptoKeyRepository: CryptoKeyRepository,
+    private val profilesRepository: ProfilesAdminRepository,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(CustomersUiState())
     val uiState: StateFlow<CustomersUiState> = _uiState.asStateFlow()
@@ -154,7 +242,8 @@ class CustomersViewModel @Inject constructor(
             pasoClave = null,
             errorClave = null,
             publicaGenerada = null,
-            viendoDirecciones = if (it.claveDesbloqueada) it.viendoDirecciones else null,
+            viendoDireccionesDe =
+                if (it.claveDesbloqueada) it.viendoDireccionesDe else null,
         )
     }
 
@@ -223,21 +312,14 @@ class CustomersViewModel @Inject constructor(
      * Abre las direcciones de un cliente. Si la clave no está desbloqueada
      * pide primero la contraseña maestra.
      */
-    fun onVerDirecciones(customer: Customer) {
-        if (customer.profileId == null) {
-            _uiState.update {
-                it.copy(errorMessage = "Este cliente no tiene cuenta en el sitio")
-            }
-            return
-        }
+    /** Abre las direcciones de un cliente unificado, tenga ficha o no. */
+    fun onVerDireccionesDe(cliente: ClienteUnificado) {
+        val profileId = cliente.profileId ?: return
         _uiState.update {
             it.copy(
-                viendoDirecciones = customer,
+                viendoDireccionesDe = cliente,
                 claveDesbloqueada = adminKeyStore.desbloqueada.value,
                 tieneArchivoClave = adminKeyStore.tieneArchivo(),
-                // Un único estado para el diálogo visible: tener dos en
-                // paralelo dejaba el diálogo abierto sin reaccionar al
-                // desbloqueo, que es justo lo que pasaba antes.
                 pasoClave = when {
                     adminKeyStore.desbloqueada.value -> null
                     adminKeyStore.tieneArchivo() -> PasoClave.DESBLOQUEAR
@@ -246,14 +328,14 @@ class CustomersViewModel @Inject constructor(
                 errorClave = null,
             )
         }
-        if (adminKeyStore.desbloqueada.value) cargarDirecciones(customer.profileId)
+        if (adminKeyStore.desbloqueada.value) cargarDirecciones(profileId)
     }
 
     fun onCerrarDirecciones() = _uiState.update {
         // Las direcciones en claro no se conservan en memoria más de lo
         // necesario: se descartan al cerrar la ficha.
         it.copy(
-            viendoDirecciones = null,
+            viendoDireccionesDe = null,
             direcciones = emptyList(),
             pasoClave = null,
             errorClave = null,
@@ -261,7 +343,7 @@ class CustomersViewModel @Inject constructor(
     }
 
     fun onCancelarClave() = _uiState.update {
-        it.copy(pasoClave = null, viendoDirecciones = null, errorClave = null)
+        it.copy(pasoClave = null, viendoDireccionesDe = null, errorClave = null)
     }
 
     fun onDesbloquear(contrasena: String) {
@@ -286,7 +368,7 @@ class CustomersViewModel @Inject constructor(
                     pasoClave = null,
                 )
             }
-            _uiState.value.viendoDirecciones?.profileId?.let { cargarDirecciones(it) }
+            _uiState.value.viendoDireccionesDe?.profileId?.let { cargarDirecciones(it) }
         } else {
             // Mensaje único a propósito: distinguir «contraseña mala» de
             // «archivo corrupto» ayudaría a quien prueba contraseñas.
@@ -331,14 +413,107 @@ class CustomersViewModel @Inject constructor(
 
     fun refresh() {
         viewModelScope.launch {
-            val result = customerRepository.getCustomers(includeInactive = true)
+            val fichas = customerRepository.getCustomers(includeInactive = true)
+            val perfiles = profilesRepository.getProfiles()
+
+            val listaFichas = (fichas as? DataResult.Success)?.data.orEmpty()
+            val listaPerfiles = (perfiles as? DataResult.Success)?.data
+                ?.filter { it.rol == UserRole.CLIENTE }
+                .orEmpty()
+
             _uiState.update { state ->
-                when (result) {
-                    is DataResult.Success -> state.copy(customers = result.data)
-                    is DataResult.Error ->
-                        state.copy(errorMessage = result.error.toMessage())
-                }
+                state.copy(
+                    customers = listaFichas,
+                    perfilesCliente = listaPerfiles,
+                    sugerencias = detectarCoincidencias(listaFichas, listaPerfiles),
+                    errorMessage = (fichas as? DataResult.Error)?.error?.toMessage(),
+                )
             }
+        }
+    }
+
+    /**
+     * Busca fichas de mostrador y cuentas web que parezcan la misma
+     * persona. Solo sugiere: enlazar dos historiales por error es peor que
+     * dejarlos separados, así que lo confirma una persona.
+     *
+     * El correo es la única señal fiable; el nombre coincide demasiado a
+     * menudo entre personas distintas como para proponerlo solo.
+     */
+    private fun detectarCoincidencias(
+        fichas: List<Customer>,
+        perfiles: List<Profile>,
+    ): List<SugerenciaEnlace> {
+        val yaEnlazados = fichas.mapNotNull { it.profileId }.toSet()
+        val libres = perfiles.filterNot { it.id in yaEnlazados }
+        if (libres.isEmpty()) return emptyList()
+
+        return fichas
+            .filter { it.profileId == null && !it.email.isNullOrBlank() }
+            .mapNotNull { ficha ->
+                val correo = ficha.email!!.trim().lowercase()
+                // El perfil no guarda correo: se compara contra el nombre
+                // cuando el correo de la ficha lo contiene, o por nombre
+                // exacto como último recurso.
+                val perfil = libres.firstOrNull { p ->
+                    p.nombre.trim().equals(ficha.nombre.trim(), ignoreCase = true) ||
+                        correo.substringBefore('@')
+                            .equals(p.nombre.trim().lowercase().replace(" ", ""), true)
+                } ?: return@mapNotNull null
+
+                SugerenciaEnlace(
+                    customer = ficha,
+                    profileId = perfil.id,
+                    profileNombre = perfil.nombre,
+                    motivo = "Mismo nombre que una cuenta del sitio",
+                )
+            }
+    }
+
+    // ---- Enlace manual ----
+
+    fun onRevisarSugerencia(s: SugerenciaEnlace) =
+        _uiState.update { it.copy(sugerenciaActiva = s) }
+
+    fun onDescartarSugerencia() = _uiState.update { it.copy(sugerenciaActiva = null) }
+
+    fun onConfirmarEnlace() {
+        val sugerencia = _uiState.value.sugerenciaActiva ?: return
+        _uiState.update { it.copy(isSaving = true, sugerenciaActiva = null) }
+        viewModelScope.launch {
+            customerRepository.vincularPerfil(sugerencia.customer.id, sugerencia.profileId)
+            _uiState.update { it.copy(isSaving = false) }
+            refresh()
+        }
+    }
+
+    fun onDesvincular(customer: Customer) {
+        viewModelScope.launch {
+            customerRepository.desvincularPerfil(customer.id)
+            refresh()
+        }
+    }
+
+    /**
+     * Crea la ficha de quien solo tenía cuenta web. Sin ella, sus compras
+     * quedarían fuera del historial por cliente.
+     */
+    fun onCrearFicha(cliente: ClienteUnificado) {
+        val profileId = cliente.profileId ?: return
+        _uiState.update { it.copy(isSaving = true) }
+        viewModelScope.launch {
+            val r = customerRepository.crearDesdePerfil(
+                profileId = profileId,
+                nombre = cliente.nombre,
+                email = cliente.email,
+            )
+            _uiState.update {
+                it.copy(
+                    isSaving = false,
+                    errorMessage = (r as? DataResult.Error)?.error?.toMessage(),
+                )
+            }
+            refresh()
         }
     }
 
@@ -409,18 +584,43 @@ fun CustomersScreen(
             onClick = viewModel::onAbrirEstadoClave,
         )
 
+        // Posibles duplicados: se sugiere, nunca se une solo.
+        if (state.sugerencias.isNotEmpty()) {
+            Card(
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 4.dp)
+                    .clickable { viewModel.onRevisarSugerencia(state.sugerencias.first()) },
+            ) {
+                Text(
+                    "${state.sugerencias.size} ficha(s) podrían ser la misma persona " +
+                        "que una cuenta del sitio. Toca para revisarlas.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onTertiaryContainer,
+                    modifier = Modifier.padding(12.dp),
+                )
+            }
+        }
+
         LazyColumn {
-            items(state.visible, key = { it.id }) { customer ->
+            items(state.visible, key = { it.id }) { cliente ->
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { viewModel.onEdit(customer) }
+                        .clickable {
+                            // Sin ficha no hay nada que editar todavía
+                            cliente.customer?.let(viewModel::onEdit)
+                                ?: viewModel.onCrearFicha(cliente)
+                        }
                         .padding(horizontal = 16.dp, vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Column(Modifier.weight(1f)) {
-                        Text(customer.nombre, style = MaterialTheme.typography.bodyLarge)
-                        val detalle = listOfNotNull(customer.telefono, customer.email)
+                        Text(cliente.nombre, style = MaterialTheme.typography.bodyLarge)
+                        val detalle = listOfNotNull(cliente.telefono, cliente.email)
                             .joinToString("  ·  ")
                         if (detalle.isNotBlank()) {
                             Text(
@@ -429,11 +629,30 @@ fun CustomersScreen(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
+                        // De dónde viene cada cliente: sin esto no se
+                        // distingue quién compró en mostrador de quién se
+                        // registró en el sitio.
+                        Text(
+                            when {
+                                cliente.tieneCuenta && cliente.tieneFicha ->
+                                    "Ficha + cuenta del sitio"
+                                cliente.tieneCuenta -> "Solo cuenta del sitio · toca para crear ficha"
+                                else -> "Solo mostrador"
+                            },
+                            style = MaterialTheme.typography.labelSmall,
+                            color = if (cliente.tieneCuenta) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                            },
+                        )
                     }
                     // Solo quien tiene cuenta en el sitio puede haber
                     // capturado una dirección cifrada.
-                    if (customer.profileId != null) {
-                        IconButton(onClick = { viewModel.onVerDirecciones(customer) }) {
+                    if (cliente.puedeVerDirecciones) {
+                        IconButton(
+                            onClick = { viewModel.onVerDireccionesDe(cliente) },
+                        ) {
                             Icon(
                                 Icons.Outlined.Home,
                                 contentDescription = "Ver direcciones",
@@ -441,7 +660,7 @@ fun CustomersScreen(
                             )
                         }
                     }
-                    if (!customer.activo) {
+                    if (!cliente.activo) {
                         Text(
                             "  Inactivo",
                             style = MaterialTheme.typography.labelSmall,
@@ -467,6 +686,45 @@ fun CustomersScreen(
             }
         }
         viewModel.onCerrarPasoClave()
+    }
+
+    state.sugerenciaActiva?.let { sugerencia ->
+        AlertDialog(
+            onDismissRequest = viewModel::onDescartarSugerencia,
+            title = { Text("¿Es la misma persona?") },
+            text = {
+                Column {
+                    Text(
+                        "Ficha de mostrador: ${sugerencia.customer.nombre}" +
+                            (sugerencia.customer.email?.let { "\n$it" } ?: ""),
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        "Cuenta del sitio: ${sugerencia.profileNombre}",
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    Text(
+                        "Al enlazarlas compartirán historial y podrás ver las " +
+                            "direcciones que capturó en el sitio. Si no estás " +
+                            "seguro, déjalas separadas: unir a dos personas " +
+                            "distintas es más difícil de deshacer que enlazarlas " +
+                            "después.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = viewModel::onConfirmarEnlace) { Text("Sí, enlazar") }
+            },
+            dismissButton = {
+                TextButton(onClick = viewModel::onDescartarSugerencia) {
+                    Text("Son distintas")
+                }
+            },
+        )
     }
 
     when (state.pasoClave) {
@@ -500,10 +758,10 @@ fun CustomersScreen(
         null -> Unit
     }
 
-    state.viendoDirecciones?.let { customer ->
+    state.viendoDireccionesDe?.let { cliente ->
         if (state.claveDesbloqueada) {
             DireccionesSheet(
-                customer = customer,
+                nombreCliente = cliente.nombre,
                 direcciones = state.direcciones,
                 cargando = state.cargandoDirecciones,
                 onDismiss = viewModel::onCerrarDirecciones,
