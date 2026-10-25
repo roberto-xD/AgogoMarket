@@ -28,6 +28,8 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonNull
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 
@@ -142,7 +144,12 @@ class InventoryRepositoryImpl @Inject constructor(
                     put("p_location", locationId)
                     put("p_cantidad", cantidad)
                     put("p_motivo", motivo.valorSql())
-                    nota?.takeIf { it.isNotBlank() }?.let { put("p_nota", it) }
+                    // Siempre se envía, aunque venga vacío: PostgREST
+                    // resuelve la función por el conjunto exacto de
+                    // parámetros nombrados, y omitir uno puede hacer que
+                    // no encuentre la firma y responda 404.
+                    val limpia = nota?.trim()?.ifBlank { null }
+                    put("p_nota", limpia?.let { JsonPrimitive(it) } ?: JsonNull)
                 },
             )
             Unit
