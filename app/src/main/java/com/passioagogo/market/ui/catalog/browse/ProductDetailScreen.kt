@@ -56,6 +56,8 @@ import com.passioagogo.market.data.requests.RequestCart
 import com.passioagogo.market.data.requests.RequestCartItem
 import com.passioagogo.market.domain.auth.AuthRepository
 import com.passioagogo.market.domain.auth.SessionState
+import com.passioagogo.market.core.result.DataResult
+import com.passioagogo.market.data.attributes.AttributePresetRepository
 import com.passioagogo.market.domain.catalog.CatalogRepository
 import com.passioagogo.market.domain.catalog.Category
 import com.passioagogo.market.domain.catalog.ProductWithVariants
@@ -76,12 +78,26 @@ private val moneda: NumberFormat = NumberFormat.getCurrencyInstance(Locale("es",
 data class ProductDetailUiState(
     val producto: ProductWithVariants? = null,
     val categoria: Category? = null,
+    /** "clave|valor" → etiqueta legible, como en el diálogo de captura. */
+    val etiquetas: Map<String, String> = emptyMap(),
     val isLoading: Boolean = true,
-)
+) {
+    /**
+     * Cómo se lee un par de atributos.
+     *
+     * Con etiqueta registrada se muestra igual que al capturar
+     * ("🧴 Silicona"); sin ella, solo el valor, que se lee mejor que el
+     * "clave: valor" crudo de antes.
+     */
+    fun etiquetaDe(clave: String, valor: String): String =
+        etiquetas["${clave.trim().lowercase()}|${valor.trim().lowercase()}"]
+            ?: valor.replaceFirstChar { it.uppercase() }
+}
 
 @HiltViewModel
 class ProductDetailViewModel @Inject constructor(
     private val catalogRepository: CatalogRepository,
+    private val presetRepository: AttributePresetRepository,
     private val cart: RequestCart,
     authRepository: AuthRepository,
     savedStateHandle: SavedStateHandle,
@@ -112,9 +128,11 @@ class ProductDetailViewModel @Inject constructor(
                 variantId = variante.id,
                 producto = pw.product.nombre,
                 sku = variante.sku,
-                atributos = variante.attributes.entries.joinToString(" · ") { (k, v) ->
-                    "$k: ${v.jsonPrimitive.content}"
-                },
+                // El título si lo hay; si no, las etiquetas legibles
+                atributos = variante.titulo
+                    ?: variante.attributes.entries.joinToString(" · ") { (k, v) ->
+                        _uiState.value.etiquetaDe(k, v.jsonPrimitive.content)
+                    },
                 precio = variante.precioVenta,
                 cantidad = 1,
             )
@@ -122,6 +140,21 @@ class ProductDetailViewModel @Inject constructor(
     }
 
     init {
+        viewModelScope.launch {
+            // Las mismas etiquetas que usa el diálogo de captura: así el
+            // cliente ve lo que el admin eligió, no el par técnico.
+            val presets = presetRepository.getPresets()
+            if (presets is DataResult.Success) {
+                _uiState.update { estado ->
+                    estado.copy(
+                        etiquetas = presets.data.associate { p ->
+                            "${p.clave.trim().lowercase()}|${p.valor.trim().lowercase()}" to
+                                p.etiqueta
+                        },
+                    )
+                }
+            }
+        }
         viewModelScope.launch {
             catalogRepository.observeProduct(productId).collect { producto ->
                 val categorias = catalogRepository.observeCategories(includeInactive = true).first()
@@ -242,11 +275,10 @@ fun ProductDetailScreen(
             Text("Características", style = MaterialTheme.typography.labelLarge)
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 producto.attributes.forEach { (clave, valor) ->
+                    val texto = valor.jsonPrimitive.content
                     AssistChip(
-                        onClick = {
-                            if (puedeCopiar) copiar(context, clave, valor.jsonPrimitive.content)
-                        },
-                        label = { Text("$clave: ${valor.jsonPrimitive.content}") },
+                        onClick = { if (puedeCopiar) copiar(context, clave, texto) },
+                        label = { Text(state.etiquetaDe(clave, texto)) },
                     )
                 }
             }
@@ -269,6 +301,14 @@ fun ProductDetailScreen(
                 Column(Modifier.padding(12.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Column(Modifier.weight(1f)) {
+                            // El título encabeza: identifica la presentación
+                            // mejor que el precio o el código.
+                            variante.titulo?.let { titulo ->
+                                Text(
+                                    titulo,
+                                    style = MaterialTheme.typography.titleSmall,
+                                )
+                            }
                             Text(
                                 moneda.format(variante.precioVenta),
                                 style = MaterialTheme.typography.titleMedium,
@@ -300,13 +340,18 @@ fun ProductDetailScreen(
                         }
                     }
                     if (variante.attributes.isNotEmpty()) {
-                        Text(
-                            variante.attributes.entries.joinToString(" · ") { (k, v) ->
-                                "$k: ${v.jsonPrimitive.content}"
-                            },
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
+                        Spacer(Modifier.height(8.dp))
+                        FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            variante.attributes.forEach { (clave, valor) ->
+                                val texto = valor.jsonPrimitive.content
+                                AssistChip(
+                                    onClick = {
+                                        if (puedeCopiar) copiar(context, clave, texto)
+                                    },
+                                    label = { Text(state.etiquetaDe(clave, texto)) },
+                                )
+                            }
+                        }
                     }
                 }
             }
