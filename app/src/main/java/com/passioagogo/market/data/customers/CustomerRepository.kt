@@ -217,7 +217,7 @@ class CustomerRepositoryImpl @Inject constructor(
         profileId: String,
     ): DataResult<Unit> = withContext(io) {
         safeSupabaseCall {
-            postgrest.from(TABLE).update({ set("profile_id", profileId) }) {
+            postgrest.from(CUSTOMERS).update({ set("profile_id", profileId) }) {
                 filter { eq("id", customerId) }
             }
             Unit
@@ -227,7 +227,10 @@ class CustomerRepositoryImpl @Inject constructor(
     override suspend fun desvincularPerfil(customerId: String): DataResult<Unit> =
         withContext(io) {
             safeSupabaseCall {
-                postgrest.from(TABLE).update({ set("profile_id", null as String?) }) {
+                // El tipo se declara aparte: `null as String?` en línea no
+                // siempre resuelve la sobrecarga de `set` correctamente.
+                val sinPerfil: String? = null
+                postgrest.from(CUSTOMERS).update({ set("profile_id", sinPerfil) }) {
                     filter { eq("id", customerId) }
                 }
                 Unit
@@ -240,7 +243,7 @@ class CustomerRepositoryImpl @Inject constructor(
         email: String?,
     ): DataResult<Customer> = withContext(io) {
         safeSupabaseCall {
-            postgrest.from(TABLE).insert(
+            postgrest.from(CUSTOMERS).insert(
                 NewCustomerConPerfilDto(
                     nombre = nombre,
                     email = email,
