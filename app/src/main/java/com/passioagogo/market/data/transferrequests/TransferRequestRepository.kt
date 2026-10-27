@@ -272,7 +272,7 @@ class TransferRequestRepositoryImpl @Inject constructor(
         fromLocationId: String?,
         aprobadas: Map<String, Int>?,
     ): DataResult<String> = withContext(io) {
-        safeSupabaseCall {
+        safeSupabaseCall("aceptarSolicitudTransferencia") {
             val parametros = buildJsonObject {
                 put("p_request", id)
                 fromLocationId?.let { put("p_from", it) }

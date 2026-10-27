@@ -134,7 +134,7 @@ class InventoryRepositoryImpl @Inject constructor(
         motivo: MotivoAjuste,
         nota: String?,
     ): DataResult<Unit> = withContext(io) {
-        safeSupabaseCall {
+        safeSupabaseCall("ajustarExistencia") {
             // El RPC mueve stock y escribe la bitácora en una sola
             // transacción: hacerlo en dos pasos dejaría existencias
             // cambiadas sin registro si se cae la red entre ambos.

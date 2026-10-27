@@ -95,7 +95,7 @@ class SalesRepositoryImpl @Inject constructor(
             }
 
             // 1) Pedido en 'pendiente'
-            val created = safeSupabaseCall {
+            val created = safeSupabaseCall("checkout.crearPedido") {
                 postgrest.from(ORDERS).insert(
                     NewOrderDto(
                         locationId = request.locationId,
@@ -112,7 +112,7 @@ class SalesRepositoryImpl @Inject constructor(
 
             // 2) Líneas vía RPC: el servidor cotiza y congela precios
             for (line in request.lines) {
-                val added = safeSupabaseCall {
+                val added = safeSupabaseCall("checkout.agregarItem") {
                     postgrest.rpc(
                         RPC_AGREGAR,
                         buildJsonObject {
@@ -130,7 +130,7 @@ class SalesRepositoryImpl @Inject constructor(
 
             // 3) Descuento manual a nivel pedido (antes de confirmar)
             if (request.descuentoPedido > 0.0) {
-                val discounted = safeSupabaseCall {
+                val discounted = safeSupabaseCall("checkout.aplicarDescuento") {
                     postgrest.from(ORDERS).update({
                         set("descuento", request.descuentoPedido)
                     }) { filter { eq("id", order.id) } }
@@ -142,7 +142,7 @@ class SalesRepositoryImpl @Inject constructor(
             }
 
             // 4) Confirmar: el trigger valida y descuenta stock
-            val confirmed = safeSupabaseCall {
+            val confirmed = safeSupabaseCall("checkout.confirmar") {
                 postgrest.from(ORDERS).update({
                     set("estado", OrderStatus.CONFIRMADO)
                 }) {
@@ -159,7 +159,7 @@ class SalesRepositoryImpl @Inject constructor(
             }
 
             // 5) Pago por el total (calculado por el servidor)
-            val paid = safeSupabaseCall {
+            val paid = safeSupabaseCall("checkout.registrarPago") {
                 postgrest.from(PAYMENTS).insert(
                     NewPaymentDto(
                         orderId = confirmedOrder.id,
