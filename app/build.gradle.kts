@@ -32,12 +32,12 @@ plugins {
 
 android {
     namespace = "com.passioagogo.market"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.passioagogo.market"
         minSdk = 26
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 2
         versionName = "1.0.0.1"
 
