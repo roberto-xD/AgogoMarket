@@ -1,5 +1,6 @@
 package com.passioagogo.market.ui.admin.gallery
 
+import com.passioagogo.market.ui.common.OpcionesTeclado
 import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -451,6 +452,7 @@ fun GalleryEditScreen(
             label = { Text("Título") },
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
+            keyboardOptions = OpcionesTeclado.Texto,
         )
         Spacer(Modifier.height(8.dp))
         OutlinedTextField(
@@ -460,6 +462,7 @@ fun GalleryEditScreen(
             supportingText = { Text("${state.descripcion.length}/300") },
             isError = state.descripcion.length > 300,
             modifier = Modifier.fillMaxWidth(),
+            keyboardOptions = OpcionesTeclado.Texto,
         )
         Spacer(Modifier.height(8.dp))
         OutlinedTextField(
@@ -468,6 +471,7 @@ fun GalleryEditScreen(
             label = { Text("Detalles (texto largo del diálogo)") },
             minLines = 3,
             modifier = Modifier.fillMaxWidth(),
+            keyboardOptions = OpcionesTeclado.Texto,
         )
         Spacer(Modifier.height(8.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -477,6 +481,7 @@ fun GalleryEditScreen(
                 label = { Text("Categoría") },
                 singleLine = true,
                 modifier = Modifier.weight(1f),
+                keyboardOptions = OpcionesTeclado.Texto,
             )
             OutlinedTextField(
                 value = state.orden,
@@ -527,6 +532,7 @@ fun GalleryEditScreen(
                 )
             },
             modifier = Modifier.fillMaxWidth(),
+            keyboardOptions = OpcionesTeclado.Texto,
         )
 
         Spacer(Modifier.height(8.dp))

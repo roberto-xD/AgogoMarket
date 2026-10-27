@@ -1,5 +1,6 @@
 package com.passioagogo.market.ui.inventory.stock
 
+import com.passioagogo.market.ui.common.OpcionesTeclado
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -419,6 +420,7 @@ fun MotivoSelector(
             modifier = modifier
                 .menuAnchor()
                 .fillMaxWidth(),
+            keyboardOptions = OpcionesTeclado.Texto,
         )
         ExposedDropdownMenu(expanded, { expanded = false }) {
             MotivoAjuste.entries.forEach { opcion ->

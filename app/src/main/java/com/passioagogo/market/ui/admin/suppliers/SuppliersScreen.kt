@@ -1,5 +1,6 @@
 package com.passioagogo.market.ui.admin.suppliers
 
+import com.passioagogo.market.ui.common.OpcionesTeclado
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -287,11 +288,13 @@ private fun SupplierDialog(
                     supportingText = errorMessage?.let { msg ->
                         { Text(msg, color = MaterialTheme.colorScheme.error) }
                     },
+                    keyboardOptions = OpcionesTeclado.Texto,
                 )
                 Spacer(Modifier.height(8.dp))
                 OutlinedTextField(
                     value = contacto, onValueChange = { contacto = it },
                     label = { Text("Contacto") }, singleLine = true,
+                    keyboardOptions = OpcionesTeclado.Texto,
                 )
                 Spacer(Modifier.height(8.dp))
                 OutlinedTextField(
@@ -307,11 +310,13 @@ private fun SupplierDialog(
                 OutlinedTextField(
                     value = direccion, onValueChange = { direccion = it },
                     label = { Text("Dirección") },
+                    keyboardOptions = OpcionesTeclado.Texto,
                 )
                 Spacer(Modifier.height(8.dp))
                 OutlinedTextField(
                     value = notas, onValueChange = { notas = it },
                     label = { Text("Notas") },
+                    keyboardOptions = OpcionesTeclado.Texto,
                 )
                 if (editing != null) {
                     Spacer(Modifier.height(8.dp))

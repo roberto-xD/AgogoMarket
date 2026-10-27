@@ -1,5 +1,6 @@
 package com.passioagogo.market.ui.admin.attributes
 
+import com.passioagogo.market.ui.common.OpcionesTeclado
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -391,6 +392,7 @@ private fun PresetDialog(
                         label = { Text("Identificador") },
                         singleLine = true,
                         modifier = Modifier.weight(1f),
+                        keyboardOptions = OpcionesTeclado.Texto,
                     )
                 }
                 Spacer(Modifier.height(8.dp))

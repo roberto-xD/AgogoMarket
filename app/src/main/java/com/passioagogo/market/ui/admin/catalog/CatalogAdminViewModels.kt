@@ -238,6 +238,8 @@ data class ProductEditUiState(
     val variants: List<ProductVariant> = emptyList(),
     val isLoading: Boolean = true,
     val isSaving: Boolean = false,
+    /** Aviso puntual de guardado; la UI lo muestra y lo consume. */
+    val mensajeExito: String? = null,
     val errorMessage: String? = null,
     val variantDialog: VariantDialogState? = null,
 ) {
@@ -382,8 +384,14 @@ class ProductEditViewModel @Inject constructor(
                 when (result) {
                     is DataResult.Success -> {
                         val id = result.data.id
-                        if (it.isNew) observeVariants(id)
-                        it.copy(isSaving = false, productId = id)
+                        val eraNuevo = it.isNew
+                        if (eraNuevo) observeVariants(id)
+                        it.copy(
+                            isSaving = false,
+                            productId = id,
+                            mensajeExito = if (eraNuevo) "Producto creado"
+                            else "Cambios guardados",
+                        )
                     }
                     is DataResult.Error ->
                         it.copy(isSaving = false, errorMessage = result.error.toMessage())
@@ -391,6 +399,9 @@ class ProductEditViewModel @Inject constructor(
             }
         }
     }
+
+    /** Se llama tras mostrar el aviso, para que no reaparezca al rotar. */
+    fun onMensajeMostrado() = _uiState.update { it.copy(mensajeExito = null) }
 
     // ---------- Variantes ----------
 

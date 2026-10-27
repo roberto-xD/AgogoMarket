@@ -1,5 +1,8 @@
 package com.passioagogo.market.ui.admin.catalog
 
+import android.widget.Toast
+import androidx.compose.runtime.LaunchedEffect
+import com.passioagogo.market.ui.common.OpcionesTeclado
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -309,12 +312,14 @@ private fun CategoryDialog(
                     onValueChange = { nombre = it },
                     label = { Text("Nombre") },
                     singleLine = true,
+                    keyboardOptions = OpcionesTeclado.Texto,
                 )
                 Spacer(Modifier.height(8.dp))
                 OutlinedTextField(
                     value = descripcion,
                     onValueChange = { descripcion = it },
                     label = { Text("Descripción") },
+                    keyboardOptions = OpcionesTeclado.Texto,
                 )
                 Spacer(Modifier.height(8.dp))
                 ExposedDropdownMenuBox(expanded, { expanded = it }) {
@@ -326,6 +331,7 @@ private fun CategoryDialog(
                         label = { Text("Categoría padre") },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
                         modifier = Modifier.menuAnchor(),
+                        keyboardOptions = OpcionesTeclado.Texto,
                     )
                     ExposedDropdownMenu(expanded, { expanded = false }) {
                         DropdownMenuItem(
@@ -369,6 +375,15 @@ fun ProductEditScreen(
 ) {
     val state by viewModel.uiState.collectAsState()
     val keyboardController = LocalSoftwareKeyboardController.current
+    val contexto = LocalContext.current
+
+    // Confirmación visible: guardar sin señal deja la duda de si se aplicó.
+    LaunchedEffect(state.mensajeExito) {
+        state.mensajeExito?.let {
+            Toast.makeText(contexto, it, Toast.LENGTH_SHORT).show()
+            viewModel.onMensajeMostrado()
+        }
+    }
 
     if (state.isLoading) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -391,6 +406,7 @@ fun ProductEditScreen(
             label = { Text("Nombre") },
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
+            keyboardOptions = OpcionesTeclado.Texto,
         )
         Spacer(Modifier.height(8.dp))
         OutlinedTextField(
@@ -399,6 +415,7 @@ fun ProductEditScreen(
             label = { Text("Marca") },
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
+            keyboardOptions = OpcionesTeclado.Texto,
         )
         Spacer(Modifier.height(8.dp))
 
@@ -417,6 +434,7 @@ fun ProductEditScreen(
                 modifier = Modifier
                     .menuAnchor()
                     .fillMaxWidth(),
+                keyboardOptions = OpcionesTeclado.Texto,
             )
             ExposedDropdownMenu(expanded, { expanded = false }) {
                 state.categories.forEach { cat ->
@@ -439,6 +457,7 @@ fun ProductEditScreen(
             supportingText = { Text("${state.resumen.length}/160") },
             isError = !state.resumenValido,
             modifier = Modifier.fillMaxWidth(),
+            keyboardOptions = OpcionesTeclado.Texto,
         )
         Spacer(Modifier.height(8.dp))
         OutlinedTextField(
@@ -446,6 +465,7 @@ fun ProductEditScreen(
             onValueChange = viewModel::onDescripcionChange,
             label = { Text("Descripción (ficha ampliada)") },
             modifier = Modifier.fillMaxWidth(),
+            keyboardOptions = OpcionesTeclado.Texto,
         )
         Spacer(Modifier.height(8.dp))
         var showProductAttrs by remember { mutableStateOf(false) }
@@ -680,6 +700,7 @@ private fun VariantDialog(
                         )
                     },
                     modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = OpcionesTeclado.Texto,
                 )
                 Spacer(Modifier.height(8.dp))
                 OutlinedTextField(

@@ -1,5 +1,6 @@
 package com.passioagogo.market.ui.admin.events
 
+import com.passioagogo.market.ui.common.OpcionesTeclado
 import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -597,6 +598,7 @@ fun EventEditScreen(
             label = { Text("Título") },
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
+            keyboardOptions = OpcionesTeclado.Texto,
         )
         Spacer(Modifier.height(8.dp))
         OutlinedTextField(
@@ -606,6 +608,7 @@ fun EventEditScreen(
             supportingText = { Text("${state.resumen.length}/160") },
             isError = state.resumen.length > 160,
             modifier = Modifier.fillMaxWidth(),
+            keyboardOptions = OpcionesTeclado.Texto,
         )
         Spacer(Modifier.height(8.dp))
         OutlinedTextField(
@@ -614,6 +617,7 @@ fun EventEditScreen(
             label = { Text("Lugar") },
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
+            keyboardOptions = OpcionesTeclado.Texto,
         )
 
         // ---------- Fechas ----------
@@ -654,6 +658,7 @@ fun EventEditScreen(
             label = { Text("Detalles") },
             minLines = 3,
             modifier = Modifier.fillMaxWidth(),
+            keyboardOptions = OpcionesTeclado.Texto,
         )
         Spacer(Modifier.height(8.dp))
         OutlinedTextField(
@@ -690,6 +695,7 @@ fun EventEditScreen(
                 )
             },
             modifier = Modifier.fillMaxWidth(),
+            keyboardOptions = OpcionesTeclado.Texto,
         )
         Spacer(Modifier.height(8.dp))
         OutlinedTextField(

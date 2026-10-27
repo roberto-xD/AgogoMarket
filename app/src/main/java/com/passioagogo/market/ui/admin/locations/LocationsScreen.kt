@@ -1,5 +1,6 @@
 package com.passioagogo.market.ui.admin.locations
 
+import com.passioagogo.market.ui.common.OpcionesTeclado
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -229,12 +230,14 @@ private fun LocationDialog(
                     onValueChange = { nombre = it },
                     label = { Text("Nombre") },
                     singleLine = true,
+                    keyboardOptions = OpcionesTeclado.Texto,
                 )
                 Spacer(Modifier.height(8.dp))
                 OutlinedTextField(
                     value = direccion,
                     onValueChange = { direccion = it },
                     label = { Text("Dirección") },
+                    keyboardOptions = OpcionesTeclado.Texto,
                 )
                 Spacer(Modifier.height(8.dp))
                 ExposedDropdownMenuBox(expanded, { expanded = it }) {

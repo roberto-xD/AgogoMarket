@@ -1,5 +1,6 @@
 package com.passioagogo.market.ui.requests
 
+import com.passioagogo.market.ui.common.OpcionesTeclado
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -435,6 +436,7 @@ fun RequestDetailScreen(
                     value = motivo,
                     onValueChange = { motivo = it },
                     label = { Text("Motivo") },
+                    keyboardOptions = OpcionesTeclado.Texto,
                 )
             },
             confirmButton = {

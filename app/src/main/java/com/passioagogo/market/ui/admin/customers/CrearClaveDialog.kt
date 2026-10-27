@@ -1,5 +1,6 @@
 package com.passioagogo.market.ui.admin.customers
 
+import com.passioagogo.market.ui.common.OpcionesTeclado
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -114,6 +115,7 @@ fun CrearClaveDialog(
                         )
                     },
                     modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = OpcionesTeclado.Texto,
                 )
 
                 Spacer(Modifier.height(8.dp))

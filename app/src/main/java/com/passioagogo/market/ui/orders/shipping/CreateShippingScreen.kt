@@ -1,5 +1,6 @@
 package com.passioagogo.market.ui.orders.shipping
 
+import com.passioagogo.market.ui.common.OpcionesTeclado
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -386,6 +387,7 @@ fun CreateShippingScreen(
             label = { Text("Notas") },
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
+            keyboardOptions = OpcionesTeclado.Texto,
         )
 
         state.errorMessage?.let {
@@ -482,6 +484,7 @@ private fun CustomerDialog(
                 OutlinedTextField(
                     value = nombre, onValueChange = { nombre = it },
                     label = { Text("Nombre") }, singleLine = true,
+                    keyboardOptions = OpcionesTeclado.Texto,
                 )
                 Spacer(Modifier.height(8.dp))
                 OutlinedTextField(
@@ -556,6 +559,7 @@ private fun AddressDialog(
                         value = calle, onValueChange = { calle = it },
                         label = { Text("Calle") }, singleLine = true,
                         modifier = Modifier.weight(1f),
+                        keyboardOptions = OpcionesTeclado.Texto,
                     )
                     OutlinedTextField(
                         value = numero, onValueChange = { numero = it },
@@ -566,12 +570,14 @@ private fun AddressDialog(
                 OutlinedTextField(
                     value = colonia, onValueChange = { colonia = it },
                     label = { Text("Colonia") }, singleLine = true,
+                    keyboardOptions = OpcionesTeclado.Texto,
                 )
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedTextField(
                         value = ciudad, onValueChange = { ciudad = it },
                         label = { Text("Ciudad") }, singleLine = true,
                         modifier = Modifier.weight(1f),
+                        keyboardOptions = OpcionesTeclado.Texto,
                     )
                     OutlinedTextField(
                         value = cp, onValueChange = { cp = it },
@@ -582,10 +588,12 @@ private fun AddressDialog(
                 OutlinedTextField(
                     value = estadoDir, onValueChange = { estadoDir = it },
                     label = { Text("Estado") }, singleLine = true,
+                    keyboardOptions = OpcionesTeclado.Texto,
                 )
                 OutlinedTextField(
                     value = referencias, onValueChange = { referencias = it },
                     label = { Text("Referencias") }, singleLine = true,
+                    keyboardOptions = OpcionesTeclado.Texto,
                 )
             }
         },

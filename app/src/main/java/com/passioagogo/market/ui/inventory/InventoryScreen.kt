@@ -183,8 +183,9 @@ private fun StockRow(item: StockItem, showLocation: Boolean) {
                 .joinToString(" · ") { (k, v) -> "$k: ${v.jsonPrimitive.content}" }
             Text(
                 text = listOfNotNull(
-                    item.sku,
-                    variante.ifBlank { null },
+                    // El título identifica la presentación mejor que un
+                    // código de inventario; sin él se cae a los atributos.
+                    item.varianteTitulo ?: variante.ifBlank { null } ?: item.sku,
                     if (showLocation) item.tienda else null,
                 ).joinToString("  ·  "),
                 style = MaterialTheme.typography.bodySmall,

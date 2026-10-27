@@ -1,5 +1,6 @@
 package com.passioagogo.market.ui.admin.wheel
 
+import com.passioagogo.market.ui.common.OpcionesTeclado
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -288,6 +289,7 @@ private fun PremioDialog(
                     singleLine = true,
                     isError = rotulo.isNotBlank() && !rotuloValido,
                     supportingText = { Text("${rotulo.length}/12") },
+                    keyboardOptions = OpcionesTeclado.Texto,
                 )
                 Spacer(Modifier.height(8.dp))
                 OutlinedTextField(
@@ -296,6 +298,7 @@ private fun PremioDialog(
                     label = { Text("Frase del resultado") },
                     supportingText = { Text("${detalle.length}/200") },
                     isError = detalle.length > 200,
+                    keyboardOptions = OpcionesTeclado.Texto,
                 )
                 Spacer(Modifier.height(8.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -691,6 +694,7 @@ private fun TerminoDialog(
                     label = { Text("Título") },
                     singleLine = true,
                     isError = titulo.length > 80,
+                    keyboardOptions = OpcionesTeclado.Texto,
                 )
                 Spacer(Modifier.height(8.dp))
                 OutlinedTextField(

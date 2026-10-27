@@ -57,6 +57,8 @@ data class StockItem(
     val tienda: String,
     val variantId: String,
     val sku: String,
+    /** Título de la variante; null = se identifica por sus atributos. */
+    val varianteTitulo: String?,
     val producto: String,
     val categoria: String,
     val variante: JsonObject,

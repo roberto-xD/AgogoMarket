@@ -1,5 +1,6 @@
 package com.passioagogo.market.ui.inventory.requests
 
+import com.passioagogo.market.ui.common.OpcionesTeclado
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -388,6 +389,7 @@ fun CreateTransferRequestScreen(
             label = { Text("Notas") },
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
+            keyboardOptions = OpcionesTeclado.Texto,
         )
 
         state.errorMessage?.let {
@@ -624,6 +626,7 @@ fun TransferRequestDetailScreen(
                     value = motivo,
                     onValueChange = { motivo = it },
                     label = { Text("Motivo") },
+                    keyboardOptions = OpcionesTeclado.Texto,
                 )
             },
             confirmButton = {

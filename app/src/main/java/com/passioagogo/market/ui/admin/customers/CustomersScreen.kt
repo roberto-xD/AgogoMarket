@@ -1,5 +1,6 @@
 package com.passioagogo.market.ui.admin.customers
 
+import com.passioagogo.market.ui.common.OpcionesTeclado
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -784,6 +785,7 @@ fun CustomersScreen(
                     OutlinedTextField(
                         value = nombre, onValueChange = { nombre = it },
                         label = { Text("Nombre") }, singleLine = true,
+                        keyboardOptions = OpcionesTeclado.Texto,
                     )
                     Spacer(Modifier.height(8.dp))
                     OutlinedTextField(
@@ -799,6 +801,7 @@ fun CustomersScreen(
                     OutlinedTextField(
                         value = notas, onValueChange = { notas = it },
                         label = { Text("Notas") },
+                        keyboardOptions = OpcionesTeclado.Texto,
                     )
                     Spacer(Modifier.height(8.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {

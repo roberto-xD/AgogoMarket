@@ -1,5 +1,6 @@
 package com.passioagogo.market.ui.requests
 
+import com.passioagogo.market.ui.common.OpcionesTeclado
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -236,6 +237,7 @@ fun RequestCartScreen(
                         label = { Text("Nombre") },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
+                        keyboardOptions = OpcionesTeclado.Texto,
                     )
                     Spacer(Modifier.height(8.dp))
                     OutlinedTextField(

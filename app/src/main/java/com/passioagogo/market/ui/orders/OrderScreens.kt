@@ -1,5 +1,6 @@
 package com.passioagogo.market.ui.orders
 
+import com.passioagogo.market.ui.common.OpcionesTeclado
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -427,6 +428,7 @@ private fun ShipDialog(
                     onValueChange = { paqueteria = it },
                     label = { Text("Paquetería") },
                     singleLine = true,
+                    keyboardOptions = OpcionesTeclado.Texto,
                 )
                 Spacer(Modifier.height(8.dp))
                 OutlinedTextField(

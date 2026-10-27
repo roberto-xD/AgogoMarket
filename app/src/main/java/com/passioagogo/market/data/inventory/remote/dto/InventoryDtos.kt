@@ -53,6 +53,7 @@ data class StockActualDto(
     val tienda: String,
     @SerialName("variant_id") val variantId: String,
     val sku: String,
+    @SerialName("variante_titulo") val varianteTitulo: String? = null,
     val producto: String,
     val categoria: String,
     val variante: JsonObject = JsonObject(emptyMap()),

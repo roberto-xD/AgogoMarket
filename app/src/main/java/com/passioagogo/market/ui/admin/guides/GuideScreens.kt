@@ -1,5 +1,6 @@
 package com.passioagogo.market.ui.admin.guides
 
+import com.passioagogo.market.ui.common.OpcionesTeclado
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -410,6 +411,7 @@ fun GuideEditScreen(
                 label = { Text("Título") },
                 singleLine = true,
                 modifier = Modifier.weight(1f),
+                keyboardOptions = OpcionesTeclado.Texto,
             )
         }
         Spacer(Modifier.height(8.dp))
@@ -420,6 +422,7 @@ fun GuideEditScreen(
             supportingText = { Text("${state.resumen.length}/200") },
             isError = state.resumen.length > 200,
             modifier = Modifier.fillMaxWidth(),
+            keyboardOptions = OpcionesTeclado.Texto,
         )
 
         Spacer(Modifier.height(16.dp))
@@ -438,6 +441,7 @@ fun GuideEditScreen(
             label = { Text("Uso") },
             minLines = 3,
             modifier = Modifier.fillMaxWidth(),
+            keyboardOptions = OpcionesTeclado.Texto,
         )
         Spacer(Modifier.height(8.dp))
         OutlinedTextField(
@@ -446,6 +450,7 @@ fun GuideEditScreen(
             label = { Text("Limpieza") },
             minLines = 3,
             modifier = Modifier.fillMaxWidth(),
+            keyboardOptions = OpcionesTeclado.Texto,
         )
         Spacer(Modifier.height(8.dp))
         OutlinedTextField(
@@ -454,6 +459,7 @@ fun GuideEditScreen(
             label = { Text("Cuidados y conservación") },
             minLines = 3,
             modifier = Modifier.fillMaxWidth(),
+            keyboardOptions = OpcionesTeclado.Texto,
         )
         Spacer(Modifier.height(8.dp))
         OutlinedTextField(
@@ -462,6 +468,7 @@ fun GuideEditScreen(
             label = { Text("Advertencias (se muestran destacadas)") },
             minLines = 2,
             modifier = Modifier.fillMaxWidth(),
+            keyboardOptions = OpcionesTeclado.Texto,
         )
 
         Spacer(Modifier.height(16.dp))
@@ -477,6 +484,7 @@ fun GuideEditScreen(
                 modifier = Modifier
                     .menuAnchor()
                     .fillMaxWidth(),
+                keyboardOptions = OpcionesTeclado.Texto,
             )
             ExposedDropdownMenu(expanded, { expanded = false }) {
                 DropdownMenuItem(

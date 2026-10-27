@@ -1,5 +1,6 @@
 package com.passioagogo.market.ui.admin.catalog.attributes
 
+import com.passioagogo.market.ui.common.OpcionesTeclado
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -409,6 +410,7 @@ private fun PresetForm(
                 label = { Text("Identificador") },
                 singleLine = true,
                 modifier = Modifier.weight(1f),
+                keyboardOptions = OpcionesTeclado.Texto,
             )
         }
         Spacer(Modifier.height(8.dp))

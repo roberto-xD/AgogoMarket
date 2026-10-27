@@ -1,5 +1,6 @@
 package com.passioagogo.market.ui.admin.promotions
 
+import com.passioagogo.market.ui.common.OpcionesTeclado
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -470,6 +471,7 @@ fun PromotionEditScreen(
             singleLine = true,
             enabled = !readOnly,
             modifier = Modifier.fillMaxWidth(),
+            keyboardOptions = OpcionesTeclado.Texto,
         )
         Spacer(Modifier.height(8.dp))
 
@@ -548,6 +550,7 @@ fun PromotionEditScreen(
             label = { Text("Notas") },
             enabled = !readOnly,
             modifier = Modifier.fillMaxWidth(),
+            keyboardOptions = OpcionesTeclado.Texto,
         )
 
         if (!state.isNew && !readOnly) {
