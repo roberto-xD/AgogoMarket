@@ -97,7 +97,16 @@ private fun deducirOrigen(): String {
         marco.className.startsWith("com.passioagogo.market") &&
             !marco.className.contains("SafeSupabaseCall") &&
             !marco.className.contains("DataResult")
-    } ?: return "origen desconocido"
+    } ?: run {
+        // Sin marco propio en la pila: la llamada se reanudó en un hilo
+        // del cliente HTTP y el repositorio ya no aparece. Se devuelve la
+        // primera clase ajena útil en vez de dejarlo en blanco.
+        val ajeno = pila.firstOrNull {
+            !it.className.startsWith("kotlin") && !it.className.startsWith("java")
+        }
+        return ajeno?.let { "${it.className.substringAfterLast('.')}.${it.methodName}" }
+            ?: "origen desconocido"
+    }
 
     val clase = marco.className
         .substringAfterLast('.')

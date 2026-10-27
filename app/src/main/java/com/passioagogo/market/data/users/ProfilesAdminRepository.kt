@@ -66,7 +66,7 @@ class ProfilesAdminRepositoryImpl @Inject constructor(
 
     override suspend fun crearUsuario(nuevo: NuevoUsuario): DataResult<Unit> =
         withContext(io) {
-            safeSupabaseCall {
+            safeSupabaseCall("crearUsuario") {
                 val respuesta = functions.invoke(
                     function = FN_CREAR,
                     body = buildJsonObject {
