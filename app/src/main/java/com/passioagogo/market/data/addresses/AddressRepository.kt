@@ -100,7 +100,7 @@ class AddressRepositoryImpl @Inject constructor(
     override suspend fun getDirecciones(
         profileId: String,
     ): DataResult<List<EncryptedAddress>> = withContext(io) {
-        safeSupabaseCall {
+        safeSupabaseCall("getDirecciones") {
             postgrest.from(TABLE).select {
                 filter { eq("profile_id", profileId) }
                 order("created_at", Order.DESCENDING)

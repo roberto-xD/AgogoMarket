@@ -69,14 +69,14 @@ class CryptoKeyRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getKeys(): DataResult<List<CryptoKey>> = withContext(io) {
-        safeSupabaseCall {
+        safeSupabaseCall("getCryptoKeys") {
             postgrest.from(TABLE).select().decodeList<CryptoKeyDto>()
         }.map { list -> list.map { it.toDomain() } }
     }
 
     override suspend fun registrar(id: String, publica: String): DataResult<Unit> =
         withContext(io) {
-            safeSupabaseCall {
+            safeSupabaseCall("registrarCryptoKey") {
                 // Primero desactivar: si fallara el insert, quedarse sin
                 // clave activa es más seguro que tener dos compitiendo.
                 postgrest.from(TABLE).update({ set("activa", false) }) {

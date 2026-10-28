@@ -102,7 +102,10 @@ private fun deducirOrigen(): String {
         // del cliente HTTP y el repositorio ya no aparece. Se devuelve la
         // primera clase ajena útil en vez de dejarlo en blanco.
         val ajeno = pila.firstOrNull {
-            !it.className.startsWith("kotlin") && !it.className.startsWith("java")
+            !it.className.startsWith("kotlin") &&
+                !it.className.startsWith("java") &&
+                // Sin esto se devuelve a sí mismo, que no dice nada
+                !it.className.contains("SafeSupabaseCall")
         }
         return ajeno?.let { "${it.className.substringAfterLast('.')}.${it.methodName}" }
             ?: "origen desconocido"
