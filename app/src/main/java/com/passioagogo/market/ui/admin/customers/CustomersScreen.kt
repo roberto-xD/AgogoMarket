@@ -383,6 +383,7 @@ class CustomersViewModel @Inject constructor(
         }
     }
 
+    /** El id del perfil es el mismo que `user_addresses.user_id`. */
     private fun cargarDirecciones(profileId: String) {
         _uiState.update { it.copy(cargandoDirecciones = true) }
         viewModelScope.launch {

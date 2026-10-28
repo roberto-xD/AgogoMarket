@@ -5,6 +5,7 @@ import com.passioagogo.market.core.result.DataResult
 import com.passioagogo.market.core.result.map
 import com.passioagogo.market.core.result.safeSupabaseCall
 import io.github.jan.supabase.postgrest.Postgrest
+import io.github.jan.supabase.postgrest.query.Columns
 import io.github.jan.supabase.postgrest.query.Order
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -22,8 +23,11 @@ import kotlinx.serialization.json.Json
  */
 data class EncryptedAddress(
     val id: String,
-    val profileId: String,
+    /** Dueño de la dirección; apunta a profiles.id. */
+    val userId: String,
     val etiqueta: String?,
+    /** Formato del sobre. Si cambia, el descifrado puede variar. */
+    val version: Int,
     /** El JSON de la dirección, cifrado con una clave de datos al azar. */
     val contenido: String,
     val iv: String,
@@ -58,11 +62,20 @@ data class DireccionClara(
 
 // ============ DTOs ============
 
+/**
+ * Solo las columnas que necesita administración.
+ *
+ * El sobre del usuario (`dk_usuario`, `iv_usuario`, `salt_usuario`,
+ * `kdf_iteraciones`) se deja fuera a propósito: se abre con la
+ * contraseña del cliente, no con la clave de administración, así que
+ * traerlo sería mover material cifrado sin ningún uso aquí.
+ */
 @Serializable
 data class EncryptedAddressDto(
     val id: String,
-    @SerialName("profile_id") val profileId: String,
+    @SerialName("user_id") val userId: String,
     val etiqueta: String? = null,
+    val version: Int = 1,
     val contenido: String,
     val iv: String,
     @SerialName("dk_admin") val dkAdmin: String,
@@ -70,7 +83,7 @@ data class EncryptedAddressDto(
     @SerialName("created_at") val createdAt: String? = null,
 ) {
     fun toDomain() = EncryptedAddress(
-        id = id, profileId = profileId, etiqueta = etiqueta,
+        id = id, userId = userId, etiqueta = etiqueta, version = version,
         contenido = contenido, iv = iv, dkAdmin = dkAdmin,
         adminKeyId = adminKeyId, createdAt = createdAt,
     )
@@ -86,7 +99,8 @@ data class EncryptedAddressDto(
  * no tiene forma de ver una dirección en claro ni de filtrarla a un log.
  */
 interface AddressRepository {
-    suspend fun getDirecciones(profileId: String): DataResult<List<EncryptedAddress>>
+    /** [userId] es el id del perfil, que coincide con el de auth.users. */
+    suspend fun getDirecciones(userId: String): DataResult<List<EncryptedAddress>>
 }
 
 @Singleton
@@ -95,14 +109,22 @@ class AddressRepositoryImpl @Inject constructor(
     @IoDispatcher private val io: CoroutineDispatcher,
 ) : AddressRepository {
 
-    private companion object { const val TABLE = "user_addresses" }
+    private companion object {
+        const val TABLE = "user_addresses"
+        // Explícitas: evita arrastrar el sobre del usuario, que aquí
+        // no se puede abrir ni hace falta.
+        val COLUMNAS = Columns.list(
+            "id", "user_id", "etiqueta", "version",
+            "contenido", "iv", "dk_admin", "admin_key_id", "created_at",
+        )
+    }
 
     override suspend fun getDirecciones(
-        profileId: String,
+        userId: String,
     ): DataResult<List<EncryptedAddress>> = withContext(io) {
         safeSupabaseCall("getDirecciones") {
-            postgrest.from(TABLE).select {
-                filter { eq("profile_id", profileId) }
+            postgrest.from(TABLE).select(COLUMNAS) {
+                filter { eq("user_id", userId) }
                 order("created_at", Order.DESCENDING)
             }.decodeList<EncryptedAddressDto>()
         }.map { list -> list.map { it.toDomain() } }
