@@ -268,7 +268,15 @@ class CustomersViewModel @Inject constructor(
                 return@launch
             }
             val generado = par.getOrThrow()
-            val registro = cryptoKeyRepository.registrar(generado.id, generado.publicaB64)
+            // La nota ayuda al rotar: identifica dónde quedó la privada
+            val registro = cryptoKeyRepository.registrar(
+                id = generado.id,
+                publica = generado.publicaB64,
+                notas = "Generada desde la app el ${
+                    java.text.SimpleDateFormat("d MMM yyyy", java.util.Locale("es", "MX"))
+                        .format(java.util.Date())
+                }",
+            )
             _uiState.update {
                 it.copy(
                     isSaving = false,

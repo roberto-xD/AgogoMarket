@@ -16,24 +16,38 @@ import kotlinx.serialization.Serializable
 data class CryptoKey(
     val id: String,
     val publica: String,
+    /** Lo que AdminKeyTool sabe abrir: RSA-OAEP-256. */
+    val algoritmo: String,
     val activa: Boolean,
+    val notas: String?,
     val createdAt: String?,
-)
+) {
+    /** Una clave con otro algoritmo no la puede descifrar esta app. */
+    val compatible: Boolean get() = algoritmo == ALGORITMO_SOPORTADO
+}
+
+/** El par que genera AdminKeyTool: RSA-OAEP con SHA-256. */
+const val ALGORITMO_SOPORTADO = "RSA-OAEP-256"
 
 @Serializable
 data class CryptoKeyDto(
     val id: String,
     val publica: String,
+    val algoritmo: String = ALGORITMO_SOPORTADO,
     val activa: Boolean = true,
+    val notas: String? = null,
     @SerialName("created_at") val createdAt: String? = null,
 ) {
-    fun toDomain() = CryptoKey(id, publica, activa, createdAt)
+    fun toDomain() = CryptoKey(id, publica, algoritmo, activa, notas, createdAt)
 }
 
 @Serializable
 data class NewCryptoKeyDto(
     val id: String,
     val publica: String,
+    /** La columna es NOT NULL: omitirlo hace fallar el insert. */
+    val algoritmo: String = ALGORITMO_SOPORTADO,
+    val notas: String? = null,
 )
 
 /**
@@ -51,7 +65,11 @@ interface CryptoKeyRepository {
      * Las direcciones ya guardadas siguen envueltas con la clave vieja:
      * no se pueden re-envolver sin descifrarlas una a una.
      */
-    suspend fun registrar(id: String, publica: String): DataResult<Unit>
+    suspend fun registrar(
+        id: String,
+        publica: String,
+        notas: String? = null,
+    ): DataResult<Unit>
 
     /** Cuántas direcciones dependen todavía de cada clave. */
     suspend fun contarPorClave(): DataResult<Map<String, Int>>
@@ -74,15 +92,20 @@ class CryptoKeyRepositoryImpl @Inject constructor(
         }.map { list -> list.map { it.toDomain() } }
     }
 
-    override suspend fun registrar(id: String, publica: String): DataResult<Unit> =
-        withContext(io) {
+    override suspend fun registrar(
+        id: String,
+        publica: String,
+        notas: String?,
+    ): DataResult<Unit> = withContext(io) {
             safeSupabaseCall("registrarCryptoKey") {
                 // Primero desactivar: si fallara el insert, quedarse sin
                 // clave activa es más seguro que tener dos compitiendo.
                 postgrest.from(TABLE).update({ set("activa", false) }) {
                     filter { eq("activa", true) }
                 }
-                postgrest.from(TABLE).insert(NewCryptoKeyDto(id = id, publica = publica))
+                postgrest.from(TABLE).insert(
+                    NewCryptoKeyDto(id = id, publica = publica, notas = notas)
+                )
                 Unit
             }
         }
