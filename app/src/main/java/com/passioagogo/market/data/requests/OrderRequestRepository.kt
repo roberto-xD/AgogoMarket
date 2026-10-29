@@ -19,6 +19,15 @@ import kotlinx.serialization.Serializable
 
 // ============ Dominio ============
 
+/** Cómo quiere recibir el pedido quien lo solicita. */
+@Serializable
+enum class MetodoEntrega {
+    /** A la dirección cifrada del cliente. */
+    @SerialName("domicilio") DOMICILIO,
+    /** En mano, sin envío. */
+    @SerialName("personal") PERSONAL,
+}
+
 data class OrderRequest(
     val id: String,
     val folio: Long,
@@ -27,6 +36,7 @@ data class OrderRequest(
     val clienteTelefono: String?,
     val clienteEmail: String?,
     val notas: String?,
+    val metodoEntrega: MetodoEntrega,
     /** Informativo: al convertir se recotiza contra las promos vigentes. */
     val totalEstimado: Double,
     val createdBy: String,
@@ -56,6 +66,7 @@ data class OrderRequestDraft(
     val clienteTelefono: String?,
     val clienteEmail: String?,
     val notas: String?,
+    val metodoEntrega: MetodoEntrega = MetodoEntrega.DOMICILIO,
     val lines: List<RequestLine>,
 )
 
@@ -70,6 +81,8 @@ data class OrderRequestDto(
     @SerialName("cliente_telefono") val clienteTelefono: String? = null,
     @SerialName("cliente_email") val clienteEmail: String? = null,
     val notas: String? = null,
+    /** El servidor la pone en 'domicilio' por omisión. */
+    @SerialName("metodo_entrega") val metodoEntrega: MetodoEntrega = MetodoEntrega.DOMICILIO,
     @SerialName("total_estimado") val totalEstimado: Double = 0.0,
     @SerialName("created_by") val createdBy: String,
     /**
@@ -86,6 +99,7 @@ data class OrderRequestDto(
     fun toDomain() = OrderRequest(
         id = id, folio = folio, estado = estado, clienteNombre = clienteNombre,
         clienteTelefono = clienteTelefono, clienteEmail = clienteEmail, notas = notas,
+        metodoEntrega = metodoEntrega,
         totalEstimado = totalEstimado, createdBy = createdBy,
         creadorNombre = creador?.nombre, orderId = orderId,
         motivoRechazo = motivoRechazo, createdAt = createdAt,
@@ -116,6 +130,7 @@ data class NewOrderRequestDto(
     @SerialName("cliente_telefono") val clienteTelefono: String? = null,
     @SerialName("cliente_email") val clienteEmail: String? = null,
     val notas: String? = null,
+    @SerialName("metodo_entrega") val metodoEntrega: MetodoEntrega,
     @SerialName("created_by") val createdBy: String,
 )
 
@@ -197,6 +212,7 @@ class OrderRequestRepositoryImpl @Inject constructor(
                         clienteTelefono = draft.clienteTelefono,
                         clienteEmail = draft.clienteEmail,
                         notas = draft.notas,
+                        metodoEntrega = draft.metodoEntrega,
                         createdBy = userId,
                     )
                 ) { select() }.decodeSingle<OrderRequestDto>()

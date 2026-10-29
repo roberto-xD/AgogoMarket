@@ -21,6 +21,13 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.LocalShipping
+import androidx.compose.material.icons.filled.Storefront
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -43,6 +50,7 @@ import androidx.lifecycle.viewModelScope
 import com.passioagogo.market.core.preferences.UserPreferences
 import com.passioagogo.market.core.result.DataResult
 import com.passioagogo.market.data.requests.OrderRequest
+import com.passioagogo.market.data.requests.MetodoEntrega
 import com.passioagogo.market.data.requests.OrderRequestRepository
 import com.passioagogo.market.domain.auth.AuthRepository
 import com.passioagogo.market.domain.auth.SessionState
@@ -164,7 +172,10 @@ class RequestDetailViewModel @Inject constructor(
                         CartLine(variantId = it.variantId, cantidad = it.cantidad)
                     },
                     metodo = state.metodo,
-                    notas = "Solicitud #${request.folio} · ${request.clienteNombre}",
+                    // El método queda en la nota del pedido: al prepararlo
+                    // ya no hay que volver a la solicitud para saberlo.
+                    notas = "Solicitud #${request.folio} · ${request.clienteNombre}" +
+                        " · ${request.metodoEntrega.etiqueta}",
                 )
             )
             when (venta) {
@@ -256,6 +267,50 @@ fun RequestDetailScreen(
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.primary,
             )
+        }
+
+        Spacer(Modifier.height(12.dp))
+
+        // Destacado: decide si hay que preparar un envío o no, y es lo
+        // primero que necesita saber quien atiende la solicitud.
+        Card(
+            colors = CardDefaults.cardColors(
+                containerColor = when (request.metodoEntrega) {
+                    MetodoEntrega.DOMICILIO -> MaterialTheme.colorScheme.tertiaryContainer
+                    MetodoEntrega.PERSONAL -> MaterialTheme.colorScheme.secondaryContainer
+                },
+            ),
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Row(
+                Modifier.padding(12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(
+                    when (request.metodoEntrega) {
+                        MetodoEntrega.DOMICILIO -> Icons.Filled.LocalShipping
+                        MetodoEntrega.PERSONAL -> Icons.Filled.Storefront
+                    },
+                    contentDescription = null,
+                )
+                Spacer(Modifier.width(12.dp))
+                Column {
+                    Text(
+                        request.metodoEntrega.etiqueta,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    Text(
+                        when (request.metodoEntrega) {
+                            MetodoEntrega.DOMICILIO ->
+                                "Consulta su dirección en Clientes para preparar la guía."
+                            MetodoEntrega.PERSONAL ->
+                                "No requiere envío: se entrega en mano."
+                        },
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
+            }
         }
 
         Spacer(Modifier.height(12.dp))

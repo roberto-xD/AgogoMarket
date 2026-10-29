@@ -52,6 +52,7 @@ import com.passioagogo.market.data.requests.OrderRequestRepository
 import com.passioagogo.market.data.requests.RequestCart
 import com.passioagogo.market.data.requests.RequestCartItem
 import com.passioagogo.market.data.requests.RequestLine
+import com.passioagogo.market.data.requests.MetodoEntrega
 import com.passioagogo.market.domain.common.RequestStatus
 import com.passioagogo.market.ui.common.toMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -65,6 +66,12 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 private val moneda: NumberFormat = NumberFormat.getCurrencyInstance(Locale("es", "MX"))
+
+internal val MetodoEntrega.etiqueta: String
+    get() = when (this) {
+        MetodoEntrega.DOMICILIO -> "Envío a domicilio"
+        MetodoEntrega.PERSONAL -> "Entrega en persona"
+    }
 
 internal val RequestStatus.etiqueta: String
     get() = when (this) {
@@ -82,6 +89,7 @@ data class RequestCartUiState(
     val clienteTelefono: String = "",
     val clienteEmail: String = "",
     val notas: String = "",
+    val metodoEntrega: MetodoEntrega = MetodoEntrega.DOMICILIO,
     val isSending: Boolean = false,
     val errorMessage: String? = null,
     val folioEnviado: Long? = null,
@@ -125,6 +133,7 @@ class RequestCartViewModel @Inject constructor(
     fun onTelefono(v: String) = _uiState.update { it.copy(clienteTelefono = v) }
     fun onEmail(v: String) = _uiState.update { it.copy(clienteEmail = v) }
     fun onNotas(v: String) = _uiState.update { it.copy(notas = v) }
+    fun onMetodo(m: MetodoEntrega) = _uiState.update { it.copy(metodoEntrega = m) }
     fun onQuantity(variantId: String, cantidad: Int) = cart.setQuantity(variantId, cantidad)
     fun onRemove(variantId: String) = cart.remove(variantId)
     fun onDismissEnviado() = _uiState.update { it.copy(folioEnviado = null) }
@@ -140,6 +149,7 @@ class RequestCartViewModel @Inject constructor(
                     clienteTelefono = state.clienteTelefono.trim().ifBlank { null },
                     clienteEmail = state.clienteEmail.trim().ifBlank { null },
                     notas = state.notas.trim().ifBlank { null },
+                    metodoEntrega = state.metodoEntrega,
                     lines = state.items.map {
                         RequestLine(
                             variantId = it.variantId,
@@ -224,6 +234,23 @@ fun RequestCartScreen(
                 }
 
                 item(key = "datos") {
+                    Spacer(Modifier.height(16.dp))
+                    Text(
+                        if (state.esCliente) "¿Cómo quieres recibirlo?"
+                        else "Método de entrega",
+                        style = MaterialTheme.typography.titleMedium,
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        MetodoEntrega.entries.forEach { metodo ->
+                            FilterChip(
+                                selected = state.metodoEntrega == metodo,
+                                onClick = { viewModel.onMetodo(metodo) },
+                                label = { Text(metodo.etiqueta) },
+                            )
+                        }
+                    }
+
                     Spacer(Modifier.height(16.dp))
                     Text(
                         if (state.esCliente) "Tus datos de contacto"
@@ -449,6 +476,7 @@ fun RequestsListScreen(
                             }
                             Text(
                                 listOfNotNull(
+                                    request.metodoEntrega.etiqueta,
                                     "${request.items.sumOf { it.cantidad }} artículos",
                                     moneda.format(request.totalEstimado),
                                     FechaSolicitud.corta(request.createdAt).ifBlank { null },
