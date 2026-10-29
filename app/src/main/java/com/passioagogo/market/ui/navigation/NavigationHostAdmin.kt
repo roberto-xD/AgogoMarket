@@ -19,6 +19,7 @@ import com.passioagogo.market.ui.admin.purchases.PurchaseDetailScreen
 import com.passioagogo.market.ui.admin.purchases.PurchasesListScreen
 import com.passioagogo.market.ui.admin.stats.StatsScreen
 import com.passioagogo.market.ui.admin.suppliers.SuppliersScreen
+import com.passioagogo.market.ui.admin.envios.EnviosScreen
 import com.passioagogo.market.ui.admin.wheel.WheelScreen
 import com.passioagogo.market.ui.admin.users.UsersScreen
 import com.passioagogo.market.ui.requests.RequestDetailScreen
@@ -89,6 +90,9 @@ internal fun NavGraphBuilder.NavigationHostAdmin(
             onBack = onBack,
             onSaved = onBack
         )
+    }
+    composable<NavigationRoutes.Envios>{
+        EnviosScreen(onBack = onBack)
     }
     composable<NavigationRoutes.Wheel>{
         WheelScreen(onBack = onBack)

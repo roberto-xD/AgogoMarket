@@ -56,6 +56,7 @@ sealed class NavigationRoutes{
     ): NavigationRoutes()
     @Serializable data object Stats: NavigationRoutes()
     @Serializable data object Wheel: NavigationRoutes()
+    @Serializable data object Envios: NavigationRoutes()
     @Serializable data object InventoryHome:NavigationRoutes()
     @Serializable data class InventoryTransferDetail(
         val transferId: String

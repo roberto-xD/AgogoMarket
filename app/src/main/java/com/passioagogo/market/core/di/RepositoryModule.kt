@@ -18,7 +18,11 @@ import com.passioagogo.market.data.auth.SupabaseAuthRepository
 import com.passioagogo.market.data.contact.ContactRepository
 import com.passioagogo.market.data.contact.ContactRepositoryImpl
 import com.passioagogo.market.data.customers.CustomerRepository
-import com.passioagogo.market.data.customers.CustomerRepositoryImpl
+import com.passioagogo.market.data.envio.EnvioRepository
+import com.passioagogo.market.data.envio.EnvioRepositoryImpl
+import com.passioagogo.market.data.customers.CustomerRepository
+import com.passioagogo.market.data.envio.EnvioRepository
+import com.passioagogo.market.data.envio.EnvioRepositoryImplImpl
 import com.passioagogo.market.data.events.EventRepository
 import com.passioagogo.market.data.events.EventRepositoryImpl
 import com.passioagogo.market.data.gallery.GalleryRepository
@@ -153,4 +157,8 @@ abstract class RepositoryModule {
     abstract fun bindCryptoKeyRepository(
         impl: CryptoKeyRepositoryImpl,
     ): CryptoKeyRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindEnvioRepository(impl: EnvioRepositoryImpl): EnvioRepository
 }
