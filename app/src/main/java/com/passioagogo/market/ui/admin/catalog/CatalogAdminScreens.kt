@@ -761,6 +761,54 @@ private fun VariantDialog(
                     attributesText = dialog.attributesText,
                     onClick = { showAttrs = true },
                 )
+                Spacer(Modifier.height(16.dp))
+                Text("Empaque", style = MaterialTheme.typography.labelLarge)
+                Text(
+                    "Peso y medidas de la variante ya empacada: es lo que la " +
+                        "paquetería usa para cotizar el envío.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Spacer(Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = dialog.pesoGr,
+                    onValueChange = { onChange(dialog.copy(pesoGr = it)) },
+                    label = { Text("Peso") },
+                    suffix = { Text("g") },
+                    singleLine = true,
+                    isError = (dialog.pesoGr.toIntOrNull() ?: 0) <= 0,
+                    keyboardOptions = OpcionesTeclado.Numero,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Spacer(Modifier.height(8.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    MedidaField(
+                        valor = dialog.largoCm,
+                        etiqueta = "Largo",
+                        onChange = { onChange(dialog.copy(largoCm = it)) },
+                        modifier = Modifier.weight(1f),
+                    )
+                    MedidaField(
+                        valor = dialog.anchoCm,
+                        etiqueta = "Ancho",
+                        onChange = { onChange(dialog.copy(anchoCm = it)) },
+                        modifier = Modifier.weight(1f),
+                    )
+                    MedidaField(
+                        valor = dialog.altoCm,
+                        etiqueta = "Alto",
+                        onChange = { onChange(dialog.copy(altoCm = it)) },
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+                if (!dialog.medidasValidas) {
+                    Text(
+                        "Peso y medidas deben ser mayores que cero",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
+
                 if (dialog.editing != null) {
                     Spacer(Modifier.height(8.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -934,4 +982,25 @@ private fun AttributeSelectorField(
             Icon(Icons.Filled.Tune, contentDescription = null)
         }
     }
+}
+
+
+/** Campo de una dimensión del empaque, en centímetros enteros. */
+@Composable
+private fun MedidaField(
+    valor: String,
+    etiqueta: String,
+    onChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    OutlinedTextField(
+        value = valor,
+        onValueChange = onChange,
+        label = { Text(etiqueta) },
+        suffix = { Text("cm") },
+        singleLine = true,
+        isError = (valor.toIntOrNull() ?: 0) <= 0,
+        keyboardOptions = OpcionesTeclado.Numero,
+        modifier = modifier,
+    )
 }

@@ -36,8 +36,21 @@ data class ProductVariant(
     val attributes: JsonObject,
     val precioVenta: Double,
     val costo: Double,
+    /**
+     * Peso y medidas de la variante EMPACADA, para cotizar el envío.
+     * En gramos y centímetros enteros: la unidad va en el nombre para
+     * que nadie confunda gramos con kilos al armar la petición.
+     */
+    val pesoGr: Int,
+    val largoCm: Int,
+    val anchoCm: Int,
+    val altoCm: Int,
     val activo: Boolean,
-)
+) {
+    /** Valores de arranque del script 33: señal de que falta pesarla. */
+    val sinPesar: Boolean
+        get() = pesoGr == 200 && largoCm == 10 && anchoCm == 10 && altoCm == 10
+}
 
 data class ProductWithVariants(
     val product: Product,
@@ -67,6 +80,10 @@ data class VariantDraft(
     val productId: String,
     val sku: String,
     val titulo: String? = null,
+    val pesoGr: Int = 200,
+    val largoCm: Int = 10,
+    val anchoCm: Int = 10,
+    val altoCm: Int = 10,
     val attributes: JsonObject = JsonObject(emptyMap()),
     val precioVenta: Double,
     val costo: Double = 0.0,

@@ -12,15 +12,68 @@ import kotlinx.serialization.json.JsonObject
 data class Location(
     val id: String,
     val nombre: String,
+    /** Texto libre heredado; se conserva junto a los campos desglosados. */
     val direccion: String?,
     val tipo: LocationType,
     val activo: Boolean,
-)
+    // ---- Dirección desglosada, como la pide la paquetería ----
+    val calle: String? = null,
+    val numero: String? = null,
+    val interior: String? = null,
+    /** Lo que la paquetería llama `district`. */
+    val colonia: String? = null,
+    val ciudad: String? = null,
+    val estado: String? = null,
+    /** Código de dos letras que viaja en la petición (CDMX = CX). */
+    val estadoCodigo: String? = null,
+    val cp: String? = null,
+    val pais: String = "MX",
+    val telefono: String? = null,
+    val contacto: String? = null,
+    val referencias: String? = null,
+    /** Ubicación desde la que salen los envíos. Solo una. */
+    val esOrigen: Boolean = false,
+) {
+    /**
+     * Qué falta para poder generar una guía desde aquí.
+     *
+     * Son los campos que la paquetería exige; sin ellos la petición se
+     * rechaza al generar la guía, no al capturar la dirección.
+     */
+    val camposFaltantes: List<String>
+        get() = buildList {
+            if (calle.isNullOrBlank()) add("calle")
+            if (numero.isNullOrBlank()) add("número")
+            if (colonia.isNullOrBlank()) add("colonia")
+            if (cp.isNullOrBlank()) add("código postal")
+            if (ciudad.isNullOrBlank()) add("ciudad")
+            if (estadoCodigo.isNullOrBlank()) add("código de estado")
+            if (telefono.isNullOrBlank()) add("teléfono")
+            if (contacto.isNullOrBlank()) add("contacto")
+        }
+
+    val listaParaEnviar: Boolean get() = camposFaltantes.isEmpty()
+}
 
 data class LocationDraft(
     val nombre: String,
     val direccion: String? = null,
     val tipo: LocationType = LocationType.TIENDA,
+)
+
+/** Solo los campos de envío, para editarlos sin tocar el resto. */
+data class DireccionEnvioDraft(
+    val calle: String?,
+    val numero: String?,
+    val interior: String?,
+    val colonia: String?,
+    val ciudad: String?,
+    val estado: String?,
+    val estadoCodigo: String?,
+    val cp: String?,
+    val telefono: String?,
+    val contacto: String?,
+    val referencias: String?,
 )
 
 /** Por qué se ajustó una existencia. Acotado para poder agrupar la bitácora. */
@@ -108,6 +161,18 @@ interface LocationRepository {
     suspend fun getLocations(includeInactive: Boolean = false): DataResult<List<Location>>
     suspend fun createLocation(draft: LocationDraft): DataResult<Location>
     suspend fun updateLocation(location: Location): DataResult<Location>
+
+    /** Guarda solo los campos de envío de una ubicación. */
+    suspend fun updateDireccionEnvio(
+        locationId: String,
+        draft: DireccionEnvioDraft,
+    ): DataResult<Unit>
+
+    /**
+     * Marca la ubicación como origen de los envíos.
+     * Apaga primero la anterior: el índice único de la base no admite dos.
+     */
+    suspend fun marcarComoOrigen(locationId: String): DataResult<Unit>
 }
 
 /**

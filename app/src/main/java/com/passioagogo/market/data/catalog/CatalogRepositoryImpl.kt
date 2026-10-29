@@ -176,6 +176,10 @@ class CatalogRepositoryImpl @Inject constructor(
                         productId = draft.productId,
                         sku = draft.sku,
                         titulo = draft.titulo,
+                        pesoGr = draft.pesoGr,
+                        largoCm = draft.largoCm,
+                        anchoCm = draft.anchoCm,
+                        altoCm = draft.altoCm,
                         attributes = draft.attributes,
                         precioVenta = draft.precioVenta,
                         costo = draft.costo,
@@ -191,6 +195,10 @@ class CatalogRepositoryImpl @Inject constructor(
                 postgrest.from(VARIANTS).update({
                     set("sku", variant.sku)
                     set("titulo", variant.titulo)
+                    set("peso_gr", variant.pesoGr)
+                    set("largo_cm", variant.largoCm)
+                    set("ancho_cm", variant.anchoCm)
+                    set("alto_cm", variant.altoCm)
                     set("attributes", variant.attributes)
                     set("precio_venta", variant.precioVenta)
                     set("costo", variant.costo)

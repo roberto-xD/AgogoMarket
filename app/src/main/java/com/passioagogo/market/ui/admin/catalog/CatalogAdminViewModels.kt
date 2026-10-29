@@ -209,15 +209,27 @@ data class VariantDialogState(
     val editing: ProductVariant? = null,
     val sku: String = "",
     val titulo: String = "",
+    // Para cotizar el envío. Gramos y centímetros enteros.
+    val pesoGr: String = "200",
+    val largoCm: String = "10",
+    val anchoCm: String = "10",
+    val altoCm: String = "10",
     val precio: String = "",
     val costo: String = "",
     val attributesText: String = "",
     val activo: Boolean = true,
 ) {
+    /** Cero o negativo haría que la paquetería rechazara la guía. */
+    val medidasValidas: Boolean
+        get() = listOf(pesoGr, largoCm, anchoCm, altoCm)
+            .all { (it.toIntOrNull() ?: 0) > 0 }
+
     val canSave: Boolean
         get() = sku.isNotBlank() && precio.toDoubleOrNull() != null &&
             // El servidor limita el título a 80 caracteres
             titulo.length <= 80 &&
+            // El CHECK del servidor rechaza cero o negativo
+            medidasValidas &&
             (costo.isBlank() || costo.toDoubleOrNull() != null)
 }
 
@@ -413,6 +425,10 @@ class ProductEditViewModel @Inject constructor(
                 editing = variant,
                 sku = variant.sku,
                 titulo = variant.titulo.orEmpty(),
+                pesoGr = variant.pesoGr.toString(),
+                largoCm = variant.largoCm.toString(),
+                anchoCm = variant.anchoCm.toString(),
+                altoCm = variant.altoCm.toString(),
                 precio = variant.precioVenta.toString(),
                 costo = variant.costo.toString(),
                 attributesText = variant.attributes.toAttributesText(),
@@ -459,6 +475,10 @@ class ProductEditViewModel @Inject constructor(
                         productId = productId,
                         sku = dialog.sku.trim(),
                         titulo = dialog.titulo.trim().ifBlank { null },
+                        pesoGr = dialog.pesoGr.toIntOrNull() ?: 200,
+                        largoCm = dialog.largoCm.toIntOrNull() ?: 10,
+                        anchoCm = dialog.anchoCm.toIntOrNull() ?: 10,
+                        altoCm = dialog.altoCm.toIntOrNull() ?: 10,
                         attributes = dialog.attributesText.toAttributesJson(),
                         precioVenta = dialog.precio.toDouble(),
                         costo = dialog.costo.toDoubleOrNull() ?: 0.0,
@@ -469,6 +489,10 @@ class ProductEditViewModel @Inject constructor(
                     editing.copy(
                         sku = dialog.sku.trim(),
                         titulo = dialog.titulo.trim().ifBlank { null },
+                        pesoGr = dialog.pesoGr.toIntOrNull() ?: editing.pesoGr,
+                        largoCm = dialog.largoCm.toIntOrNull() ?: editing.largoCm,
+                        anchoCm = dialog.anchoCm.toIntOrNull() ?: editing.anchoCm,
+                        altoCm = dialog.altoCm.toIntOrNull() ?: editing.altoCm,
                         attributes = dialog.attributesText.toAttributesJson(),
                         precioVenta = dialog.precio.toDouble(),
                         costo = dialog.costo.toDoubleOrNull() ?: 0.0,
