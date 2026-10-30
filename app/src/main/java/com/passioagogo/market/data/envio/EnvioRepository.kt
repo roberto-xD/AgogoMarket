@@ -35,6 +35,8 @@ data class EnvioSolicitud(
      * no domicilio.
      */
     val createdBy: String,
+    /** Rol de quien la levantó; decide si hay dirección cifrada. */
+    val creadorRol: String?,
     /** Paquetería y servicio que eligió el cliente al cotizar. */
     val envioPaqueteria: String?,
     val envioServicio: String?,
@@ -52,10 +54,20 @@ data class EnvioSolicitud(
 ) {
     val tieneGuia: Boolean get() = !guiaNumero.isNullOrBlank()
 
+    /**
+     * Solo las del propio cliente tienen dirección cifrada: un promotor
+     * captura nombre y teléfono, no domicilio. Generar una guía con el
+     * sobre del promotor mandaría el paquete a su casa.
+     */
+    val tieneDireccionCifrada: Boolean get() = creadorRol == "cliente"
+
     /** Marcada para recoger y aún sin pedir el camión. */
     val esperandoRecoleccion: Boolean
         get() = tieneGuia && necesitaRecoleccion && recoleccionId.isNullOrBlank()
 }
+
+@Serializable
+data class CreadorDto(val rol: String)
 
 @Serializable
 data class EnvioSolicitudDto(
@@ -65,6 +77,8 @@ data class EnvioSolicitudDto(
     @SerialName("cliente_telefono") val clienteTelefono: String? = null,
     val estado: String,
     @SerialName("created_by") val createdBy: String,
+    /** Alias del embebido: order_requests tiene dos FK a profiles. */
+    val creador: CreadorDto? = null,
     @SerialName("envio_paqueteria") val envioPaqueteria: String? = null,
     @SerialName("envio_servicio") val envioServicio: String? = null,
     @SerialName("guia_numero") val guiaNumero: String? = null,
@@ -82,6 +96,7 @@ data class EnvioSolicitudDto(
     fun toDomain() = EnvioSolicitud(
         id = id, folio = folio, clienteNombre = clienteNombre,
         clienteTelefono = clienteTelefono, estado = estado, createdBy = createdBy,
+        creadorRol = creador?.rol,
         envioPaqueteria = envioPaqueteria, envioServicio = envioServicio,
         guiaNumero = guiaNumero, guiaUrl = guiaUrl, guiaRastreoUrl = guiaRastreoUrl,
         guiaPaqueteria = guiaPaqueteria, guiaServicio = guiaServicio,
@@ -116,13 +131,15 @@ class EnvioRepositoryImpl @Inject constructor(
 
     private companion object {
         const val TABLE = "order_requests"
-        val COLUMNAS = Columns.list(
-            "id", "folio", "cliente_nombre", "cliente_telefono", "estado", "created_by",
-            "envio_paqueteria", "envio_servicio",
-            "guia_numero", "guia_url", "guia_rastreo_url", "guia_paqueteria",
-            "guia_servicio", "guia_costo", "guia_generada_en",
-            "necesita_recoleccion", "recoleccion_id", "recoleccion_fecha",
-            "created_at",
+        // El embebido lleva alias porque order_requests tiene dos FK
+        // hacia profiles (created_by y atendida_por).
+        val COLUMNAS = Columns.raw(
+            "id, folio, cliente_nombre, cliente_telefono, estado, created_by, " +
+                "envio_paqueteria, envio_servicio, " +
+                "guia_numero, guia_url, guia_rastreo_url, guia_paqueteria, " +
+                "guia_servicio, guia_costo, guia_generada_en, " +
+                "necesita_recoleccion, recoleccion_id, recoleccion_fecha, created_at, " +
+                "creador:profiles!created_by(rol)"
         )
     }
 
@@ -144,7 +161,12 @@ class EnvioRepositoryImpl @Inject constructor(
                 // El «sin guía» se filtra aquí y no en la consulta: el
                 // conjunto ya viene acotado por estado y método, y así no
                 // dependemos de cómo exprese PostgREST un `is null`.
-                list.filter { it.guiaNumero.isNullOrBlank() }.map { it.toDomain() }
+                list.map { it.toDomain() }
+                    .filter { it.guiaNumero.isNullOrBlank() }
+                    // Solo las del cliente: las de promotor no tienen
+                    // dirección cifrada y quedan fuera hasta que el
+                    // esquema guarde el destinatario por separado.
+                    .filter { it.tieneDireccionCifrada }
             }
         }
 

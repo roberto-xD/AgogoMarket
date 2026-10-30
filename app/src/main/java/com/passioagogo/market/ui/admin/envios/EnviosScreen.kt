@@ -245,7 +245,9 @@ private fun PendientesTab(state: EnviosUiState, viewModel: EnviosViewModel) {
     if (state.pendientes.isEmpty()) {
         Centrado {
             Text(
-                "No hay envíos esperando guía.",
+                "No hay envíos esperando guía.\n\nAquí solo salen las solicitudes " +
+                    "hechas por el cliente desde el sitio, que son las únicas con " +
+                    "dirección cifrada.",
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
             )
@@ -256,12 +258,21 @@ private fun PendientesTab(state: EnviosUiState, viewModel: EnviosViewModel) {
     LazyColumn {
         item {
             Text(
-                "Marca «recoger» si quieres que la paquetería pase por el paquete. " +
-                    "La recolección se pide después, en lote.",
+                "Solo aparecen las solicitudes que hizo el propio cliente desde el " +
+                    "sitio: son las que traen dirección cifrada. Las de promotor " +
+                    "aún no se despachan desde aquí.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
             )
+            Text(
+                "Marca «recoger» si quieres que la paquetería pase por el paquete. " +
+                    "La recolección se pide después, en lote.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 16.dp),
+            )
+            Spacer(Modifier.height(8.dp))
         }
         items(state.pendientes, key = { it.id }) { solicitud ->
             val generando = state.generando == solicitud.id
