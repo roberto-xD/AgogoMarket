@@ -157,8 +157,9 @@ class EnvioRepositoryImpl @Inject constructor(
                         // Solo las de domicilio: una entrega en persona no
                         // lleva guía y la función la rechazaría.
                         eq("metodo_entrega", "domicilio")
-                        // Rechazadas y canceladas no se despachan.
-                        isIn("estado", listOf("enviada", "atendida"))
+                        // Solo las abiertas: una atendida ya se convirtió en
+                        // pedido y su envío se gestiona desde ahí, no aquí.
+                        eq("estado", "enviada")
                     }
                     order("created_at", Order.ASCENDING)
                     limit(100)

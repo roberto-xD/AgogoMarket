@@ -325,10 +325,14 @@ private fun PendientesTab(state: EnviosUiState, viewModel: EnviosViewModel) {
                     )
                     Text("Recoger", style = MaterialTheme.typography.bodySmall)
                     Spacer(Modifier.weight(1f))
+                    // Solo se deshabilita el botón de la fila en curso. Antes
+                    // la condición miraba `state.generando == null`, así que
+                    // al pulsar uno TODOS se atenuaban a la vez y parecía
+                    // que se habían pulsado todos. El ViewModel ignora
+                    // llamadas simultáneas, así que no hace falta apagarlos.
                     Button(
                         onClick = { viewModel.onGenerarGuia(solicitud) },
-                        enabled = !generando && state.generando == null &&
-                            state.claveDesbloqueada,
+                        enabled = !generando && state.claveDesbloqueada,
                     ) {
                         Text(if (generando) "Generando…" else "Generar guía")
                     }

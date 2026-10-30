@@ -109,6 +109,10 @@ class EnviosViewModel @Inject constructor(
      * base sigue cifrado.
      */
     fun onGenerarGuia(solicitud: EnvioSolicitud) {
+        // Una guía a la vez: cada una cuesta dinero, y dos peticiones
+        // simultáneas podrían emitir dos etiquetas pagadas.
+        if (_uiState.value.generando != null) return
+
         if (!adminKeyStore.desbloqueada.value) {
             _uiState.update {
                 it.copy(
