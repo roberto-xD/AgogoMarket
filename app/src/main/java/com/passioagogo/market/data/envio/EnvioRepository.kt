@@ -75,7 +75,7 @@ data class EnvioSolicitudDto(
     val folio: Long,
     @SerialName("cliente_nombre") val clienteNombre: String,
     @SerialName("cliente_telefono") val clienteTelefono: String? = null,
-    val estado: String,
+    val estado: String? = null,
     @SerialName("created_by") val createdBy: String,
     /** Alias del embebido: order_requests tiene dos FK a profiles. */
     val creador: CreadorDto? = null,
@@ -88,20 +88,26 @@ data class EnvioSolicitudDto(
     @SerialName("guia_servicio") val guiaServicio: String? = null,
     @SerialName("guia_costo") val guiaCosto: Double? = null,
     @SerialName("guia_generada_en") val guiaGeneradaEn: String? = null,
-    @SerialName("necesita_recoleccion") val necesitaRecoleccion: Boolean = false,
+    /**
+     * Nullable a propósito: la columna admite nulos y un `= false` solo
+     * cubre que la clave FALTE, no que llegue como null explícito.
+     */
+    @SerialName("necesita_recoleccion") val necesitaRecoleccion: Boolean? = null,
     @SerialName("recoleccion_id") val recoleccionId: String? = null,
     @SerialName("recoleccion_fecha") val recoleccionFecha: String? = null,
     @SerialName("created_at") val createdAt: String? = null,
 ) {
     fun toDomain() = EnvioSolicitud(
         id = id, folio = folio, clienteNombre = clienteNombre,
-        clienteTelefono = clienteTelefono, estado = estado, createdBy = createdBy,
+        clienteTelefono = clienteTelefono, estado = estado.orEmpty(),
+        createdBy = createdBy,
         creadorRol = creador?.rol,
         envioPaqueteria = envioPaqueteria, envioServicio = envioServicio,
         guiaNumero = guiaNumero, guiaUrl = guiaUrl, guiaRastreoUrl = guiaRastreoUrl,
         guiaPaqueteria = guiaPaqueteria, guiaServicio = guiaServicio,
         guiaCosto = guiaCosto, guiaGeneradaEn = guiaGeneradaEn,
-        necesitaRecoleccion = necesitaRecoleccion, recoleccionId = recoleccionId,
+        necesitaRecoleccion = necesitaRecoleccion ?: false,
+        recoleccionId = recoleccionId,
         recoleccionFecha = recoleccionFecha, createdAt = createdAt,
     )
 }

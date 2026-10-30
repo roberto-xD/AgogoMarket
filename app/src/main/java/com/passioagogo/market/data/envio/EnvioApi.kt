@@ -44,6 +44,9 @@ class EnvioApi @Inject constructor(
     private val json = Json {
         ignoreUnknownKeys = true
         encodeDefaults = true
+        // Un null explícito en una columna nullable se convierte en el
+        // valor por omisión, en vez de romper la deserialización.
+        coerceInputValues = true
     }
 
     /**

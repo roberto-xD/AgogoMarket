@@ -10,6 +10,8 @@ import io.github.jan.supabase.annotations.SupabaseInternal
 import io.github.jan.supabase.auth.Auth
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.createSupabaseClient
+import io.github.jan.supabase.serializer.KotlinXSerializer
+import kotlinx.serialization.json.Json
 import io.github.jan.supabase.functions.Functions
 import io.github.jan.supabase.functions.functions
 import io.github.jan.supabase.postgrest.Postgrest
@@ -54,6 +56,20 @@ object CoreModule {
         supabaseUrl = BuildConfig.SUPABASE_URL,
         supabaseKey = BuildConfig.SUPABASE_KEY
     ) {
+        // Tolerancia a nulos en todo el proyecto.
+        //
+        // Una columna que admite nulos llega como `null` explícito, y un
+        // valor por omisión en el DTO solo cubre que la clave FALTE: sin
+        // esto, cada columna nullable nueva rompe la deserialización con
+        // «Expected valid boolean literal prefix, but had 'null'».
+        defaultSerializer = KotlinXSerializer(
+            Json {
+                ignoreUnknownKeys = true
+                coerceInputValues = true
+                explicitNulls = false
+            }
+        )
+
         install(Auth)
         install(Postgrest)
         install(Storage)
