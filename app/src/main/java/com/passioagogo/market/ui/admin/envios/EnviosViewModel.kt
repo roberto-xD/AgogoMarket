@@ -118,27 +118,20 @@ class EnviosViewModel @Inject constructor(
             }
             return
         }
-        val userId = solicitud.userId
-        if (userId.isNullOrBlank()) {
-            _uiState.update {
-                it.copy(
-                    errorMessage = "Esta solicitud no tiene cuenta asociada, así que " +
-                        "no hay dirección cifrada que leer.",
-                )
-            }
-            return
-        }
-
         _uiState.update { it.copy(generando = solicitud.id, errorMessage = null) }
         viewModelScope.launch {
-            val direccion = abrirDireccion(userId)
+            // La dirección cifrada cuelga de quien levantó la solicitud.
+            // Si la levantó un promotor, el sobre sería el del promotor,
+            // no el del destinatario: ese caso se detecta abajo porque no
+            // hay sobre, o porque la dirección no corresponde.
+            val direccion = abrirDireccion(solicitud.createdBy)
             if (direccion == null) {
                 _uiState.update {
                     it.copy(
                         generando = null,
-                        errorMessage = "No se pudo abrir la dirección del cliente. " +
-                            "Puede que aún no la haya capturado, o que esté envuelta " +
-                            "con una clave anterior.",
+                        errorMessage = "No hay dirección cifrada para esta solicitud. " +
+                            "Si la levantó un promotor, el cliente no capturó domicilio " +
+                            "en el sitio: pídeselo y regístralo antes de generar la guía.",
                     )
                 }
                 return@launch

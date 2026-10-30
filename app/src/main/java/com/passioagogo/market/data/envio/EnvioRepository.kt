@@ -26,7 +26,15 @@ data class EnvioSolicitud(
     val clienteNombre: String,
     val clienteTelefono: String?,
     val estado: String,
-    val userId: String?,
+    /**
+     * Quién levantó la solicitud.
+     *
+     * Si fue el propio cliente, su dirección cifrada está bajo este id.
+     * Si fue un promotor, este id es el del promotor y NO hay dirección
+     * cifrada del destinatario: el promotor captura nombre y teléfono,
+     * no domicilio.
+     */
+    val createdBy: String,
     /** Paquetería y servicio que eligió el cliente al cotizar. */
     val envioPaqueteria: String?,
     val envioServicio: String?,
@@ -56,7 +64,7 @@ data class EnvioSolicitudDto(
     @SerialName("cliente_nombre") val clienteNombre: String,
     @SerialName("cliente_telefono") val clienteTelefono: String? = null,
     val estado: String,
-    @SerialName("user_id") val userId: String? = null,
+    @SerialName("created_by") val createdBy: String,
     @SerialName("envio_paqueteria") val envioPaqueteria: String? = null,
     @SerialName("envio_servicio") val envioServicio: String? = null,
     @SerialName("guia_numero") val guiaNumero: String? = null,
@@ -73,7 +81,7 @@ data class EnvioSolicitudDto(
 ) {
     fun toDomain() = EnvioSolicitud(
         id = id, folio = folio, clienteNombre = clienteNombre,
-        clienteTelefono = clienteTelefono, estado = estado, userId = userId,
+        clienteTelefono = clienteTelefono, estado = estado, createdBy = createdBy,
         envioPaqueteria = envioPaqueteria, envioServicio = envioServicio,
         guiaNumero = guiaNumero, guiaUrl = guiaUrl, guiaRastreoUrl = guiaRastreoUrl,
         guiaPaqueteria = guiaPaqueteria, guiaServicio = guiaServicio,
@@ -109,7 +117,7 @@ class EnvioRepositoryImpl @Inject constructor(
     private companion object {
         const val TABLE = "order_requests"
         val COLUMNAS = Columns.list(
-            "id", "folio", "cliente_nombre", "cliente_telefono", "estado", "user_id",
+            "id", "folio", "cliente_nombre", "cliente_telefono", "estado", "created_by",
             "envio_paqueteria", "envio_servicio",
             "guia_numero", "guia_url", "guia_rastreo_url", "guia_paqueteria",
             "guia_servicio", "guia_costo", "guia_generada_en",
