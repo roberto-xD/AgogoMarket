@@ -1,5 +1,6 @@
 package com.passioagogo.market.data.envio
 
+import android.util.Log
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.functions.functions
@@ -14,6 +15,9 @@ import kotlinx.serialization.Serializable
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.serialization.json.Json
+
+/** Misma etiqueta que el resto de la app: `adb logcat -s PG`. */
+private const val TAG = "PG"
 
 /**
  * Guías de envío y recolecciones, desde la app de control.
@@ -162,10 +166,28 @@ class EnvioApi @Inject constructor(
             if (respuesta.status.value in 200..299) {
                 Respuesta.Ok(texto)
             } else {
+                // El cuerpo completo al log: el diálogo lo recorta y el
+                // detalle de la paquetería suele venir anidado y largo.
+                registrar(nombre, respuesta.status.value, texto)
                 Respuesta.Fallo(mensajeDeError(texto, respuesta.status.value))
             }
         } catch (e: Exception) {
+            Log.i(TAG, "[$nombre] sin respuesta :: ${e.message}")
             Respuesta.Fallo("No se pudo conectar: ${e.message ?: "error desconocido"}")
+        }
+    }
+
+    /**
+     * Vuelca el error en Logcat por trozos.
+     *
+     * Logcat corta cada línea cerca de los 4000 caracteres, y la
+     * respuesta de la paquetería llega anidada y larga: partirla es lo
+     * que permite leerla entera.
+     */
+    private fun registrar(operacion: String, codigo: Int, cuerpo: String) {
+        Log.i(TAG, "[HTTP $codigo] $operacion")
+        cuerpo.chunked(3500).forEachIndexed { indice, trozo ->
+            Log.i(TAG, "[$operacion ${indice + 1}] $trozo")
         }
     }
 
@@ -178,7 +200,11 @@ class EnvioApi @Inject constructor(
         }
         // El motivo de la paquetería va detrás, no en lugar del nuestro: uno dice qué
         // pasó en la tienda y el otro qué dijo la paquetería.
-        return listOfNotNull(base, fallo?.motivo).distinct().joinToString(" ")
+        //
+        // Se recorta: el detalle completo va al log, y un diálogo con el
+        // JSON entero no se puede leer en un teléfono.
+        val motivo = fallo?.motivo?.take(300)
+        return listOfNotNull(base, motivo).distinct().joinToString(" ")
     }
 
     private sealed interface Respuesta {

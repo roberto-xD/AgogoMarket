@@ -6,6 +6,8 @@ import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -223,12 +225,35 @@ fun EnviosScreen(
     }
 
     state.errorMessage?.let { mensaje ->
+        val contexto = LocalContext.current
         AlertDialog(
             onDismissRequest = viewModel::onCerrarError,
             title = { Text("No se pudo completar") },
-            text = { Text(mensaje) },
+            text = {
+                // Desplazable: la paquetería devuelve mensajes largos y
+                // recortarlos esconde justo el dato que hace falta.
+                Column(Modifier.verticalScroll(rememberScrollState())) {
+                    Text(mensaje)
+                    Spacer(Modifier.height(12.dp))
+                    Text(
+                        "El detalle completo está en el registro, con la etiqueta PG.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            },
             confirmButton = {
                 TextButton(onClick = viewModel::onCerrarError) { Text("Entendido") }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    val cb = contexto.getSystemService(Context.CLIPBOARD_SERVICE)
+                        as android.content.ClipboardManager
+                    cb.setPrimaryClip(
+                        android.content.ClipData.newPlainText("Error", mensaje)
+                    )
+                    Toast.makeText(contexto, "Error copiado", Toast.LENGTH_SHORT).show()
+                }) { Text("Copiar") }
             },
         )
     }
