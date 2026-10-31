@@ -23,6 +23,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Print
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.foundation.clickable
+import androidx.compose.material.icons.filled.Lock
+import com.passioagogo.market.ui.admin.customers.DesbloquearClaveDialog
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
@@ -86,21 +89,41 @@ fun EnviosScreen(
         // Sin la clave no se puede leer ninguna dirección, así que no se
         // puede generar ninguna guía: conviene decirlo antes de intentarlo.
         if (!state.claveDesbloqueada) {
+            // La tarjeta abre el diálogo: antes solo informaba y obligaba
+            // a ir a Clientes y volver.
             Card(
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.errorContainer,
                 ),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
+                    .padding(16.dp)
+                    .clickable { viewModel.onAbrirClave() },
             ) {
-                Text(
-                    "La clave de administración está cerrada. Ábrela desde Clientes " +
-                        "para poder leer las direcciones y generar guías.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onErrorContainer,
-                    modifier = Modifier.padding(12.dp),
-                )
+                Row(
+                    Modifier.padding(12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(
+                        Icons.Filled.Lock,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onErrorContainer,
+                    )
+                    Spacer(Modifier.width(12.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text(
+                            "Clave de administración cerrada",
+                            style = MaterialTheme.typography.titleSmall,
+                            color = MaterialTheme.colorScheme.onErrorContainer,
+                        )
+                        Text(
+                            "Sin ella no se pueden leer las direcciones. " +
+                                "Toca para abrirla.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onErrorContainer,
+                        )
+                    }
+                }
             }
         }
 
@@ -222,6 +245,17 @@ fun EnviosScreen(
             confirmButton = {
                 TextButton(onClick = viewModel::onCerrarRecoleccion) { Text("Entendido") }
             },
+        )
+    }
+
+    if (state.pidiendoClave) {
+        DesbloquearClaveDialog(
+            tieneArchivo = state.tieneArchivoClave,
+            isWorking = state.abriendoClave,
+            errorMessage = state.errorClave,
+            onDismiss = viewModel::onCerrarClave,
+            onDesbloquear = viewModel::onDesbloquear,
+            onImportar = viewModel::onImportarClave,
         )
     }
 

@@ -33,6 +33,12 @@ data class EnviosUiState(
     val conGuia: List<EnvioSolicitud> = emptyList(),
     val porRecoger: List<GuiaPendiente> = emptyList(),
     val claveDesbloqueada: Boolean = false,
+    /** true si el archivo de la clave ya está en este dispositivo. */
+    val tieneArchivoClave: Boolean = false,
+    /** Diálogo de desbloqueo abierto. */
+    val pidiendoClave: Boolean = false,
+    val errorClave: String? = null,
+    val abriendoClave: Boolean = false,
     val isLoading: Boolean = false,
     /** Solicitud cuya guía se está generando. */
     val generando: String? = null,
@@ -71,6 +77,7 @@ class EnviosViewModel @Inject constructor(
                 isLoading = true,
                 errorMessage = null,
                 claveDesbloqueada = adminKeyStore.desbloqueada.value,
+                tieneArchivoClave = adminKeyStore.tieneArchivo(),
             )
         }
         viewModelScope.launch {
@@ -85,6 +92,58 @@ class EnviosViewModel @Inject constructor(
                     conGuia = (conGuia as? DataResult.Success)?.data ?: estado.conGuia,
                     porRecoger = porRecoger,
                     errorMessage = (pendientes as? DataResult.Error)?.error?.toMessage(),
+                )
+            }
+        }
+    }
+
+    // ---- Clave de administración ----
+    //
+    // Se puede abrir desde aquí además de desde Clientes: sin ella no hay
+    // dirección que leer, y mandar al usuario a otra sección para volver
+    // es fricción sin motivo.
+
+    fun onAbrirClave() = _uiState.update {
+        it.copy(
+            pidiendoClave = true,
+            tieneArchivoClave = adminKeyStore.tieneArchivo(),
+            errorClave = null,
+        )
+    }
+
+    fun onCerrarClave() = _uiState.update {
+        it.copy(pidiendoClave = false, errorClave = null)
+    }
+
+    fun onDesbloquear(contrasena: String) {
+        _uiState.update { it.copy(abriendoClave = true, errorClave = null) }
+        aplicarClave(adminKeyStore.desbloquear(contrasena))
+    }
+
+    fun onImportarClave(contenidoJson: String, contrasena: String) {
+        _uiState.update { it.copy(abriendoClave = true, errorClave = null) }
+        aplicarClave(adminKeyStore.importar(contenidoJson, contrasena))
+    }
+
+    private fun aplicarClave(resultado: Result<Unit>) {
+        if (resultado.isSuccess) {
+            _uiState.update {
+                it.copy(
+                    pidiendoClave = false,
+                    claveDesbloqueada = true,
+                    tieneArchivoClave = true,
+                    abriendoClave = false,
+                    errorClave = null,
+                )
+            }
+        } else {
+            // Mensaje único: distinguir «contraseña mala» de «archivo
+            // corrupto» ayudaría a quien prueba contraseñas.
+            _uiState.update {
+                it.copy(
+                    abriendoClave = false,
+                    errorClave = "No se pudo abrir con esos datos. Revisa la " +
+                        "contraseña y el archivo.",
                 )
             }
         }
