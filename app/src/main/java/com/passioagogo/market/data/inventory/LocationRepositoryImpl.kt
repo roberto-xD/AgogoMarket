@@ -8,9 +8,7 @@ import com.passioagogo.market.data.inventory.remote.dto.LocationDto
 import com.passioagogo.market.data.inventory.remote.dto.NewLocationDto
 import com.passioagogo.market.domain.inventory.DireccionEnvioDraft
 import com.passioagogo.market.domain.inventory.Location
-import com.passioagogo.market.domain.inventory.DireccionEnvioDraft
 import com.passioagogo.market.domain.inventory.LocationDraft
-import com.passioagogo.market.domain.inventory.DireccionEnvioDraft
 import com.passioagogo.market.domain.inventory.LocationRepository
 import io.github.jan.supabase.postgrest.Postgrest
 import io.github.jan.supabase.postgrest.query.Order

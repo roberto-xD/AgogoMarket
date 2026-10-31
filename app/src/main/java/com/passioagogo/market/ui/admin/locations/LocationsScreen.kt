@@ -51,9 +51,7 @@ import com.passioagogo.market.core.result.DataResult
 import com.passioagogo.market.domain.common.LocationType
 import com.passioagogo.market.domain.inventory.DireccionEnvioDraft
 import com.passioagogo.market.domain.inventory.Location
-import com.passioagogo.market.domain.inventory.DireccionEnvioDraft
 import com.passioagogo.market.domain.inventory.LocationDraft
-import com.passioagogo.market.domain.inventory.DireccionEnvioDraft
 import com.passioagogo.market.domain.inventory.LocationRepository
 import com.passioagogo.market.ui.common.toMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -102,7 +100,7 @@ class LocationsViewModel @Inject constructor(
         val location = _uiState.value.editandoEnvio ?: return
         _uiState.update { it.copy(isSaving = true, errorMessage = null) }
         viewModelScope.launch {
-            when (val r = repository.updateDireccionEnvio(location.id, draft)) {
+            when (val r = locationRepository.updateDireccionEnvio(location.id, draft)) {
                 is DataResult.Success -> {
                     _uiState.update { it.copy(isSaving = false, editandoEnvio = null) }
                     refresh()
@@ -116,7 +114,7 @@ class LocationsViewModel @Inject constructor(
 
     fun onMarcarOrigen(location: Location) {
         viewModelScope.launch {
-            repository.marcarComoOrigen(location.id)
+            locationRepository.marcarComoOrigen(location.id)
             refresh()
         }
     }

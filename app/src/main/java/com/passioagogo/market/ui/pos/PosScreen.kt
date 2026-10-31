@@ -51,6 +51,7 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import android.Manifest
 import android.content.pm.PackageManager
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material3.IconButton
@@ -85,7 +86,9 @@ fun PosScreen(
         TicketView(sale = sale, onNewSale = viewModel::onNewSale)
         return
     }
-
+    BackHandler(enabled = true) {
+        onBack()
+    }
     if (state.showScanner) {
         Box(Modifier.fillMaxSize()) {
             BarcodeScannerView(

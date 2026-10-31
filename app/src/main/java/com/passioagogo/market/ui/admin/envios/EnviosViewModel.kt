@@ -1,5 +1,6 @@
 package com.passioagogo.market.ui.admin.envios
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.passioagogo.market.core.crypto.AdminKeyStore
@@ -230,6 +231,7 @@ class EnviosViewModel @Inject constructor(
                 recoleccion = solicitud.id in _uiState.value.marcadasParaRecoger,
                 permitirCambio = permitirCambio,
             )
+            Log.i("EnviosViewModel", "resultado de solicitud ${resultado}")
             when (resultado) {
                 is ResultadoGuia.Ok -> {
                     _uiState.update {

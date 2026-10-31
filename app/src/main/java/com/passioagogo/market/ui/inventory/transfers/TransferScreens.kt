@@ -1,5 +1,6 @@
 package com.passioagogo.market.ui.inventory.transfers
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -194,6 +195,9 @@ fun TransferDetailScreen(
     val state by viewModel.uiState.collectAsState()
     val transfer = state.transfer
 
+    BackHandler(enabled = true) {
+        onBack()
+    }
     Column(
         Modifier
             .fillMaxSize()
@@ -312,7 +316,9 @@ fun CreateTransferScreen(
     LaunchedEffect(state.createdId) {
         if (state.createdId != null) onCreated()
     }
-
+    BackHandler(enabled = true) {
+        onCreated()
+    }
     if (state.isLoading) {
         Centered { CircularProgressIndicator() }
         return

@@ -1,5 +1,6 @@
 package com.passioagogo.market.ui.inventory.requests
 
+import androidx.activity.compose.BackHandler
 import com.passioagogo.market.ui.common.OpcionesTeclado
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -184,6 +185,10 @@ fun CreateTransferRequestScreen(
     viewModel: CreateTransferRequestViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsState()
+
+    BackHandler(enabled = true) {
+        onCreated()
+    }
 
     if (state.isLoading) {
         Centrado { CircularProgressIndicator() }
@@ -451,6 +456,9 @@ fun TransferRequestDetailScreen(
     val origen = state.origenEfectivo?.let { state.locationNames[it] } ?: "Por asignar"
     val destino = state.locationNames[request.toLocationId] ?: "…"
 
+    BackHandler(enabled = true) {
+        onBack()
+    }
     Column(
         Modifier
             .fillMaxSize()

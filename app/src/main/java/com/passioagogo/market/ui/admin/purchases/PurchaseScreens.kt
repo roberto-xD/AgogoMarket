@@ -162,7 +162,9 @@ fun PurchaseDetailScreen(
 ) {
     val state by viewModel.uiState.collectAsState()
     val purchase = state.purchase
-
+    BackHandler(enabled = true) {
+        onBack()
+    }
     Column(
         Modifier
             .fillMaxSize()
@@ -302,6 +304,10 @@ fun CreatePurchaseScreen(
     viewModel: CreatePurchaseViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsState()
+
+    BackHandler(enabled = true) {
+        onCreated()
+    }
 
     LaunchedEffect(state.createdId) {
         if (state.createdId != null) onCreated()

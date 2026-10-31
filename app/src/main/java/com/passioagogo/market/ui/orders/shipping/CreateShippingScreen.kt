@@ -1,6 +1,7 @@
 package com.passioagogo.market.ui.orders.shipping
 
 import com.passioagogo.market.ui.common.OpcionesTeclado
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -253,6 +254,9 @@ fun CreateShippingScreen(
         state.createdId?.let { onCreated(it) }
     }
 
+    BackHandler(enabled = true) {
+        onBack()
+    }
     if (state.isLoading) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()

@@ -1,5 +1,6 @@
 package com.passioagogo.market.ui.orders
 
+import androidx.activity.compose.BackHandler
 import com.passioagogo.market.ui.common.OpcionesTeclado
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -70,7 +71,9 @@ fun OrdersListScreen(
     val state by viewModel.uiState.collectAsState()
 
     LaunchedEffect(Unit) { viewModel.refresh() }
-
+    BackHandler(enabled = true) {
+        onBack()
+    }
     Box(Modifier.fillMaxSize()) {
     Column(Modifier.fillMaxSize()) {
         Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
@@ -203,7 +206,9 @@ fun OrderDetailScreen(
 ) {
     val state by viewModel.uiState.collectAsState()
     val order = state.order
-
+    BackHandler(enabled = true) {
+        onBack()
+    }
     Column(
         Modifier
             .fillMaxSize()

@@ -1,5 +1,6 @@
 package com.passioagogo.market.ui.inventory
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Tab
@@ -27,6 +28,10 @@ fun InventoryHomeScreen(
     onBack: ()-> Unit,
 ) {
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
+
+    BackHandler(enabled = true) {
+        onBack()
+    }
 
     Column(Modifier.fillMaxSize()) {
         // Desplazable: con cuatro rótulos no caben fijos en pantallas estrechas
