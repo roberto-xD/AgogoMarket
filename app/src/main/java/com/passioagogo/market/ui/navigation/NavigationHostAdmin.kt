@@ -76,7 +76,10 @@ internal fun NavGraphBuilder.NavigationHostAdmin(
         )
     }
     composable<NavigationRoutes.Request>{
-        RequestDetailScreen(onBack = onBack)
+        RequestDetailScreen(
+            onBack = onBack,
+            onIrAEnvios = { navController.navigate(NavigationRoutes.Envios) },
+        )
     }
     composable<NavigationRoutes.GalleryList>{
         GalleryListScreen(

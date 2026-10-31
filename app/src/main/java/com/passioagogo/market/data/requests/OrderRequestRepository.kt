@@ -160,19 +160,6 @@ interface OrderRequestRepository {
     suspend fun markAttended(id: String, orderId: String): DataResult<Unit>
     suspend fun reject(id: String, motivo: String): DataResult<Unit>
 
-    /**
-     * Marca la solicitud como atendida sin pedido asociado.
-     * Se usa al generar la guía: el envío ya quedó resuelto.
-     */
-    suspend fun marcarAtendidaPorGuia(id: String): DataResult<Unit>
-
-    /**
-     * Devuelve la solicitud a «enviada» tras cancelar su guía.
-     *
-     * Sin guía el envío vuelve a estar por resolver; dejarla en atendida
-     * la escondería de la lista de pendientes.
-     */
-    suspend fun devolverAEnviada(id: String): DataResult<Unit>
 }
 
 @Singleton
@@ -268,26 +255,6 @@ class OrderRequestRepositoryImpl @Inject constructor(
                 postgrest.from(REQUESTS).update({
                     set("estado", RequestStatus.ATENDIDA)
                     set("order_id", orderId)
-                }) { filter { eq("id", id) } }
-                Unit
-            }
-        }
-
-    override suspend fun marcarAtendidaPorGuia(id: String): DataResult<Unit> =
-        withContext(io) {
-            safeSupabaseCall("marcarAtendidaPorGuia") {
-                postgrest.from(REQUESTS).update({
-                    set("estado", RequestStatus.ATENDIDA)
-                }) { filter { eq("id", id) } }
-                Unit
-            }
-        }
-
-    override suspend fun devolverAEnviada(id: String): DataResult<Unit> =
-        withContext(io) {
-            safeSupabaseCall("devolverAEnviada") {
-                postgrest.from(REQUESTS).update({
-                    set("estado", RequestStatus.ENVIADA)
                 }) { filter { eq("id", id) } }
                 Unit
             }

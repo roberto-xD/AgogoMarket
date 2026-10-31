@@ -28,6 +28,9 @@ import androidx.compose.material.icons.filled.Storefront
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.foundation.clickable
+import androidx.compose.material.icons.filled.Print
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -184,6 +187,9 @@ class RequestDetailViewModel @Inject constructor(
                         CartLine(variantId = it.variantId, cantidad = it.cantidad)
                     },
                     metodo = state.metodo,
+                    // Si ya se generó la guía, su costo entra en la venta:
+                    // es un gasto de este pedido, no de la tienda.
+                    costoEnvio = state.envio?.guiaCosto ?: 0.0,
                     // El método queda en la nota del pedido: al prepararlo
                     // ya no hay que volver a la solicitud para saberlo.
                     notas = "Solicitud #${request.folio} · ${request.clienteNombre}" +
@@ -230,17 +236,17 @@ class RequestDetailViewModel @Inject constructor(
         _uiState.update { it.copy(cancelacionHecha = null) }
 
     /**
-     * Cancela la guía y devuelve la solicitud a «enviada».
+     * Cancela la guía.
      *
-     * El estado vuelve atrás porque sin guía el envío está otra vez por
-     * resolver: dejarla en atendida la escondería de la lista de pendientes.
+     * El estado de la solicitud NO se toca: solo cambia cuando se
+     * convierte en venta a mano. Generar o cancelar una guía es una
+     * operación de envío, no de venta.
      */
     fun onCancelarGuia() {
         _uiState.update { it.copy(confirmandoCancelar = false, cancelando = true) }
         viewModelScope.launch {
             when (val r = envioApi.cancelarGuia(requestId)) {
                 is ResultadoCancelacion.Ok -> {
-                    requestRepository.devolverAEnviada(requestId)
                     _uiState.update {
                         it.copy(cancelando = false, cancelacionHecha = r.cancelacion)
                     }
@@ -274,10 +280,12 @@ class RequestDetailViewModel @Inject constructor(
 @Composable
 fun RequestDetailScreen(
     onBack: () -> Unit,
+    onIrAEnvios: () -> Unit = {},
     viewModel: RequestDetailViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsState()
     val request = state.request
+    val contextoDetalle = LocalContext.current
 
     if (state.isLoading) {
         Box(Modifier.fillMaxSize(), Alignment.Center) { CircularProgressIndicator() }
@@ -316,44 +324,93 @@ fun RequestDetailScreen(
 
         Spacer(Modifier.height(12.dp))
 
-        // Destacado: decide si hay que preparar un envío o no, y es lo
-        // primero que necesita saber quien atiende la solicitud.
+        // Dos caras según haya guía o no: sin ella lleva a Envíos para
+        // generarla; con ella muestra los datos y el acceso al PDF.
+        val guia = state.envio?.takeIf { it.tieneGuia }
         Card(
             colors = CardDefaults.cardColors(
-                containerColor = when (request.metodoEntrega) {
-                    MetodoEntrega.DOMICILIO -> MaterialTheme.colorScheme.tertiaryContainer
-                    MetodoEntrega.PERSONAL -> MaterialTheme.colorScheme.secondaryContainer
+                containerColor = when {
+                    request.metodoEntrega == MetodoEntrega.PERSONAL ->
+                        MaterialTheme.colorScheme.secondaryContainer
+                    guia != null -> MaterialTheme.colorScheme.surfaceVariant
+                    else -> MaterialTheme.colorScheme.errorContainer
                 },
             ),
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .then(
+                    // Sin guía y con envío: la tarjeta lleva a generarla
+                    if (request.metodoEntrega == MetodoEntrega.DOMICILIO && guia == null) {
+                        Modifier.clickable { onIrAEnvios() }
+                    } else Modifier
+                ),
         ) {
-            Row(
-                Modifier.padding(12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Icon(
-                    when (request.metodoEntrega) {
-                        MetodoEntrega.DOMICILIO -> Icons.Filled.LocalShipping
-                        MetodoEntrega.PERSONAL -> Icons.Filled.Storefront
-                    },
-                    contentDescription = null,
-                )
-                Spacer(Modifier.width(12.dp))
-                Column {
-                    Text(
-                        request.metodoEntrega.etiqueta,
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold,
-                    )
-                    Text(
+            Column(Modifier.padding(12.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
                         when (request.metodoEntrega) {
-                            MetodoEntrega.DOMICILIO ->
-                                "Consulta su dirección en Clientes para preparar la guía."
-                            MetodoEntrega.PERSONAL ->
-                                "No requiere envío: se entrega en mano."
+                            MetodoEntrega.DOMICILIO -> Icons.Filled.LocalShipping
+                            MetodoEntrega.PERSONAL -> Icons.Filled.Storefront
                         },
-                        style = MaterialTheme.typography.bodySmall,
+                        contentDescription = null,
                     )
+                    Spacer(Modifier.width(12.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text(
+                            request.metodoEntrega.etiqueta,
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                        )
+                        Text(
+                            when {
+                                request.metodoEntrega == MetodoEntrega.PERSONAL ->
+                                    "No requiere envío: se entrega en mano."
+                                guia != null -> guia.guiaNumero.orEmpty()
+                                else -> "Sin guía todavía. Toca para generarla."
+                            },
+                            style = if (guia != null) {
+                                MaterialTheme.typography.bodyLarge
+                            } else {
+                                MaterialTheme.typography.bodySmall
+                            },
+                            fontWeight = if (guia != null) FontWeight.SemiBold
+                            else FontWeight.Normal,
+                        )
+                        guia?.let { g ->
+                            Text(
+                                listOfNotNull(
+                                    g.guiaPaqueteria?.ifBlank { null },
+                                    g.guiaServicio?.ifBlank { null },
+                                    g.guiaCosto?.takeIf { it > 0 }
+                                        ?.let { monedaDetalle.format(it) },
+                                    g.guiaGeneradaEn?.take(10),
+                                ).joinToString("  ·  "),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+                }
+
+                guia?.let { g ->
+                    Spacer(Modifier.height(8.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        g.guiaUrl?.takeIf { it.isNotBlank() }?.let { url ->
+                            TextButton(onClick = { abrirPdf(contextoDetalle, url) }) {
+                                Icon(Icons.Filled.Print, contentDescription = null)
+                                Text("  Abrir guía")
+                            }
+                        }
+                        TextButton(
+                            onClick = viewModel::onPedirCancelarGuia,
+                            enabled = !state.cancelando,
+                        ) {
+                            Text(
+                                if (state.cancelando) "Cancelando…" else "Cancelar guía",
+                                color = MaterialTheme.colorScheme.error,
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -551,6 +608,48 @@ fun RequestDetailScreen(
         )
     }
 
+    if (state.confirmandoCancelar) {
+        AlertDialog(
+            onDismissRequest = viewModel::onCerrarCancelar,
+            title = { Text("Cancelar la guía") },
+            text = {
+                Text(
+                    "Cancelar y recuperar el dinero no son lo mismo: una guía ya " +
+                        "escaneada no se cancela, y cada paquetería tiene su plazo. " +
+                        "Te diremos si hubo devolución.",
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = viewModel::onCancelarGuia) { Text("Cancelar guía") }
+            },
+            dismissButton = {
+                TextButton(onClick = viewModel::onCerrarCancelar) { Text("Volver") }
+            },
+        )
+    }
+
+    state.cancelacionHecha?.let { c ->
+        AlertDialog(
+            onDismissRequest = viewModel::onCerrarCancelacionHecha,
+            title = { Text("Guía cancelada") },
+            text = {
+                Text(
+                    if (c.devuelto) {
+                        "La paquetería confirmó la devolución del importe."
+                    } else {
+                        "La guía quedó cancelada, pero la paquetería NO confirmó " +
+                            "devolución. Revísalo en su panel si esperabas recuperarlo."
+                    },
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = viewModel::onCerrarCancelacionHecha) {
+                    Text("Entendido")
+                }
+            },
+        )
+    }
+
     state.folioPedido?.let { folio ->
         AlertDialog(
             onDismissRequest = viewModel::onDismissFolio,
@@ -559,6 +658,20 @@ fun RequestDetailScreen(
             confirmButton = {
                 TextButton(onClick = viewModel::onDismissFolio) { Text("Entendido") }
             },
+        )
+    }
+}
+
+
+/** Abre el PDF de la guía en el visor del teléfono. */
+private fun abrirPdf(context: android.content.Context, url: String) {
+    if (url.isBlank()) return
+    runCatching {
+        context.startActivity(
+            android.content.Intent(
+                android.content.Intent.ACTION_VIEW,
+                android.net.Uri.parse(url),
+            )
         )
     }
 }

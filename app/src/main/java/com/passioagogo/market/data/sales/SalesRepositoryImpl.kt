@@ -100,6 +100,9 @@ class SalesRepositoryImpl @Inject constructor(
                     NewOrderDto(
                         locationId = request.locationId,
                         customerId = request.customerId,
+                        // Lo que costó la guía, si la venta vino de una
+                        // solicitud con envío ya despachado.
+                        costoEnvio = request.costoEnvio,
                         notas = request.notas,
                         createdBy = userId,
                     )

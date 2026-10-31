@@ -70,6 +70,8 @@ data class CheckoutRequest(
     val customerId: String? = null,
     /** Descuento manual a nivel pedido (0 = sin descuento). */
     val descuentoPedido: Double = 0.0,
+    /** Lo que costó la guía, cuando la venta sale de una solicitud con envío. */
+    val costoEnvio: Double = 0.0,
     val notas: String? = null,
 )
 
