@@ -44,6 +44,8 @@ data class EnviosUiState(
     val errorMessage: String? = null,
     /** Solicitud marcada para recolección antes de generar. */
     val marcadasParaRecoger: Set<String> = emptySet(),
+    /** Solicitud para la que se está eligiendo otra paquetería. */
+    val cambiandoPaqueteria: EnvioSolicitud? = null,
 ) {
     /** Las que esperan camión, agrupadas: una recolección por paquetería. */
     val porPaqueteria: List<Pair<String, List<GuiaPendiente>>>
@@ -108,7 +110,28 @@ class EnviosViewModel @Inject constructor(
      * guarda descifrada ni se escribe en disco: lo que está cifrado en la
      * base sigue cifrado.
      */
-    fun onGenerarGuia(solicitud: EnvioSolicitud) {
+    fun onPedirCambioPaqueteria(solicitud: EnvioSolicitud) =
+        _uiState.update { it.copy(cambiandoPaqueteria = solicitud) }
+
+    fun onCancelarCambio() = _uiState.update { it.copy(cambiandoPaqueteria = null) }
+
+    /**
+     * Genera la guía con otra paquetería.
+     *
+     * Quien eligió una muchas veces no eligió un precio sino en quién
+     * confía, así que esto pasa por una confirmación aparte y conviene
+     * avisar al cliente después.
+     */
+    fun onGenerarConOtraPaqueteria(solicitud: EnvioSolicitud, carrier: String) {
+        _uiState.update { it.copy(cambiandoPaqueteria = null) }
+        onGenerarGuia(solicitud, carrier = carrier.trim().lowercase(), permitirCambio = true)
+    }
+
+    fun onGenerarGuia(
+        solicitud: EnvioSolicitud,
+        carrier: String? = null,
+        permitirCambio: Boolean = false,
+    ) {
         // Una guía a la vez: cada una cuesta dinero, y dos peticiones
         // simultáneas podrían emitir dos etiquetas pagadas.
         if (_uiState.value.generando != null) return
@@ -144,7 +167,9 @@ class EnviosViewModel @Inject constructor(
             val resultado = envioApi.generarGuia(
                 solicitudId = solicitud.id,
                 direccion = direccion,
+                carrier = carrier,
                 recoleccion = solicitud.id in _uiState.value.marcadasParaRecoger,
+                permitirCambio = permitirCambio,
             )
             when (resultado) {
                 is ResultadoGuia.Ok -> {

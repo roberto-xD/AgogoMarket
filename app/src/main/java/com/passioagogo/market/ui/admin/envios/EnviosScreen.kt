@@ -35,6 +35,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
@@ -224,6 +225,53 @@ fun EnviosScreen(
         )
     }
 
+    state.cambiandoPaqueteria?.let { solicitud ->
+        var carrier by remember(solicitud.id) { mutableStateOf("") }
+        AlertDialog(
+            onDismissRequest = viewModel::onCancelarCambio,
+            title = { Text("Enviar por otra paquetería") },
+            text = {
+                Column {
+                    Text(
+                        "El cliente eligió " +
+                            (solicitud.envioPaqueteria?.ifBlank { null }
+                                ?: "una paquetería") +
+                            " al cotizar.",
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        "Quien elige paquetería muchas veces no está eligiendo " +
+                            "precio sino en quién confía. Cámbiala solo si hace " +
+                            "falta —no cubre la ruta, rechaza la guía— y avísale.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    OutlinedTextField(
+                        value = carrier,
+                        onValueChange = { carrier = it },
+                        label = { Text("Paquetería") },
+                        placeholder = { Text("estafeta, fedex, paquetexpress…") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    enabled = carrier.isNotBlank(),
+                    onClick = {
+                        viewModel.onGenerarConOtraPaqueteria(solicitud, carrier)
+                    },
+                ) { Text("Generar") }
+            },
+            dismissButton = {
+                TextButton(onClick = viewModel::onCancelarCambio) { Text("Cancelar") }
+            },
+        )
+    }
+
     state.errorMessage?.let { mensaje ->
         val contexto = LocalContext.current
         AlertDialog(
@@ -330,6 +378,13 @@ private fun PendientesTab(state: EnviosUiState, viewModel: EnviosViewModel) {
                     // al pulsar uno TODOS se atenuaban a la vez y parecía
                     // que se habían pulsado todos. El ViewModel ignora
                     // llamadas simultáneas, así que no hace falta apagarlos.
+                    // Discreto a propósito: cambiar de paquetería es la
+                    // excepción, no la vía normal.
+                    TextButton(
+                        onClick = { viewModel.onPedirCambioPaqueteria(solicitud) },
+                        enabled = !generando && state.claveDesbloqueada,
+                    ) { Text("Otra") }
+                    Spacer(Modifier.width(4.dp))
                     Button(
                         onClick = { viewModel.onGenerarGuia(solicitud) },
                         enabled = !generando && state.claveDesbloqueada,
