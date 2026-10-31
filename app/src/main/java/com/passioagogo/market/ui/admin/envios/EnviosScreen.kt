@@ -61,6 +61,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.passioagogo.market.data.envio.EnvioSolicitud
 import com.passioagogo.market.data.envio.GuiaPendiente
+import com.passioagogo.market.ui.common.VisorPdf
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -81,6 +82,8 @@ fun EnviosScreen(
     var pestana by rememberSaveable { mutableIntStateOf(0) }
     val pestanas = PestanaEnvios.entries
     val context = LocalContext.current
+    // Guía abierta en el visor interno; null = cerrado
+    var pdfAbierto by remember { mutableStateOf<Pair<String, String>?>(null) }
 
     BackHandler(enabled = true) {
         if (pestana != 0) pestana = 0 else onBack()
@@ -155,7 +158,11 @@ fun EnviosScreen(
 
         when (pestanas[pestana]) {
             PestanaEnvios.PENDIENTES -> PendientesTab(state, viewModel)
-            PestanaEnvios.GUIAS -> GuiasTab(state, context, viewModel::onPedirCancelarGuia)
+            PestanaEnvios.GUIAS -> GuiasTab(
+                state = state,
+                onAbrirGuia = { url, titulo -> pdfAbierto = url to titulo },
+                onCancelar = viewModel::onPedirCancelarGuia,
+            )
             PestanaEnvios.RECOLECCION -> RecoleccionTab(state, viewModel)
         }
     }
@@ -207,7 +214,7 @@ fun EnviosScreen(
                 TextButton(
                     enabled = guia.url.isNotBlank(),
                     onClick = {
-                        abrir(context, guia.url)
+                        pdfAbierto = guia.url to "Guía ${guia.numero}"
                         viewModel.onCerrarGuia()
                     },
                 ) { Text("Abrir etiqueta") }
@@ -247,6 +254,10 @@ fun EnviosScreen(
                 TextButton(onClick = viewModel::onCerrarRecoleccion) { Text("Entendido") }
             },
         )
+    }
+
+    pdfAbierto?.let { (url, titulo) ->
+        VisorPdf(url = url, titulo = titulo, onDismiss = { pdfAbierto = null })
     }
 
     state.cancelando?.let { solicitud ->
@@ -518,7 +529,7 @@ private fun PendientesTab(state: EnviosUiState, viewModel: EnviosViewModel) {
 @Composable
 private fun GuiasTab(
     state: EnviosUiState,
-    context: Context,
+    onAbrirGuia: (String, String) -> Unit,
     onCancelar: (EnvioSolicitud) -> Unit,
 ) {
     if (state.conGuia.isEmpty()) {
@@ -573,7 +584,11 @@ private fun GuiasTab(
                     )
                 }
                 solicitud.guiaUrl?.takeIf { it.isNotBlank() }?.let { url ->
-                    IconButton(onClick = { abrir(context, url) }) {
+                    IconButton(
+                        onClick = {
+                            onAbrirGuia(url, "Guía ${solicitud.guiaNumero.orEmpty()}")
+                        },
+                    ) {
                         Icon(Icons.Filled.Print, contentDescription = "Abrir etiqueta")
                     }
                 }
@@ -700,19 +715,6 @@ private fun RecoleccionTab(state: EnviosUiState, viewModel: EnviosViewModel) {
     }
 }
 
-/** Abre la etiqueta en el visor de PDF del teléfono. */
-private fun abrir(context: Context, url: String) {
-    if (url.isBlank()) return
-    try {
-        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
-    } catch (e: ActivityNotFoundException) {
-        Toast.makeText(
-            context,
-            "No hay una app para abrir la etiqueta",
-            Toast.LENGTH_SHORT,
-        ).show()
-    }
-}
 
 @Composable
 private fun Centrado(content: @Composable () -> Unit) {

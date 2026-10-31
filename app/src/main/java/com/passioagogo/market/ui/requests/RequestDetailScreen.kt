@@ -30,7 +30,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.filled.Print
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -70,6 +69,7 @@ import com.passioagogo.market.domain.inventory.LocationRepository
 import com.passioagogo.market.domain.sales.CartLine
 import com.passioagogo.market.domain.sales.CheckoutRequest
 import com.passioagogo.market.domain.sales.SalesRepository
+import com.passioagogo.market.ui.common.VisorPdf
 import com.passioagogo.market.ui.common.toMessage
 import com.passioagogo.market.ui.inventory.transfers.VariantInfo
 import com.passioagogo.market.ui.inventory.transfers.variantIndex
@@ -285,7 +285,7 @@ fun RequestDetailScreen(
 ) {
     val state by viewModel.uiState.collectAsState()
     val request = state.request
-    val contextoDetalle = LocalContext.current
+    var pdfGuia by remember { mutableStateOf<Pair<String, String>?>(null) }
 
     if (state.isLoading) {
         Box(Modifier.fillMaxSize(), Alignment.Center) { CircularProgressIndicator() }
@@ -396,7 +396,11 @@ fun RequestDetailScreen(
                     Spacer(Modifier.height(8.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         g.guiaUrl?.takeIf { it.isNotBlank() }?.let { url ->
-                            TextButton(onClick = { abrirPdf(contextoDetalle, url) }) {
+                            TextButton(
+                                onClick = {
+                                    pdfGuia = url to "Guía ${g.guiaNumero.orEmpty()}"
+                                },
+                            ) {
                                 Icon(Icons.Filled.Print, contentDescription = null)
                                 Text("  Abrir guía")
                             }
@@ -608,6 +612,10 @@ fun RequestDetailScreen(
         )
     }
 
+    pdfGuia?.let { (url, titulo) ->
+        VisorPdf(url = url, titulo = titulo, onDismiss = { pdfGuia = null })
+    }
+
     if (state.confirmandoCancelar) {
         AlertDialog(
             onDismissRequest = viewModel::onCerrarCancelar,
@@ -663,15 +671,3 @@ fun RequestDetailScreen(
 }
 
 
-/** Abre el PDF de la guía en el visor del teléfono. */
-private fun abrirPdf(context: android.content.Context, url: String) {
-    if (url.isBlank()) return
-    runCatching {
-        context.startActivity(
-            android.content.Intent(
-                android.content.Intent.ACTION_VIEW,
-                android.net.Uri.parse(url),
-            )
-        )
-    }
-}
