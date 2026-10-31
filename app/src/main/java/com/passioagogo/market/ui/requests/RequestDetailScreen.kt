@@ -51,6 +51,11 @@ import com.passioagogo.market.core.preferences.UserPreferences
 import com.passioagogo.market.core.result.DataResult
 import com.passioagogo.market.data.requests.OrderRequest
 import com.passioagogo.market.data.requests.MetodoEntrega
+import com.passioagogo.market.data.envio.Cancelacion
+import com.passioagogo.market.data.envio.EnvioApi
+import com.passioagogo.market.data.envio.EnvioRepository
+import com.passioagogo.market.data.envio.EnvioSolicitud
+import com.passioagogo.market.data.envio.ResultadoCancelacion
 import com.passioagogo.market.data.requests.OrderRequestRepository
 import com.passioagogo.market.domain.auth.AuthRepository
 import com.passioagogo.market.domain.auth.SessionState
@@ -97,6 +102,11 @@ data class RequestDetailUiState(
     val showRejectDialog: Boolean = false,
     val errorMessage: String? = null,
     val folioPedido: Long? = null,
+    /** Datos de envío de esta solicitud; null mientras se cargan. */
+    val envio: EnvioSolicitud? = null,
+    val confirmandoCancelar: Boolean = false,
+    val cancelando: Boolean = false,
+    val cancelacionHecha: Cancelacion? = null,
 ) {
     val puedeAtender: Boolean
         get() = esAdmin && request?.estado == RequestStatus.ENVIADA
@@ -105,6 +115,8 @@ data class RequestDetailUiState(
 @HiltViewModel
 class RequestDetailViewModel @Inject constructor(
     private val requestRepository: OrderRequestRepository,
+    private val envioRepository: EnvioRepository,
+    private val envioApi: EnvioApi,
     private val salesRepository: SalesRepository,
     private val locationRepository: LocationRepository,
     private val catalogRepository: CatalogRepository,
@@ -212,8 +224,41 @@ class RequestDetailViewModel @Inject constructor(
         }
     }
 
+    fun onPedirCancelarGuia() = _uiState.update { it.copy(confirmandoCancelar = true) }
+    fun onCerrarCancelar() = _uiState.update { it.copy(confirmandoCancelar = false) }
+    fun onCerrarCancelacionHecha() =
+        _uiState.update { it.copy(cancelacionHecha = null) }
+
+    /**
+     * Cancela la guía y devuelve la solicitud a «enviada».
+     *
+     * El estado vuelve atrás porque sin guía el envío está otra vez por
+     * resolver: dejarla en atendida la escondería de la lista de pendientes.
+     */
+    fun onCancelarGuia() {
+        _uiState.update { it.copy(confirmandoCancelar = false, cancelando = true) }
+        viewModelScope.launch {
+            when (val r = envioApi.cancelarGuia(requestId)) {
+                is ResultadoCancelacion.Ok -> {
+                    requestRepository.devolverAEnviada(requestId)
+                    _uiState.update {
+                        it.copy(cancelando = false, cancelacionHecha = r.cancelacion)
+                    }
+                    load()
+                }
+                is ResultadoCancelacion.Fallo -> _uiState.update {
+                    it.copy(cancelando = false, errorMessage = r.mensaje)
+                }
+            }
+        }
+    }
+
     private suspend fun load() {
         _uiState.update { it.copy(isLoading = true) }
+        val envio = envioRepository.porId(requestId)
+        _uiState.update {
+            it.copy(envio = (envio as? DataResult.Success)?.data)
+        }
         val result = requestRepository.getRequest(requestId)
         _uiState.update { state ->
             when (result) {

@@ -12,9 +12,12 @@ import com.passioagogo.market.data.envio.DireccionEnClaro
 import com.passioagogo.market.data.envio.EnvioApi
 import com.passioagogo.market.data.envio.EnvioRepository
 import com.passioagogo.market.data.envio.EnvioSolicitud
+import com.passioagogo.market.data.envio.Cancelacion
 import com.passioagogo.market.data.envio.Guia
+import com.passioagogo.market.data.envio.Cancelacion
 import com.passioagogo.market.data.envio.GuiaPendiente
 import com.passioagogo.market.data.envio.Recoleccion
+import com.passioagogo.market.data.envio.ResultadoCancelacion
 import com.passioagogo.market.data.envio.ResultadoGuia
 import com.passioagogo.market.data.envio.ResultadoRecoleccion
 import com.passioagogo.market.ui.common.toMessage
@@ -47,6 +50,11 @@ data class EnviosUiState(
     /** Guía recién creada, para mostrar e imprimir. */
     val guiaGenerada: Guia? = null,
     val recoleccionHecha: Recoleccion? = null,
+    /** Guía pendiente de confirmar su cancelación. */
+    val cancelando: EnvioSolicitud? = null,
+    val cancelacionHecha: Cancelacion? = null,
+    /** Solicitud con una operación en curso distinta de generar. */
+    val procesando: String? = null,
     val aviso: String? = null,
     val errorMessage: String? = null,
     /** Solicitud marcada para recolección antes de generar. */
@@ -156,6 +164,43 @@ class EnviosViewModel @Inject constructor(
             else it.marcadasParaRecoger - solicitudId,
         )
     }
+
+    /** Guía cuya cancelación se está confirmando. */
+    fun onPedirCancelarGuia(solicitud: EnvioSolicitud) =
+        _uiState.update { it.copy(cancelando = solicitud) }
+
+    fun onCerrarCancelacion() = _uiState.update { it.copy(cancelando = null) }
+
+    /**
+     * Cancela una guía ya emitida.
+     *
+     * Cancelar y recuperar el dinero no son lo mismo: una guía escaneada
+     * no se cancela y cada paquetería tiene su plazo, así que el aviso de
+     * si hubo devolución se muestra tal cual en vez de darlo por hecho.
+     */
+    fun onCancelarGuia(solicitud: EnvioSolicitud) {
+        _uiState.update { it.copy(cancelando = null, procesando = solicitud.id) }
+        viewModelScope.launch {
+            when (val r = envioApi.cancelarGuia(solicitud.id)) {
+                is ResultadoCancelacion.Ok -> {
+                    _uiState.update {
+                        it.copy(
+                            procesando = null,
+                            cancelacionHecha = r.cancelacion,
+                            aviso = r.aviso,
+                        )
+                    }
+                    refresh()
+                }
+                is ResultadoCancelacion.Fallo -> _uiState.update {
+                    it.copy(procesando = null, errorMessage = r.mensaje)
+                }
+            }
+        }
+    }
+
+    fun onCerrarCancelacionHecha() =
+        _uiState.update { it.copy(cancelacionHecha = null, aviso = null) }
 
     fun onCerrarGuia() = _uiState.update { it.copy(guiaGenerada = null, aviso = null) }
     fun onCerrarRecoleccion() =

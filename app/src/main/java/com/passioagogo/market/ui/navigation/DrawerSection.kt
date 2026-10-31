@@ -34,7 +34,7 @@ enum class DrawerSection(
     COMPRAS          (NavigationRoutes.Purchases                 , "Compras"     , Icons.Filled.ShoppingCart),
     PROVEEDORES      (NavigationRoutes.Suppliers                 , "Proveedores" , Icons.Filled.LocalShipping),
     PEDIDOS          (NavigationRoutes.OrdersList                , "Pedidos"     , Icons.AutoMirrored.Filled.ReceiptLong),
-    SOLICITUDES_ADMIN(NavigationRoutes.RequestList()             , "Solicitudes de promotores", Icons.Filled.AssignmentTurnedIn),
+    SOLICITUDES_ADMIN(NavigationRoutes.RequestList()             , "Ventas y solicitudes", Icons.Filled.AssignmentTurnedIn),
     ETIQUETAS        (NavigationRoutes.Attributes                , "Etiquetas de atributos", Icons.Filled.Label),
     ESTADISTICAS     (NavigationRoutes.Stats                     , "Estadísticas", Icons.Filled.BarChart),
     UBICACIONES      (NavigationRoutes.Locations                 , "Ubicaciones" , Icons.Filled.Store),

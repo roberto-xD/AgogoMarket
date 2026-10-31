@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.Print
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.foundation.clickable
@@ -154,7 +155,7 @@ fun EnviosScreen(
 
         when (pestanas[pestana]) {
             PestanaEnvios.PENDIENTES -> PendientesTab(state, viewModel)
-            PestanaEnvios.GUIAS -> GuiasTab(state, context)
+            PestanaEnvios.GUIAS -> GuiasTab(state, context, viewModel::onPedirCancelarGuia)
             PestanaEnvios.RECOLECCION -> RecoleccionTab(state, viewModel)
         }
     }
@@ -244,6 +245,86 @@ fun EnviosScreen(
             },
             confirmButton = {
                 TextButton(onClick = viewModel::onCerrarRecoleccion) { Text("Entendido") }
+            },
+        )
+    }
+
+    state.cancelando?.let { solicitud ->
+        AlertDialog(
+            onDismissRequest = viewModel::onCerrarCancelacion,
+            title = { Text("Cancelar la guía") },
+            text = {
+                Column {
+                    Text("Guía ${solicitud.guiaNumero} de ${solicitud.guiaPaqueteria}")
+                    Spacer(Modifier.height(12.dp))
+                    Text(
+                        "Cancelar y recuperar el dinero no son lo mismo: una guía ya " +
+                            "escaneada no se cancela, y cada paquetería tiene su " +
+                            "plazo. Te diremos si hubo devolución.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        "La solicitud volverá a quedarse sin guía y podrás generar " +
+                            "otra.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { viewModel.onCancelarGuia(solicitud) }) {
+                    Text("Cancelar guía")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = viewModel::onCerrarCancelacion) { Text("Volver") }
+            },
+        )
+    }
+
+    state.cancelacionHecha?.let { cancelacion ->
+        AlertDialog(
+            onDismissRequest = viewModel::onCerrarCancelacionHecha,
+            title = { Text("Guía cancelada") },
+            text = {
+                Column {
+                    Text("${cancelacion.numero} · ${cancelacion.paqueteria}")
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        if (cancelacion.devuelto) {
+                            "La paquetería confirmó la devolución" +
+                                (cancelacion.costo?.let { " de ${moneda.format(it)}" }
+                                    ?: "") +
+                                cancelacion.fechaDevolucion.ifBlank { "" }
+                                    .let { if (it.isBlank()) "." else " el ${it.take(10)}." }
+                        } else {
+                            "La guía quedó cancelada, pero la paquetería NO confirmó " +
+                                "devolución del importe. Revísalo en su panel si " +
+                                "esperabas recuperarlo."
+                        },
+                        style = MaterialTheme.typography.bodySmall,
+                        color = if (cancelacion.devuelto) {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        } else {
+                            MaterialTheme.colorScheme.error
+                        },
+                    )
+                    state.aviso?.let {
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            it,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error,
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = viewModel::onCerrarCancelacionHecha) {
+                    Text("Entendido")
+                }
             },
         )
     }
@@ -435,7 +516,11 @@ private fun PendientesTab(state: EnviosUiState, viewModel: EnviosViewModel) {
 // ============ Guías ============
 
 @Composable
-private fun GuiasTab(state: EnviosUiState, context: Context) {
+private fun GuiasTab(
+    state: EnviosUiState,
+    context: Context,
+    onCancelar: (EnvioSolicitud) -> Unit,
+) {
     if (state.conGuia.isEmpty()) {
         Centrado {
             Text(
@@ -491,6 +576,13 @@ private fun GuiasTab(state: EnviosUiState, context: Context) {
                     IconButton(onClick = { abrir(context, url) }) {
                         Icon(Icons.Filled.Print, contentDescription = "Abrir etiqueta")
                     }
+                }
+                IconButton(onClick = { onCancelar(solicitud) }) {
+                    Icon(
+                        Icons.Filled.Cancel,
+                        contentDescription = "Cancelar guía",
+                        tint = MaterialTheme.colorScheme.error,
+                    )
                 }
             }
             HorizontalDivider()
