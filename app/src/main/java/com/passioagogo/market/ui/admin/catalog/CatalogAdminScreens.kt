@@ -56,6 +56,8 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material.icons.filled.PhotoCamera
+import com.passioagogo.market.ui.common.rememberCapturaCamara
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
@@ -550,6 +552,12 @@ fun ProductEditScreen(
                 ActivityResultContracts.PickMultipleVisualMedia(maxItems = 5)
             ) { uris -> viewModel.onImagesPicked(uris) }
 
+            // Capturar en el momento evita el rodeo de salir a la cámara,
+            // volver y buscar la foto en la galería.
+            val camara = rememberCapturaCamara { uri ->
+                viewModel.onImagesPicked(listOf(uri))
+            }
+
             Row(
                 Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -559,6 +567,15 @@ fun ProductEditScreen(
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.weight(1f),
                 )
+                IconButton(
+                    enabled = !state.isUploadingImages,
+                    onClick = camara::tomarFoto,
+                ) {
+                    Icon(
+                        Icons.Filled.PhotoCamera,
+                        contentDescription = "Tomar foto",
+                    )
+                }
                 TextButton(
                     enabled = !state.isUploadingImages,
                     onClick = {
@@ -569,7 +586,7 @@ fun ProductEditScreen(
                         )
                     },
                 ) {
-                    Text(if (state.isUploadingImages) "Subiendo…" else "Agregar (máx. 5)")
+                    Text(if (state.isUploadingImages) "Subiendo…" else "Galería")
                 }
             }
             if (state.imagenes.isEmpty()) {

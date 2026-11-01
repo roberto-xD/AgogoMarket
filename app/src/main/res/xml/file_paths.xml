@@ -10,6 +10,11 @@
         name="pdf_cache"
         path="pdfs/" />
 
+    <!-- Fotos tomadas con la cámara, antes de subirlas -->
+    <cache-path
+        name="capturas"
+        path="capturas/" />
+
     <!-- Imágenes de producto descargadas para compartir -->
     <cache-path
         name="imagenes_compartidas"
