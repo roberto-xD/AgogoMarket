@@ -28,6 +28,9 @@ import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.material.icons.filled.LocalShipping
+import com.passioagogo.market.ui.common.SelectorUbicacion
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -75,7 +78,16 @@ data class CreateShippingUiState(
     val addressId: String? = null,
     val locations: List<Location> = emptyList(),
     val locationId: String? = null,
+    /**
+     * Ya no se teclea: el costo real sale de la guía al generarla, así
+     * que el pedido nace en cero y se completa desde Envíos.
+     */
     val costoEnvio: String = "0",
+    /**
+     * Líneas que el usuario dejó sin cantidad pero siguen enfocadas.
+     * Sin esto, borrar el «1» hacía desaparecer la fila al instante.
+     */
+    val sinCantidad: Set<String> = emptySet(),
     val notas: String = "",
     val query: String = "",
     val catalog: List<VariantInfo> = emptyList(),
@@ -155,7 +167,66 @@ class CreateShippingViewModel @Inject constructor(
 
     fun onAddressSelected(id: String) = _uiState.update { it.copy(addressId = id) }
     fun onLocationSelected(id: String) = _uiState.update { it.copy(locationId = id) }
-    fun onCostoEnvioChange(v: String) = _uiState.update { it.copy(costoEnvio = v) }
+    /**
+     * Sustituye los identificadores de la base por nombres legibles.
+     *
+     * Los triggers de stock devuelven mensajes con uuid («Stock
+     * insuficiente para la variante 415320f4-…»), que no le dicen nada a
+     * quien está atendiendo. Aquí se cambian por el producto y la tienda.
+     */
+    private fun conNombres(mensaje: String): String {
+        val estado = _uiState.value
+        var texto = mensaje
+
+        val uuid = Regex("[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-" +
+            "[0-9a-fA-F]{4}-[0-9a-fA-F]{12}")
+        uuid.findAll(mensaje).map { it.value }.distinct().forEach { id ->
+            val nombre = estado.variantIndex[id]?.let { v ->
+                listOfNotNull(v.producto, v.titulo ?: v.sku).joinToString(" · ")
+            }
+                ?: estado.locations.firstOrNull { it.id == id }?.nombre
+                ?: estado.customers.firstOrNull { it.id == id }?.nombre
+            if (nombre != null) texto = texto.replace(id, "«$nombre»")
+        }
+        return texto
+    }
+
+    /**
+     * Texto de la cantidad.
+     *
+     * Vacío no borra la fila: se marca como «sin cantidad» y se avisa.
+     * Quitarla al vaciar el campo hacía que desapareciera mientras se
+     * estaba escribiendo.
+     */
+    fun onCantidadTexto(variantId: String, texto: String) = _uiState.update { state ->
+        val cantidad = texto.toIntOrNull()
+        when {
+            texto.isBlank() -> state.copy(
+                sinCantidad = state.sinCantidad + variantId,
+                lines = state.lines + (variantId to 0),
+            )
+            cantidad == null || cantidad <= 0 -> state.copy(
+                sinCantidad = state.sinCantidad + variantId,
+                lines = state.lines + (variantId to 0),
+            )
+            else -> state.copy(
+                sinCantidad = state.sinCantidad - variantId,
+                lines = state.lines + (variantId to cantidad),
+            )
+        }
+    }
+
+    /** Al perder el foco sin cantidad, la línea sí se retira. */
+    fun onCantidadSinFoco(variantId: String) = _uiState.update { state ->
+        if (variantId in state.sinCantidad) {
+            state.copy(
+                sinCantidad = state.sinCantidad - variantId,
+                lines = state.lines - variantId,
+            )
+        } else {
+            state
+        }
+    }
     fun onNotasChange(v: String) = _uiState.update { it.copy(notas = v) }
     fun onQueryChange(v: String) = _uiState.update { it.copy(query = v) }
     fun onOpenCustomerDialog() = _uiState.update { it.copy(showCustomerDialog = true) }
@@ -188,7 +259,10 @@ class CreateShippingViewModel @Inject constructor(
                     onCustomerSelected(result.data.id)
                 }
                 is DataResult.Error -> _uiState.update {
-                    it.copy(isSaving = false, errorMessage = result.error.toMessage())
+                    it.copy(
+                        isSaving = false,
+                        errorMessage = conNombres(result.error.toMessage()),
+                    )
                 }
             }
         }
@@ -207,7 +281,10 @@ class CreateShippingViewModel @Inject constructor(
                     )
                 }
                 is DataResult.Error -> _uiState.update {
-                    it.copy(isSaving = false, errorMessage = result.error.toMessage())
+                    it.copy(
+                        isSaving = false,
+                        errorMessage = conNombres(result.error.toMessage()),
+                    )
                 }
             }
         }
@@ -235,7 +312,10 @@ class CreateShippingViewModel @Inject constructor(
                     is DataResult.Success ->
                         it.copy(isSaving = false, createdId = result.data.id)
                     is DataResult.Error ->
-                        it.copy(isSaving = false, errorMessage = result.error.toMessage())
+                        it.copy(
+                        isSaving = false,
+                        errorMessage = conNombres(result.error.toMessage()),
+                    )
                 }
             }
         }
@@ -246,16 +326,28 @@ class CreateShippingViewModel @Inject constructor(
 fun CreateShippingScreen(
     onCreated: (String) -> Unit,
     onBack: ()-> Unit,
+    /**
+     * Null si quien usa la pantalla no puede llegar a Envíos.
+     *
+     * La sección es de administración y vive en otro grafo: mostrar el
+     * icono a un vendedor lo llevaría a una ruta que no existe.
+     */
+    onIrAEnvios: (() -> Unit)? = null,
     viewModel: CreateShippingViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsState()
+    var confirmarSalida by remember { mutableStateOf(false) }
 
     LaunchedEffect(state.createdId) {
         state.createdId?.let { onCreated(it) }
     }
 
+    // Salir pierde lo capturado: se confirma solo si hay algo que perder.
+    val hayCambios = state.lines.isNotEmpty() || state.customerId != null ||
+        state.notas.isNotBlank()
+
     BackHandler(enabled = true) {
-        onBack()
+        if (hayCambios) confirmarSalida = true else onBack()
     }
     if (state.isLoading) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -269,6 +361,28 @@ fun CreateShippingScreen(
             .fillMaxSize()
             .padding(16.dp)
     ) {
+        // Despachar desde: va primero porque decide qué existencias
+        // aplican, y en la práctica no se cambia durante la captura.
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            SelectorUbicacion(
+                locations = state.locations,
+                locationId = state.locationId,
+                onSelected = { id -> id?.let(viewModel::onLocationSelected) },
+                etiqueta = "Despachar desde",
+                modifier = Modifier.weight(1f),
+            )
+            // El costo del envío ya no se teclea: sale de la guía
+            onIrAEnvios?.let { ir ->
+                IconButton(onClick = ir) {
+                    Icon(
+                        Icons.Filled.LocalShipping,
+                        contentDescription = "Envíos y guías",
+                    )
+                }
+            }
+        }
+        Spacer(Modifier.height(8.dp))
+
         // Cliente
         Row(verticalAlignment = Alignment.CenterVertically) {
             PickerDropdown(
@@ -303,25 +417,6 @@ fun CreateShippingScreen(
         }
         Spacer(Modifier.height(8.dp))
 
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            PickerDropdown(
-                label = "Despachar desde",
-                options = state.locations.map { it.id to it.nombre },
-                selectedId = state.locationId,
-                onSelected = viewModel::onLocationSelected,
-                modifier = Modifier.weight(1f),
-            )
-            OutlinedTextField(
-                value = state.costoEnvio,
-                onValueChange = viewModel::onCostoEnvioChange,
-                label = { Text("Envío $") },
-                singleLine = true,
-                isError = state.costoEnvio.toDoubleOrNull() == null,
-                modifier = Modifier.width(100.dp),
-            )
-        }
-        Spacer(Modifier.height(8.dp))
-
         OutlinedTextField(
             value = state.query,
             onValueChange = viewModel::onQueryChange,
@@ -342,7 +437,9 @@ fun CreateShippingScreen(
                     Column(Modifier.weight(1f)) {
                         Text(info.producto)
                         Text(
-                            info.sku,
+                            // El título identifica la presentación mejor
+                            // que el código de inventario.
+                            info.detalle.ifBlank { info.sku },
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -355,30 +452,49 @@ fun CreateShippingScreen(
             if (state.query.isBlank()) {
                 items(state.lines.entries.toList(), key = { "l-${it.key}" }) { (variantId, cantidad) ->
                     val info = state.variantIndex[variantId]
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Column(Modifier.weight(1f)) {
-                            Text(info?.producto ?: variantId)
-                            Text(
-                                info?.sku ?: "",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    val vacia = variantId in state.sinCantidad
+                    Column(Modifier.padding(vertical = 4.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Column(Modifier.weight(1f)) {
+                                Text(info?.producto ?: variantId)
+                                Text(
+                                    info?.detalle?.ifBlank { info.sku } ?: "",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                            OutlinedTextField(
+                                value = if (vacia) "" else cantidad.toString(),
+                                onValueChange = {
+                                    viewModel.onCantidadTexto(variantId, it)
+                                },
+                                singleLine = true,
+                                isError = vacia,
+                                keyboardOptions = OpcionesTeclado.Numero,
+                                modifier = Modifier
+                                    .width(80.dp)
+                                    // Al salir sin cantidad, la línea se retira
+                                    .onFocusChanged { foco ->
+                                        if (!foco.isFocused) {
+                                            viewModel.onCantidadSinFoco(variantId)
+                                        }
+                                    },
                             )
+                            IconButton(
+                                onClick = { viewModel.onQuantityChange(variantId, 0) },
+                            ) {
+                                Icon(Icons.Filled.Delete, contentDescription = "Quitar")
+                            }
                         }
-                        OutlinedTextField(
-                            value = cantidad.toString(),
-                            onValueChange = { text ->
-                                viewModel.onQuantityChange(variantId, text.toIntOrNull() ?: 0)
-                            },
-                            singleLine = true,
-                            modifier = Modifier.width(80.dp),
-                        )
-                        IconButton(onClick = { viewModel.onQuantityChange(variantId, 0) }) {
-                            Icon(Icons.Filled.Delete, contentDescription = "Quitar")
+                        if (vacia) {
+                            Text(
+                                "Sin cantidad no se agregará al pedido actual",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.error,
+                            )
                         }
                     }
                 }
@@ -411,6 +527,30 @@ fun CreateShippingScreen(
         ) {
             Text(if (state.isSaving) "Creando…" else "Crear envío (descuenta stock)")
         }
+    }
+
+    if (confirmarSalida) {
+        AlertDialog(
+            onDismissRequest = { confirmarSalida = false },
+            title = { Text("Salir sin guardar") },
+            text = {
+                Text(
+                    "Se perderá lo que llevas capturado en este pedido: los " +
+                        "productos agregados, el cliente y las notas.",
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    confirmarSalida = false
+                    onBack()
+                }) { Text("Salir") }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmarSalida = false }) {
+                    Text("Seguir capturando")
+                }
+            },
+        )
     }
 
     if (state.showCustomerDialog) {
@@ -626,3 +766,4 @@ private fun AddressDialog(
         dismissButton = { TextButton(onClick = onDismiss) { Text("Cancelar") } },
     )
 }
+
