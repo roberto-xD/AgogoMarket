@@ -258,7 +258,9 @@ fun OrderDetailScreen(
                                 )
                                 Text(
                                     listOfNotNull(
-                                        info?.sku,
+                                        // El título identifica la presentación
+                                        // mejor que el código de inventario.
+                                        info?.detalle?.ifBlank { info.sku },
                                         "${item.cantidad} × ${moneda.format(item.precioUnitario)}",
                                     ).joinToString("  ·  "),
                                     style = MaterialTheme.typography.bodySmall,
