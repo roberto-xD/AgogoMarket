@@ -129,6 +129,52 @@ interface SalesRepository {
      */
     suspend fun createShippingOrder(draft: ShippingOrderDraft): DataResult<Order>
 
+    // ---- Pedido abierto ----
+    //
+    // Un pedido de envío nace en 'pendiente': existe, se le pueden
+    // agregar artículos y asignarle cliente, pero NO descuenta stock
+    // hasta confirmarlo. Así se corrige sin tener que cancelar y
+    // recapturar todo.
+
+    /** Crea el pedido con sus primeras líneas y lo deja abierto. */
+    suspend fun crearPedidoAbierto(
+        locationId: String,
+        lines: List<CartLine>,
+    ): DataResult<Order>
+
+    /** Pedidos de envío aún sin confirmar. */
+    suspend fun getPedidosAbiertos(
+        locationId: String? = null,
+        masNuevosPrimero: Boolean = true,
+    ): DataResult<List<Order>>
+
+    /** Agrega una línea; el servidor recotiza el precio del día. */
+    suspend fun agregarLinea(
+        orderId: String,
+        variantId: String,
+        cantidad: Int,
+    ): DataResult<Unit>
+
+    suspend fun quitarLinea(orderId: String, itemId: String): DataResult<Unit>
+
+    /** Datos del envío, que pueden asignarse después de crear el pedido. */
+    suspend fun actualizarDatosPedido(
+        orderId: String,
+        customerId: String? = null,
+        shippingAddressId: String? = null,
+        costoEnvio: Double? = null,
+        notas: String? = null,
+    ): DataResult<Order>
+
+    /**
+     * Confirma: congela la dirección y descuenta stock.
+     * Falla si no alcanza la existencia, que es la comprobación real.
+     */
+    suspend fun confirmarPedido(orderId: String): DataResult<Order>
+
+    /** Descarta un pedido abierto. */
+    suspend fun descartarPedido(orderId: String): DataResult<Unit>
+
     /** confirmado → en_transito, registrando paquetería y guía. */
     suspend fun shipOrder(id: String, paqueteria: String, numeroGuia: String): DataResult<Order>
 

@@ -66,6 +66,7 @@ class SalesRepositoryImpl @Inject constructor(
 
     private companion object {
         const val ORDERS = "orders"
+        const val ORDER_ITEMS = "order_items"
         const val PAYMENTS = "payments"
         const val RPC_PRECIO = "fn_precio_vigente"
         const val RPC_AGREGAR = "fn_agregar_item"
@@ -343,4 +344,144 @@ class SalesRepositoryImpl @Inject constructor(
             }) { filter { eq("id", orderId) } }
         }
     }
+
+    // ============ Pedido abierto ============
+
+    override suspend fun crearPedidoAbierto(
+        locationId: String,
+        lines: List<CartLine>,
+    ): DataResult<Order> = withContext(io) {
+        val userId = auth.currentUserOrNull()?.id
+            ?: return@withContext DataResult.Error(DataError.Unauthorized)
+        if (lines.isEmpty()) {
+            return@withContext DataResult.Error(
+                DataError.Business("El pedido no tiene artículos")
+            )
+        }
+
+        val created = safeSupabaseCall("crearPedidoAbierto") {
+            postgrest.from(ORDERS).insert(
+                NewOrderDto(
+                    locationId = locationId,
+                    tipo = OrderType.ENVIO,
+                    createdBy = userId,
+                )
+            ) { select() }.decodeSingle<OrderDto>()
+        }
+        val order = when (created) {
+            is DataResult.Error -> return@withContext created
+            is DataResult.Success -> created.data
+        }
+
+        for (line in lines) {
+            val added = agregarLinea(order.id, line.variantId, line.cantidad)
+            if (added is DataResult.Error) {
+                // Sin líneas el pedido no sirve: se descarta en vez de
+                // dejar un vacío rondando en la lista de abiertos.
+                tryCancel(order.id)
+                return@withContext added
+            }
+        }
+        getOrder(order.id)
+    }
+
+    override suspend fun getPedidosAbiertos(
+        locationId: String?,
+        masNuevosPrimero: Boolean,
+    ): DataResult<List<Order>> = withContext(io) {
+        safeSupabaseCall("getPedidosAbiertos") {
+            postgrest.from(ORDERS).select(ORDER_COLUMNS) {
+                filter {
+                    eq("estado", OrderStatus.PENDIENTE)
+                    eq("tipo", OrderType.ENVIO)
+                    locationId?.let { eq("location_id", it) }
+                }
+                order(
+                    "created_at",
+                    if (masNuevosPrimero) Order.DESCENDING else Order.ASCENDING,
+                )
+                limit(100)
+            }.decodeList<OrderDto>()
+        }.map { list -> list.map { it.toDomain() } }
+    }
+
+    override suspend fun agregarLinea(
+        orderId: String,
+        variantId: String,
+        cantidad: Int,
+    ): DataResult<Unit> = withContext(io) {
+        safeSupabaseCall("agregarLinea") {
+            // El servidor recotiza con la promoción del día y congela el
+            // precio en la línea: no se calcula nada en el cliente.
+            postgrest.rpc(
+                RPC_AGREGAR,
+                buildJsonObject {
+                    put("p_order", orderId)
+                    put("p_variant", variantId)
+                    put("p_cantidad", cantidad)
+                },
+            )
+            Unit
+        }
+    }
+
+    override suspend fun quitarLinea(
+        orderId: String,
+        itemId: String,
+    ): DataResult<Unit> = withContext(io) {
+        safeSupabaseCall("quitarLinea") {
+            postgrest.from(ORDER_ITEMS).delete {
+                filter {
+                    eq("id", itemId)
+                    eq("order_id", orderId)
+                }
+            }
+            Unit
+        }
+    }
+
+    override suspend fun actualizarDatosPedido(
+        orderId: String,
+        customerId: String?,
+        shippingAddressId: String?,
+        costoEnvio: Double?,
+        notas: String?,
+    ): DataResult<Order> = withContext(io) {
+        safeSupabaseCall("actualizarDatosPedido") {
+            postgrest.from(ORDERS).update({
+                customerId?.let { set("customer_id", it) }
+                shippingAddressId?.let { set("shipping_address_id", it) }
+                costoEnvio?.let { set("costo_envio", it) }
+                notas?.let { set("notas", it) }
+            }) {
+                select(ORDER_COLUMNS)
+                filter { eq("id", orderId) }
+            }.decodeSingle<OrderDto>()
+        }.map { it.toDomain() }
+    }
+
+    override suspend fun confirmarPedido(orderId: String): DataResult<Order> =
+        withContext(io) {
+            safeSupabaseCall("confirmarPedido") {
+                // Aquí es donde los triggers descuentan stock y congelan la
+                // dirección. Si no alcanza la existencia, falla y el pedido
+                // se queda abierto, que es lo correcto.
+                postgrest.from(ORDERS).update({
+                    set("estado", OrderStatus.CONFIRMADO)
+                }) {
+                    select(ORDER_COLUMNS)
+                    filter { eq("id", orderId) }
+                }.decodeSingle<OrderDto>()
+            }.map { it.toDomain() }
+        }
+
+    override suspend fun descartarPedido(orderId: String): DataResult<Unit> =
+        withContext(io) {
+            safeSupabaseCall("descartarPedido") {
+                postgrest.from(ORDERS).update({
+                    set("estado", OrderStatus.CANCELADO)
+                }) { filter { eq("id", orderId) } }
+                Unit
+            }
+        }
 }
