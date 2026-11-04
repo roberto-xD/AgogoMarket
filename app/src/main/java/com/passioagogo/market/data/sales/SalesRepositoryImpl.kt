@@ -398,7 +398,7 @@ class SalesRepositoryImpl @Inject constructor(
                 }
                 order(
                     "created_at",
-                    if (masNuevosPrimero) Order.DESCENDING else Order.ASCENDING,
+                    if (masNuevosPrimero) SortOrder.DESCENDING else SortOrder.ASCENDING,
                 )
                 limit(100)
             }.decodeList<OrderDto>()

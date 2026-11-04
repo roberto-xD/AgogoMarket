@@ -20,6 +20,10 @@ import com.passioagogo.market.ui.admin.purchases.PurchasesListScreen
 import com.passioagogo.market.ui.admin.stats.StatsScreen
 import com.passioagogo.market.ui.admin.suppliers.SuppliersScreen
 import com.passioagogo.market.ui.admin.envios.EnviosScreen
+import com.passioagogo.market.ui.orders.OrderDetailScreen
+import com.passioagogo.market.ui.orders.shipping.CreateShippingScreen
+import com.passioagogo.market.ui.orders.open.EditOpenOrderScreen
+import com.passioagogo.market.ui.orders.open.OpenOrdersScreen
 import com.passioagogo.market.ui.admin.wheel.WheelScreen
 import com.passioagogo.market.ui.admin.users.UsersScreen
 import com.passioagogo.market.ui.requests.RequestDetailScreen
@@ -92,6 +96,42 @@ internal fun NavGraphBuilder.NavigationHostAdmin(
         GalleryEditScreen(
             onBack = onBack,
             onSaved = onBack
+        )
+    }
+    // El admin también crea y consulta pedidos de envío: estas rutas
+    // vivían solo en el grafo del vendedor.
+    composable<NavigationRoutes.NewShipping>{
+        CreateShippingScreen(
+            onBack = { navController.popBackStack() },
+            onCreated = { orderId ->
+                navController.navigate(NavigationRoutes.EditOpenOrder(orderId)) {
+                    popUpTo(NavigationRoutes.OpenOrders)
+                }
+            },
+            onIrAEnvios = { navController.navigate(NavigationRoutes.Envios) },
+        )
+    }
+    composable<NavigationRoutes.Order>{
+        OrderDetailScreen(onBack = { navController.popBackStack() })
+    }
+
+    composable<NavigationRoutes.OpenOrders>{
+        OpenOrdersScreen(
+            onAbrirPedido = { id ->
+                navController.navigate(NavigationRoutes.EditOpenOrder(id))
+            },
+            onNuevoPedido = { navController.navigate(NavigationRoutes.NewShipping) },
+            onBack = onBack,
+        )
+    }
+    composable<NavigationRoutes.EditOpenOrder>{
+        EditOpenOrderScreen(
+            onConfirmado = { id ->
+                navController.navigate(NavigationRoutes.Order(id)) {
+                    popUpTo(NavigationRoutes.OpenOrders)
+                }
+            },
+            onBack = { navController.popBackStack() },
         )
     }
     composable<NavigationRoutes.Envios>{
