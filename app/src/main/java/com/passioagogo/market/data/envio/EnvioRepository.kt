@@ -67,9 +67,6 @@ data class EnvioSolicitud(
 }
 
 @Serializable
-data class CreadorDto(val rol: String)
-
-@Serializable
 data class EnvioSolicitudDto(
     val id: String,
     val folio: Long,
@@ -77,8 +74,8 @@ data class EnvioSolicitudDto(
     @SerialName("cliente_telefono") val clienteTelefono: String? = null,
     val estado: String? = null,
     @SerialName("created_by") val createdBy: String,
-    /** Alias del embebido: order_requests tiene dos FK a profiles. */
-    val creador: CreadorDto? = null,
+    /** La vista ya resuelve el rol de quien la levantó. */
+    @SerialName("creador_rol") val creadorRol: String? = null,
     @SerialName("envio_paqueteria") val envioPaqueteria: String? = null,
     @SerialName("envio_servicio") val envioServicio: String? = null,
     @SerialName("guia_numero") val guiaNumero: String? = null,
@@ -101,7 +98,7 @@ data class EnvioSolicitudDto(
         id = id, folio = folio, clienteNombre = clienteNombre,
         clienteTelefono = clienteTelefono, estado = estado.orEmpty(),
         createdBy = createdBy,
-        creadorRol = creador?.rol,
+        creadorRol = creadorRol,
         envioPaqueteria = envioPaqueteria, envioServicio = envioServicio,
         guiaNumero = guiaNumero, guiaUrl = guiaUrl, guiaRastreoUrl = guiaRastreoUrl,
         guiaPaqueteria = guiaPaqueteria, guiaServicio = guiaServicio,
@@ -136,16 +133,24 @@ class EnvioRepositoryImpl @Inject constructor(
 ) : EnvioRepository {
 
     private companion object {
-        const val TABLE = "order_requests"
-        // El embebido lleva alias porque order_requests tiene dos FK
-        // hacia profiles (created_by y atendida_por).
+        /**
+         * Vista de administración, no la tabla.
+         *
+         * El script 47 quitó a `authenticated` el permiso sobre
+         * `order_requests` y repuso solo las columnas del cliente: el PDF
+         * de la guía y su costo quedaron fuera a propósito. El admin usa
+         * el mismo rol, así que lee por una vista que corre con los
+         * permisos de su dueño y filtra por `is_admin()`.
+         */
+        const val TABLE = "v_envios_admin"
+        // Sin embebidos: la vista ya trae el rol del creador resuelto.
         val COLUMNAS = Columns.raw(
             "id, folio, cliente_nombre, cliente_telefono, estado, created_by, " +
                 "envio_paqueteria, envio_servicio, " +
                 "guia_numero, guia_url, guia_rastreo_url, guia_paqueteria, " +
                 "guia_servicio, guia_costo, guia_generada_en, " +
                 "necesita_recoleccion, recoleccion_id, recoleccion_fecha, created_at, " +
-                "creador:profiles!created_by(rol)"
+                "creador_rol"
         )
     }
 
