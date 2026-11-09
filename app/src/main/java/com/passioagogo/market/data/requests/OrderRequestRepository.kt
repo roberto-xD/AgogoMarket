@@ -172,8 +172,18 @@ class OrderRequestRepositoryImpl @Inject constructor(
     private companion object {
         const val REQUESTS = "order_requests"
         const val ITEMS = "order_request_items"
+        /**
+         * Columnas explícitas, no `*`.
+         *
+         * El script 47 quitó el permiso sobre la tabla entera y repuso
+         * solo lo que el cliente puede ver; un `*` pide también las
+         * columnas vetadas y la consulta entera devuelve 403.
+         */
         val REQUEST_COLUMNS = Columns.raw(
-            "*, order_request_items(*), creador:profiles!created_by(nombre)",
+            "id, folio, estado, cliente_nombre, cliente_telefono, cliente_email, " +
+                "notas, metodo_entrega, total_estimado, created_by, order_id, " +
+                "motivo_rechazo, created_at, " +
+                "order_request_items(*), creador:profiles!created_by(nombre)",
         )
     }
 

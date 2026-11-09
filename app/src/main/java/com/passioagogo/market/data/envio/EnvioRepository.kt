@@ -5,14 +5,14 @@ import com.passioagogo.market.core.result.DataResult
 import com.passioagogo.market.core.result.map
 import com.passioagogo.market.core.result.safeSupabaseCall
 import io.github.jan.supabase.postgrest.Postgrest
-import io.github.jan.supabase.postgrest.query.Columns
-import io.github.jan.supabase.postgrest.query.Order
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 
 /**
  * Una solicitud desde la óptica del envío.
@@ -134,77 +134,51 @@ class EnvioRepositoryImpl @Inject constructor(
 
     private companion object {
         /**
-         * Vista de administración, no la tabla.
+         * Función de administración, no la tabla.
          *
          * El script 47 quitó a `authenticated` el permiso sobre
          * `order_requests` y repuso solo las columnas del cliente: el PDF
-         * de la guía y su costo quedaron fuera a propósito. El admin usa
-         * el mismo rol, así que lee por una vista que corre con los
-         * permisos de su dueño y filtra por `is_admin()`.
+         * de la guía, su costo y la recolección quedaron fuera a
+         * propósito. El admin usa el mismo rol, así que lee por una
+         * función SECURITY DEFINER que comprueba `is_admin()` y lanza si
+         * no lo es.
          */
-        const val TABLE = "v_envios_admin"
-        // Sin embebidos: la vista ya trae el rol del creador resuelto.
-        val COLUMNAS = Columns.raw(
-            "id, folio, cliente_nombre, cliente_telefono, estado, created_by, " +
-                "envio_paqueteria, envio_servicio, " +
-                "guia_numero, guia_url, guia_rastreo_url, guia_paqueteria, " +
-                "guia_servicio, guia_costo, guia_generada_en, " +
-                "necesita_recoleccion, recoleccion_id, recoleccion_fecha, created_at, " +
-                "creador_rol"
-        )
+        const val RPC = "fn_envios_admin"
     }
 
     override suspend fun pendientesDeGuia(): DataResult<List<EnvioSolicitud>> =
         withContext(io) {
             safeSupabaseCall("pendientesDeGuia") {
-                postgrest.from(TABLE).select(COLUMNAS) {
-                    filter {
-                        // Solo las de domicilio: una entrega en persona no
-                        // lleva guía y la función la rechazaría.
-                        eq("metodo_entrega", "domicilio")
-                        // Solo las abiertas: una atendida ya se convirtió en
-                        // pedido y su envío se gestiona desde ahí, no aquí.
-                        eq("estado", "enviada")
-                    }
-                    order("created_at", Order.ASCENDING)
-                    limit(100)
-                }.decodeList<EnvioSolicitudDto>()
-            }.map { list ->
-                // El «sin guía» se filtra aquí y no en la consulta: el
-                // conjunto ya viene acotado por estado y método, y así no
-                // dependemos de cómo exprese PostgREST un `is null`.
-                list.map { it.toDomain() }
-                    .filter { it.guiaNumero.isNullOrBlank() }
-                    // Solo las del cliente: las de promotor no tienen
-                    // dirección cifrada y quedan fuera hasta que el
-                    // esquema guarde el destinatario por separado.
-                    .filter { it.tieneDireccionCifrada }
-            }
+                // El filtro vive en la función: domicilio, abierta, sin
+                // guía y levantada por el cliente.
+                postgrest.rpc(
+                    RPC,
+                    buildJsonObject {
+                        put("p_solo_sin_guia", true)
+                        put("p_limite", 100)
+                    },
+                ).decodeList<EnvioSolicitudDto>()
+            }.map { list -> list.map { it.toDomain() } }
         }
 
     override suspend fun conGuia(limite: Int): DataResult<List<EnvioSolicitud>> =
         withContext(io) {
             safeSupabaseCall("conGuia") {
-                postgrest.from(TABLE).select(COLUMNAS) {
-                    // Las que tienen guía primero: las sin generar quedan
-                    // al final y se descartan abajo.
-                    order(
-                        "guia_generada_en",
-                        Order.DESCENDING,
-                        nullsFirst = false,
-                    )
-                    limit(limite.toLong())
-                }.decodeList<EnvioSolicitudDto>()
+                postgrest.rpc(
+                    RPC,
+                    buildJsonObject { put("p_limite", limite) },
+                ).decodeList<EnvioSolicitudDto>()
             }.map { list ->
-                list.filterNot { it.guiaNumero.isNullOrBlank() }.map { it.toDomain() }
+                list.map { it.toDomain() }.filterNot { it.guiaNumero.isNullOrBlank() }
             }
         }
 
     override suspend fun porId(id: String): DataResult<EnvioSolicitud> = withContext(io) {
         safeSupabaseCall("envioPorId") {
-            postgrest.from(TABLE).select(COLUMNAS) {
-                filter { eq("id", id) }
-            }.decodeSingle<EnvioSolicitudDto>()
+            postgrest.rpc(
+                RPC,
+                buildJsonObject { put("p_id", id) },
+            ).decodeList<EnvioSolicitudDto>().first()
         }.map { it.toDomain() }
     }
 }
