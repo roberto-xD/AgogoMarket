@@ -392,8 +392,10 @@ class SalesRepositoryImpl @Inject constructor(
         safeSupabaseCall("getPedidosAbiertos") {
             postgrest.from(ORDERS).select(ORDER_COLUMNS) {
                 filter {
-                    eq("estado", OrderStatus.PENDIENTE)
-                    eq("tipo", OrderType.ENVIO)
+                    // .sql y no el enum: en un filtro se serializa con
+                    // toString() y PostgreSQL rechaza las mayúsculas.
+                    eq("estado", OrderStatus.PENDIENTE.sql)
+                    eq("tipo", OrderType.ENVIO.sql)
                     locationId?.let { eq("location_id", it) }
                 }
                 order(

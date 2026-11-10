@@ -42,7 +42,10 @@ enum class RequestStatus {
 @Serializable
 enum class OrderType {
     @SerialName("mostrador") MOSTRADOR,
-    @SerialName("envio") ENVIO,
+    @SerialName("envio") ENVIO;
+
+    /** Ver la nota en [OrderStatus.sql]. */
+    val sql: String get() = name.lowercase()
 }
 
 @Serializable
@@ -51,7 +54,19 @@ enum class OrderStatus {
     @SerialName("confirmado") CONFIRMADO,
     @SerialName("en_transito") EN_TRANSITO,
     @SerialName("entregado") ENTREGADO,
-    @SerialName("cancelado") CANCELADO,
+    @SerialName("cancelado") CANCELADO;
+
+    /**
+     * El valor tal como lo guarda PostgreSQL.
+     *
+     * Hace falta porque los filtros de PostgREST serializan el enum con
+     * `toString()`, que devuelve el nombre Kotlin en mayúsculas, no el
+     * `@SerialName`. En un `eq()` eso produce un 400:
+     * «invalid input value for enum order_status: "PENDIENTE"».
+     *
+     * Al escribir no pasa: ahí sí se usa `@SerialName`.
+     */
+    val sql: String get() = name.lowercase()
 }
 
 @Serializable
