@@ -20,6 +20,7 @@ import com.passioagogo.market.ui.admin.purchases.PurchasesListScreen
 import com.passioagogo.market.ui.admin.stats.StatsScreen
 import com.passioagogo.market.ui.admin.suppliers.SuppliersScreen
 import com.passioagogo.market.ui.admin.envios.EnviosScreen
+import com.passioagogo.market.ui.admin.pagos.CobrosScreen
 import com.passioagogo.market.ui.orders.OrderDetailScreen
 import com.passioagogo.market.ui.orders.shipping.CreateShippingScreen
 import com.passioagogo.market.ui.orders.open.EditOpenOrderScreen
@@ -133,6 +134,9 @@ internal fun NavGraphBuilder.NavigationHostAdmin(
             },
             onBack = { navController.popBackStack() },
         )
+    }
+    composable<NavigationRoutes.Cobros>{
+        CobrosScreen(onBack = onBack)
     }
     composable<NavigationRoutes.Envios>{
         EnviosScreen(onBack = onBack)
