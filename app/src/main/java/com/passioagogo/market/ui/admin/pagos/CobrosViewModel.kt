@@ -5,6 +5,10 @@ import androidx.lifecycle.viewModelScope
 import com.passioagogo.market.core.result.DataResult
 import com.passioagogo.market.data.pagos.Cobro
 import com.passioagogo.market.data.pagos.PagosRepository
+import com.passioagogo.market.data.pagos.PorReembolsar
+import com.passioagogo.market.data.pagos.Reembolso
+import com.passioagogo.market.data.pagos.ReembolsoApi
+import com.passioagogo.market.data.pagos.ResultadoReembolso
 import com.passioagogo.market.ui.common.toMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.text.SimpleDateFormat
@@ -30,6 +34,12 @@ data class CobrosUiState(
     val soloAprobadas: Boolean = true,
     val isLoading: Boolean = false,
     val detalle: Cobro? = null,
+    // ---- Devoluciones ----
+    val porReembolsar: List<PorReembolsar> = emptyList(),
+    /** Solicitud cuya devolución se está confirmando. */
+    val reembolsando: PorReembolsar? = null,
+    val procesandoReembolso: Boolean = false,
+    val reembolsoHecho: Reembolso? = null,
     val errorMessage: String? = null,
 ) {
     val cobrado: Double get() = cobros.sumOf { it.pagoTotal ?: 0.0 }
@@ -56,6 +66,7 @@ data class CobrosUiState(
 @HiltViewModel
 class CobrosViewModel @Inject constructor(
     private val repository: PagosRepository,
+    private val reembolsoApi: ReembolsoApi,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CobrosUiState())
@@ -73,6 +84,42 @@ class CobrosViewModel @Inject constructor(
         refresh()
     }
 
+    // ---- Devoluciones ----
+
+    fun onPedirReembolso(item: PorReembolsar) =
+        _uiState.update { it.copy(reembolsando = item) }
+
+    fun onCancelarReembolso() = _uiState.update { it.copy(reembolsando = null) }
+    fun onCerrarReembolsoHecho() = _uiState.update { it.copy(reembolsoHecho = null) }
+
+    /**
+     * Devuelve el dinero.
+     *
+     * [monto] null devuelve todo. Una parcial no cancela la solicitud:
+     * una compra devuelta a medias sigue en pie.
+     */
+    fun onReembolsar(
+        item: PorReembolsar,
+        monto: Double? = null,
+        nota: String? = null,
+        devolverCodigo: Boolean = true,
+    ) {
+        _uiState.update { it.copy(reembolsando = null, procesandoReembolso = true) }
+        viewModelScope.launch {
+            when (val r = reembolsoApi.reembolsar(item.id, monto, nota, devolverCodigo)) {
+                is ResultadoReembolso.Ok -> {
+                    _uiState.update {
+                        it.copy(procesandoReembolso = false, reembolsoHecho = r.reembolso)
+                    }
+                    refresh()
+                }
+                is ResultadoReembolso.Fallo -> _uiState.update {
+                    it.copy(procesandoReembolso = false, errorMessage = r.mensaje)
+                }
+            }
+        }
+    }
+
     fun onVerDetalle(cobro: Cobro) = _uiState.update { it.copy(detalle = cobro) }
     fun onCerrarDetalle() = _uiState.update { it.copy(detalle = null) }
     fun onCerrarError() = _uiState.update { it.copy(errorMessage = null) }
@@ -87,10 +134,14 @@ class CobrosViewModel @Inject constructor(
                 soloAprobadas = _uiState.value.soloAprobadas,
                 limite = 500,
             )
+            val cola = reembolsoApi.porReembolsar()
+
             _uiState.update { estado ->
                 estado.copy(
                     isLoading = false,
                     cobros = (r as? DataResult.Success)?.data ?: estado.cobros,
+                    porReembolsar = (cola as? DataResult.Success)?.data
+                        ?: estado.porReembolsar,
                     errorMessage = (r as? DataResult.Error)?.error?.toMessage(),
                 )
             }

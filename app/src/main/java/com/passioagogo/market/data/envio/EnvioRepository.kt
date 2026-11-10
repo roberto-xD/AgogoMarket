@@ -50,8 +50,17 @@ data class EnvioSolicitud(
     val necesitaRecoleccion: Boolean,
     val recoleccionId: String?,
     val recoleccionFecha: String?,
+    /** El cliente pidió cancelar y el dinero sigue cobrado. */
+    val cancelacionSolicitadaAt: String?,
+    /** Cancelada de verdad: sin pago, o con el reembolso hecho. */
+    val canceladaAt: String?,
+    val canceladaPor: String?,
+    val cancelacionMotivo: String?,
     val createdAt: String?,
 ) {
+    /** Ni se despacha ni se cobra: está fuera de juego. */
+    val cancelada: Boolean
+        get() = canceladaAt != null || cancelacionSolicitadaAt != null
     val tieneGuia: Boolean get() = !guiaNumero.isNullOrBlank()
 
     /**
@@ -92,6 +101,10 @@ data class EnvioSolicitudDto(
     @SerialName("necesita_recoleccion") val necesitaRecoleccion: Boolean? = null,
     @SerialName("recoleccion_id") val recoleccionId: String? = null,
     @SerialName("recoleccion_fecha") val recoleccionFecha: String? = null,
+    @SerialName("cancelacion_solicitada_at") val cancelacionSolicitadaAt: String? = null,
+    @SerialName("cancelada_at") val canceladaAt: String? = null,
+    @SerialName("cancelada_por") val canceladaPor: String? = null,
+    @SerialName("cancelacion_motivo") val cancelacionMotivo: String? = null,
     @SerialName("created_at") val createdAt: String? = null,
 ) {
     fun toDomain() = EnvioSolicitud(
@@ -105,7 +118,10 @@ data class EnvioSolicitudDto(
         guiaCosto = guiaCosto, guiaGeneradaEn = guiaGeneradaEn,
         necesitaRecoleccion = necesitaRecoleccion ?: false,
         recoleccionId = recoleccionId,
-        recoleccionFecha = recoleccionFecha, createdAt = createdAt,
+        recoleccionFecha = recoleccionFecha,
+        cancelacionSolicitadaAt = cancelacionSolicitadaAt, canceladaAt = canceladaAt,
+        canceladaPor = canceladaPor, cancelacionMotivo = cancelacionMotivo,
+        createdAt = createdAt,
     )
 }
 

@@ -22,12 +22,21 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.OutlinedTextField
+import com.passioagogo.market.ui.common.OpcionesTeclado
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -59,9 +68,34 @@ fun CobrosScreen(
         SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US).format(Date())
     }
 
-    BackHandler(enabled = true) { onBack() }
+    var pestana by rememberSaveable { mutableIntStateOf(0) }
+
+    BackHandler(enabled = true) {
+        if (pestana != 0) pestana = 0 else onBack()
+    }
 
     Column(Modifier.fillMaxSize()) {
+        TabRow(selectedTabIndex = pestana) {
+            Tab(
+                selected = pestana == 0,
+                onClick = { pestana = 0 },
+                text = { Text("Cobros") },
+            )
+            Tab(
+                selected = pestana == 1,
+                onClick = { pestana = 1 },
+                text = {
+                    val n = state.porReembolsar.size
+                    Text(if (n > 0) "Por devolver ($n)" else "Por devolver")
+                },
+            )
+        }
+
+        if (pestana == 1) {
+            TabDevoluciones(state, viewModel)
+            return@Column
+        }
+
         // ---- Filtros ----
         Row(
             modifier = Modifier
@@ -317,3 +351,213 @@ private fun Cifra(etiqueta: String, monto: Double, destacado: Boolean = false) {
 @Composable
 private fun Linea(etiqueta: String, monto: Double, destacado: Boolean = false) =
     Cifra(etiqueta, monto, destacado)
+
+
+/**
+ * Cancelaciones que el cliente pidió y siguen cobradas.
+ *
+ * Devolver el dinero es una decisión de una persona, no un automatismo:
+ * de ahí el botón y la confirmación con el importe a la vista.
+ */
+@Composable
+private fun TabDevoluciones(state: CobrosUiState, viewModel: CobrosViewModel) {
+    if (state.porReembolsar.isEmpty()) {
+        Box(
+            Modifier
+                .fillMaxSize()
+                .padding(32.dp),
+            Alignment.Center,
+        ) {
+            Text(
+                "No hay cancelaciones esperando devolución.",
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+            )
+        }
+        return
+    }
+
+    LazyColumn {
+        items(state.porReembolsar, key = { it.id }) { item ->
+            Column(Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
+                Text(
+                    "#${item.folio} · ${item.clienteNombre}",
+                    style = MaterialTheme.typography.bodyLarge,
+                )
+                Text(
+                    listOfNotNull(
+                        item.pagoTotal?.let { moneda.format(it) },
+                        item.clienteTelefono,
+                        item.solicitadaAt?.take(10),
+                    ).joinToString("  ·  "),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                item.motivo?.takeIf { it.isNotBlank() }?.let {
+                    Text(
+                        "Motivo: $it",
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
+
+                // Con guía no se devuelve: el paquete puede ir en camino.
+                // Primero se cancela la guía desde Envíos.
+                if (item.bloqueadaPorGuia) {
+                    Spacer(Modifier.height(8.dp))
+                    Card(
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.errorContainer,
+                        ),
+                    ) {
+                        Text(
+                            "Tiene guía ${item.guiaNumero}. Cancélala primero en " +
+                                "Envíos y guías: mientras exista, el paquete puede " +
+                                "estar en camino.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onErrorContainer,
+                            modifier = Modifier.padding(12.dp),
+                        )
+                    }
+                } else {
+                    Spacer(Modifier.height(8.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        TextButton(
+                            onClick = { viewModel.onPedirReembolso(item) },
+                            enabled = !state.procesandoReembolso,
+                        ) {
+                            Text(
+                                if (state.procesandoReembolso) "Devolviendo…"
+                                else "Devolver el dinero",
+                            )
+                        }
+                    }
+                }
+            }
+            HorizontalDivider()
+        }
+    }
+
+    // ---- Confirmación ----
+    state.reembolsando?.let { item ->
+        var parcial by remember(item.id) { mutableStateOf("") }
+        var devolverCodigo by remember(item.id) { mutableStateOf(true) }
+        val montoParcial = parcial.toDoubleOrNull()
+        val cobrado = item.pagoTotal ?: 0.0
+        val parcialValida = parcial.isBlank() ||
+            (montoParcial != null && montoParcial > 0 && montoParcial <= cobrado)
+
+        AlertDialog(
+            onDismissRequest = viewModel::onCancelarReembolso,
+            title = { Text("Devolver #${item.folio}") },
+            text = {
+                Column {
+                    Text(
+                        "Se devolverán ${moneda.format(cobrado)} a " +
+                            "${item.clienteNombre}.",
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    OutlinedTextField(
+                        value = parcial,
+                        onValueChange = { parcial = it },
+                        label = { Text("Importe parcial (opcional)") },
+                        placeholder = { Text("Vacío = todo") },
+                        singleLine = true,
+                        isError = !parcialValida,
+                        supportingText = {
+                            Text(
+                                if (!parcialValida) {
+                                    "Entre 0 y ${moneda.format(cobrado)}"
+                                } else {
+                                    "Una devolución parcial NO cancela la solicitud."
+                                }
+                            )
+                        },
+                        keyboardOptions = OpcionesTeclado.Decimal,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+
+                    if (!item.codigoDescuento.isNullOrBlank()) {
+                        Spacer(Modifier.height(8.dp))
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Checkbox(
+                                checked = devolverCodigo,
+                                onCheckedChange = { devolverCodigo = it },
+                            )
+                            Text(
+                                "Devolver el código ${item.codigoDescuento}",
+                                style = MaterialTheme.typography.bodySmall,
+                            )
+                        }
+                        Text(
+                            "Desactívalo solo si devuelves por abuso: en lo demás, " +
+                                "a quien se le devuelve el dinero se le devuelve " +
+                                "el premio.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    enabled = parcialValida,
+                    onClick = {
+                        viewModel.onReembolsar(
+                            item = item,
+                            monto = montoParcial,
+                            devolverCodigo = devolverCodigo,
+                        )
+                    },
+                ) { Text("Devolver") }
+            },
+            dismissButton = {
+                TextButton(onClick = viewModel::onCancelarReembolso) { Text("Cancelar") }
+            },
+        )
+    }
+
+    // ---- Resultado ----
+    state.reembolsoHecho?.let { r ->
+        AlertDialog(
+            onDismissRequest = viewModel::onCerrarReembolsoHecho,
+            title = { Text(if (r.total) "Devolución hecha" else "Devolución parcial") },
+            text = {
+                Column {
+                    Text("${moneda.format(r.monto)} · #${r.folio}")
+                    if (!r.total) {
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            "La solicitud NO queda cancelada: se devolvió una parte " +
+                                "y la compra sigue en pie.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    r.codigoDevuelto?.let {
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            "El código $it vuelve a estar disponible.",
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                    }
+                    // El dinero salió aunque no se anotara: hay que saberlo
+                    if (!r.guardado) {
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            "El dinero salió, pero no se pudo anotar en la " +
+                                "solicitud. Apunta el reembolso ${r.reembolsoId}.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error,
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = viewModel::onCerrarReembolsoHecho) {
+                    Text("Entendido")
+                }
+            },
+        )
+    }
+}
