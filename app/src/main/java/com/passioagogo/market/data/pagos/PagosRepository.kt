@@ -26,6 +26,7 @@ import kotlinx.serialization.json.put
 data class Cobro(
     val id: String,
     val folio: Long,
+    val codigoPedido: String,
     val clienteNombre: String,
     val estado: String,
     val createdAt: String?,
@@ -63,7 +64,8 @@ data class Cobro(
 @Serializable
 data class CobroDto(
     val id: String,
-    val folio: Long,
+    val folio: Long = 0,
+    @SerialName("codigo_pedido") val codigoPedido: String = "",
     @SerialName("cliente_nombre") val clienteNombre: String = "",
     val estado: String? = null,
     @SerialName("created_at") val createdAt: String? = null,
@@ -88,7 +90,8 @@ data class CobroDto(
     @SerialName("neto_tras_guia") val netoTrasGuia: Double? = null,
 ) {
     fun toDomain() = Cobro(
-        id = id, folio = folio, clienteNombre = clienteNombre,
+        id = id, folio = folio, codigoPedido = codigoPedido,
+        clienteNombre = clienteNombre,
         estado = estado.orEmpty(), createdAt = createdAt,
         totalEstimado = totalEstimado, envioCosto = envioCosto,
         envioGratis = envioGratis, codigoDescuento = codigoDescuento,
@@ -116,6 +119,8 @@ interface PagosRepository {
         hasta: String? = null,
         soloAprobadas: Boolean = false,
         limite: Int = 200,
+        /** Busca por el código que dicta el cliente. */
+        codigo: String? = null,
     ): DataResult<List<Cobro>>
 }
 
@@ -132,6 +137,7 @@ class PagosRepositoryImpl @Inject constructor(
         hasta: String?,
         soloAprobadas: Boolean,
         limite: Int,
+        codigo: String?,
     ): DataResult<List<Cobro>> = withContext(io) {
         safeSupabaseCall("getCobros") {
             postgrest.rpc(
@@ -144,6 +150,7 @@ class PagosRepositoryImpl @Inject constructor(
                     put("p_hasta", hasta?.let { JsonPrimitive(it) } ?: JsonNull)
                     put("p_solo_aprobadas", soloAprobadas)
                     put("p_limite", limite)
+                    put("p_codigo", codigo?.let { JsonPrimitive(it) } ?: JsonNull)
                 },
             ).decodeList<CobroDto>()
         }.map { list -> list.map { it.toDomain() } }

@@ -30,7 +30,12 @@ enum class MetodoEntrega {
 
 data class OrderRequest(
     val id: String,
-    val folio: Long,
+    /**
+     * Lo que el cliente dicta por WhatsApp: cuatro caracteres sin
+     * vocales. Sustituye al folio, que ya no es legible desde la API
+     * por ser consecutivo.
+     */
+    val codigoPedido: String,
     val estado: RequestStatus,
     val clienteNombre: String,
     val clienteTelefono: String?,
@@ -75,7 +80,7 @@ data class OrderRequestDraft(
 @Serializable
 data class OrderRequestDto(
     val id: String,
-    val folio: Long,
+    @SerialName("codigo_pedido") val codigoPedido: String = "",
     val estado: RequestStatus = RequestStatus.ENVIADA,
     @SerialName("cliente_nombre") val clienteNombre: String,
     @SerialName("cliente_telefono") val clienteTelefono: String? = null,
@@ -97,7 +102,8 @@ data class OrderRequestDto(
     @SerialName("order_request_items") val items: List<OrderRequestItemDto> = emptyList(),
 ) {
     fun toDomain() = OrderRequest(
-        id = id, folio = folio, estado = estado, clienteNombre = clienteNombre,
+        id = id, codigoPedido = codigoPedido, estado = estado,
+        clienteNombre = clienteNombre,
         clienteTelefono = clienteTelefono, clienteEmail = clienteEmail, notas = notas,
         metodoEntrega = metodoEntrega,
         totalEstimado = totalEstimado, createdBy = createdBy,
@@ -180,7 +186,11 @@ class OrderRequestRepositoryImpl @Inject constructor(
          * columnas vetadas y la consulta entera devuelve 403.
          */
         val REQUEST_COLUMNS = Columns.raw(
-            "id, folio, estado, cliente_nombre, cliente_telefono, cliente_email, " +
+            // `folio` ya no: el script 52 se lo quitó a `authenticated`
+            // porque es consecutivo y delata el ritmo de la tienda. Lo
+            // sustituye `codigo_pedido`, que es lo que dicta el cliente.
+            "id, codigo_pedido, estado, cliente_nombre, cliente_telefono, " +
+                "cliente_email, " +
                 "notas, metodo_entrega, total_estimado, created_by, order_id, " +
                 "motivo_rechazo, created_at, " +
                 "order_request_items(*), creador:profiles!created_by(nombre)",

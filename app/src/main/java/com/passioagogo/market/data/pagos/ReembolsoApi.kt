@@ -29,7 +29,8 @@ private const val TAG = "PG"
 /** Una cancelación pedida por el cliente, con el dinero aún cobrado. */
 data class PorReembolsar(
     val id: String,
-    val folio: Long,
+    /** Lo que dicta el cliente; el folio ya no es legible desde la API. */
+    val codigoPedido: String,
     val clienteNombre: String,
     val clienteTelefono: String?,
     val pagoTotal: Double?,
@@ -54,7 +55,7 @@ data class PorReembolsar(
 @Serializable
 data class PorReembolsarDto(
     val id: String,
-    val folio: Long,
+    @SerialName("codigo_pedido") val codigoPedido: String = "",
     @SerialName("cliente_nombre") val clienteNombre: String = "",
     @SerialName("cliente_telefono") val clienteTelefono: String? = null,
     @SerialName("pago_total") val pagoTotal: Double? = null,
@@ -68,7 +69,7 @@ data class PorReembolsarDto(
     @SerialName("reembolso_monto") val reembolsoMonto: Double? = null,
 ) {
     fun toDomain() = PorReembolsar(
-        id = id, folio = folio, clienteNombre = clienteNombre,
+        id = id, codigoPedido = codigoPedido, clienteNombre = clienteNombre,
         clienteTelefono = clienteTelefono, pagoTotal = pagoTotal,
         pagoReferencia = pagoReferencia, pagoEstado = pagoEstado,
         guiaNumero = guiaNumero, codigoDescuento = codigoDescuento,
@@ -120,7 +121,7 @@ class ReembolsoApi @Inject constructor(
         // Solo columnas concedidas: el 47 revocó la tabla entera y un
         // `*` haría fallar la consulta completa.
         val COLUMNAS = Columns.raw(
-            "id, folio, cliente_nombre, cliente_telefono, pago_total, " +
+            "id, codigo_pedido, cliente_nombre, cliente_telefono, pago_total, " +
                 "pago_referencia, pago_estado, guia_numero, codigo_descuento, " +
                 "cancelacion_solicitada_at, cancelacion_motivo, " +
                 "reembolso_at, reembolso_monto",

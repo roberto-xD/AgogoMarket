@@ -192,7 +192,7 @@ class RequestDetailViewModel @Inject constructor(
                     costoEnvio = state.envio?.guiaCosto ?: 0.0,
                     // El método queda en la nota del pedido: al prepararlo
                     // ya no hay que volver a la solicitud para saberlo.
-                    notas = "Solicitud #${request.folio} · ${request.clienteNombre}" +
+                    notas = "Solicitud ${request.codigoPedido} · ${request.clienteNombre}" +
                         " · ${request.metodoEntrega.etiqueta}",
                 )
             )
@@ -305,7 +305,7 @@ fun RequestDetailScreen(
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        Text("Solicitud #${request.folio}", style = MaterialTheme.typography.titleLarge)
+        Text("Solicitud ${request.codigoPedido}", style = MaterialTheme.typography.titleLarge)
         Text(
             listOfNotNull(
                 request.estado.etiqueta,

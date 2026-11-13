@@ -22,7 +22,10 @@ import kotlinx.serialization.json.put
  */
 data class EnvioSolicitud(
     val id: String,
+    /** Interno: ordena y es con el que está escrito el historial. */
     val folio: Long,
+    /** Lo que el cliente dicta por WhatsApp. */
+    val codigoPedido: String,
     val clienteNombre: String,
     val clienteTelefono: String?,
     val estado: String,
@@ -78,7 +81,8 @@ data class EnvioSolicitud(
 @Serializable
 data class EnvioSolicitudDto(
     val id: String,
-    val folio: Long,
+    val folio: Long = 0,
+    @SerialName("codigo_pedido") val codigoPedido: String = "",
     @SerialName("cliente_nombre") val clienteNombre: String,
     @SerialName("cliente_telefono") val clienteTelefono: String? = null,
     val estado: String? = null,
@@ -108,7 +112,8 @@ data class EnvioSolicitudDto(
     @SerialName("created_at") val createdAt: String? = null,
 ) {
     fun toDomain() = EnvioSolicitud(
-        id = id, folio = folio, clienteNombre = clienteNombre,
+        id = id, folio = folio, codigoPedido = codigoPedido,
+        clienteNombre = clienteNombre,
         clienteTelefono = clienteTelefono, estado = estado.orEmpty(),
         createdBy = createdBy,
         creadorRol = creadorRol,
@@ -140,6 +145,12 @@ interface EnvioRepository {
     suspend fun conGuia(limite: Int = 100): DataResult<List<EnvioSolicitud>>
 
     suspend fun porId(id: String): DataResult<EnvioSolicitud>
+
+    /**
+     * Busca por el código que dicta el cliente.
+     * Sin esto, «mi pedido K7MD» no se puede localizar.
+     */
+    suspend fun buscarPorCodigo(codigo: String): DataResult<List<EnvioSolicitud>>
 }
 
 @Singleton
@@ -188,6 +199,19 @@ class EnvioRepositoryImpl @Inject constructor(
                 list.map { it.toDomain() }.filterNot { it.guiaNumero.isNullOrBlank() }
             }
         }
+
+    override suspend fun buscarPorCodigo(
+        codigo: String,
+    ): DataResult<List<EnvioSolicitud>> = withContext(io) {
+        safeSupabaseCall("buscarPorCodigo") {
+            // La función normaliza mayúsculas y espacios: llega copiado
+            // de WhatsApp y llega como llegue.
+            postgrest.rpc(
+                RPC,
+                buildJsonObject { put("p_codigo", codigo) },
+            ).decodeList<EnvioSolicitudDto>()
+        }.map { list -> list.map { it.toDomain() } }
+    }
 
     override suspend fun porId(id: String): DataResult<EnvioSolicitud> = withContext(io) {
         safeSupabaseCall("envioPorId") {

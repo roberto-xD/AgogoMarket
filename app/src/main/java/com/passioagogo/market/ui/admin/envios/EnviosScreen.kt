@@ -37,6 +37,12 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -129,6 +135,56 @@ fun EnviosScreen(
                     }
                 }
             }
+        }
+
+        // Lo primero de la pantalla: el cliente escribe «mi pedido K7MD»
+        // y sin esto nadie sabe cuál es.
+        OutlinedTextField(
+            value = state.codigoBuscado,
+            onValueChange = viewModel::onCodigoBuscado,
+            label = { Text("Buscar por código de pedido") },
+            placeholder = { Text("K7MD") },
+            singleLine = true,
+            leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
+            trailingIcon = {
+                if (state.codigoBuscado.isNotBlank()) {
+                    IconButton(onClick = {
+                        viewModel.onCodigoBuscado("")
+                        viewModel.onBuscarCodigo()
+                    }) {
+                        Icon(Icons.Filled.Close, contentDescription = "Limpiar")
+                    }
+                }
+            },
+            keyboardOptions = KeyboardOptions(
+                capitalization = KeyboardCapitalization.Characters,
+                imeAction = ImeAction.Search,
+            ),
+            keyboardActions = KeyboardActions(onSearch = { viewModel.onBuscarCodigo() }),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+        )
+
+        // Con resultados se muestran ellos: el código identifica un pedido
+        // concreto, y filtrar por pestañas aquí solo lo escondería.
+        state.resultadosBusqueda?.let { resultados ->
+            if (resultados.isEmpty()) {
+                Centrado {
+                    Text(
+                        "Ningún pedido con el código ${state.codigoBuscado}.",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                    )
+                }
+            } else {
+                GuiasTab(
+                    state = state.copy(conGuia = resultados),
+                    onAbrirGuia = { url, titulo -> pdfAbierto = url to titulo },
+                    onCancelar = viewModel::onPedirCancelarGuia,
+                )
+            }
+            return@Column
         }
 
         TabRow(selectedTabIndex = pestana) {
@@ -477,7 +533,7 @@ private fun PendientesTab(state: EnviosUiState, viewModel: EnviosViewModel) {
             val generando = state.generando == solicitud.id
             Column(Modifier.padding(horizontal = 16.dp, vertical = 10.dp)) {
                 Text(
-                    "#${solicitud.folio} · ${solicitud.clienteNombre}",
+                    "${solicitud.codigoPedido} · ${solicitud.clienteNombre}",
                     style = MaterialTheme.typography.bodyLarge,
                 )
                 Text(
@@ -552,7 +608,7 @@ private fun GuiasTab(
             ) {
                 Column(Modifier.weight(1f)) {
                     Text(
-                        "#${solicitud.folio} · ${solicitud.clienteNombre}",
+                        "${solicitud.codigoPedido} · ${solicitud.clienteNombre}",
                         style = MaterialTheme.typography.bodyLarge,
                     )
                     Text(

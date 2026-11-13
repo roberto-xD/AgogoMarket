@@ -34,6 +34,9 @@ import kotlinx.coroutines.launch
 
 data class EnviosUiState(
     val pendientes: List<EnvioSolicitud> = emptyList(),
+    /** Búsqueda por el código que dicta el cliente. */
+    val codigoBuscado: String = "",
+    val resultadosBusqueda: List<EnvioSolicitud>? = null,
     val conGuia: List<EnvioSolicitud> = emptyList(),
     val porRecoger: List<GuiaPendiente> = emptyList(),
     val claveDesbloqueada: Boolean = false,
@@ -153,6 +156,40 @@ class EnviosViewModel @Inject constructor(
                     abriendoClave = false,
                     errorClave = "No se pudo abrir con esos datos. Revisa la " +
                         "contraseña y el archivo.",
+                )
+            }
+        }
+    }
+
+    fun onCodigoBuscado(v: String) = _uiState.update {
+        // Al vaciar el campo se vuelve a la lista normal
+        it.copy(
+            codigoBuscado = v.uppercase(),
+            resultadosBusqueda = if (v.isBlank()) null else it.resultadosBusqueda,
+        )
+    }
+
+    /**
+     * Busca el pedido que el cliente dictó por WhatsApp.
+     *
+     * Devuelve también los cancelados y los que ya tienen guía: quien
+     * pregunta por su pedido quiere saber dónde está, sea cual sea su
+     * estado.
+     */
+    fun onBuscarCodigo() {
+        val codigo = _uiState.value.codigoBuscado.trim()
+        if (codigo.isBlank()) {
+            _uiState.update { it.copy(resultadosBusqueda = null) }
+            return
+        }
+        _uiState.update { it.copy(isLoading = true) }
+        viewModelScope.launch {
+            val r = envioRepository.buscarPorCodigo(codigo)
+            _uiState.update {
+                it.copy(
+                    isLoading = false,
+                    resultadosBusqueda = (r as? DataResult.Success)?.data ?: emptyList(),
+                    errorMessage = (r as? DataResult.Error)?.error?.toMessage(),
                 )
             }
         }

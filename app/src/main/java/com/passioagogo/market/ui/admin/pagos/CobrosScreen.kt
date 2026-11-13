@@ -197,7 +197,7 @@ fun CobrosScreen(
     state.detalle?.let { c ->
         AlertDialog(
             onDismissRequest = viewModel::onCerrarDetalle,
-            title = { Text("Venta #${c.folio}") },
+            title = { Text("Venta ${c.codigoPedido}") },
             text = {
                 Column {
                     Text(c.clienteNombre, style = MaterialTheme.typography.titleSmall)
@@ -298,7 +298,7 @@ private fun FilaCobro(cobro: Cobro, onClick: () -> Unit) {
     ) {
         Column(Modifier.weight(1f)) {
             Text(
-                "#${cobro.folio} · ${cobro.clienteNombre}",
+                "${cobro.codigoPedido} · ${cobro.clienteNombre}",
                 style = MaterialTheme.typography.bodyLarge,
             )
             Text(
@@ -381,7 +381,7 @@ private fun TabDevoluciones(state: CobrosUiState, viewModel: CobrosViewModel) {
         items(state.porReembolsar, key = { it.id }) { item ->
             Column(Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
                 Text(
-                    "#${item.folio} · ${item.clienteNombre}",
+                    "${item.codigoPedido} · ${item.clienteNombre}",
                     style = MaterialTheme.typography.bodyLarge,
                 )
                 Text(
@@ -448,7 +448,7 @@ private fun TabDevoluciones(state: CobrosUiState, viewModel: CobrosViewModel) {
 
         AlertDialog(
             onDismissRequest = viewModel::onCancelarReembolso,
-            title = { Text("Devolver #${item.folio}") },
+            title = { Text("Devolver ${item.codigoPedido}") },
             text = {
                 Column {
                     Text(

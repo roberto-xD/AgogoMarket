@@ -92,7 +92,8 @@ data class RequestCartUiState(
     val metodoEntrega: MetodoEntrega = MetodoEntrega.DOMICILIO,
     val isSending: Boolean = false,
     val errorMessage: String? = null,
-    val folioEnviado: Long? = null,
+    /** Código del pedido recién creado, para dictárselo al cliente. */
+    val codigoEnviado: String? = null,
 ) {
     val total: Double get() = items.sumOf { it.importe }
 
@@ -136,7 +137,7 @@ class RequestCartViewModel @Inject constructor(
     fun onMetodo(m: MetodoEntrega) = _uiState.update { it.copy(metodoEntrega = m) }
     fun onQuantity(variantId: String, cantidad: Int) = cart.setQuantity(variantId, cantidad)
     fun onRemove(variantId: String) = cart.remove(variantId)
-    fun onDismissEnviado() = _uiState.update { it.copy(folioEnviado = null) }
+    fun onDismissEnviado() = _uiState.update { it.copy(codigoEnviado = null) }
 
     fun onSend() {
         val state = _uiState.value
@@ -166,7 +167,7 @@ class RequestCartViewModel @Inject constructor(
                         RequestCartUiState(
                             esCliente = it.esCliente,
                             clienteNombre = if (it.esCliente) it.clienteNombre else "",
-                            folioEnviado = result.data.folio,
+                            codigoEnviado = result.data.codigoPedido,
                         )
                     }
                 }
@@ -336,17 +337,17 @@ fun RequestCartScreen(
         }
     }
 
-    state.folioEnviado?.let { folio ->
+    state.codigoEnviado?.let { codigo ->
         AlertDialog(
             onDismissRequest = viewModel::onDismissEnviado,
             title = { Text("Solicitud enviada") },
             text = {
                 Text(
                     if (state.esCliente)
-                        "Tu pedido quedó registrado con el folio #$folio. " +
-                            "Nos pondremos en contacto para completarlo."
+                        "Tu pedido quedó registrado con el código $codigo. " +
+                            "Guárdalo: es con el que podemos localizarlo."
                     else
-                        "Quedó registrada con el folio #$folio. " +
+                        "Quedó registrada con el código $codigo. " +
                             "Un administrador la revisará para completar la venta."
                 )
             },
@@ -464,7 +465,7 @@ fun RequestsListScreen(
                     ) {
                         Column(Modifier.weight(1f)) {
                             Text(
-                                "#${request.folio} · ${request.clienteNombre}",
+                                "${request.codigoPedido} · ${request.clienteNombre}",
                                 style = MaterialTheme.typography.bodyLarge,
                             )
                             request.creadorNombre?.let { promotor ->
