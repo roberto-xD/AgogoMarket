@@ -17,7 +17,11 @@ import com.passioagogo.market.domain.inventory.LocationRepository
 import com.passioagogo.market.data.auth.SupabaseAuthRepository
 import com.passioagogo.market.data.contact.ContactRepository
 import com.passioagogo.market.data.contact.ContactRepositoryImpl
+import com.passioagogo.market.data.codigos.CodigoRepository
+import com.passioagogo.market.data.codigos.CodigoRepositoryImpl
 import com.passioagogo.market.data.customers.CustomerRepository
+import com.passioagogo.market.data.codigos.CodigoRepository
+import com.passioagogo.market.data.codigos.CodigoRepositoryImpl
 import com.passioagogo.market.data.customers.CustomerRepositoryImpl
 import com.passioagogo.market.data.envio.EnvioRepository
 import com.passioagogo.market.data.pagos.PagosRepository
@@ -167,4 +171,8 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindPagosRepository(impl: PagosRepositoryImpl): PagosRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindCodigoRepository(impl: CodigoRepositoryImpl): CodigoRepository
 }

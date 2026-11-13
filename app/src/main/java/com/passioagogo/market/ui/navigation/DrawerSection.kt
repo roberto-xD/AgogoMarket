@@ -6,6 +6,7 @@ import androidx.compose.material.icons.automirrored.filled.ReceiptLong
 import androidx.compose.material.icons.filled.AssignmentTurnedIn
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Casino
+import androidx.compose.material.icons.filled.ConfirmationNumber
 import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.EditNote
 import androidx.compose.material.icons.filled.LocalShipping
@@ -45,6 +46,7 @@ enum class DrawerSection(
     RULETA           (NavigationRoutes.Wheel                    , "Ruleta de descuentos", Icons.Filled.Casino),
     ENVIOS           (NavigationRoutes.Envios                   , "Envíos y guías", Icons.Filled.LocalShipping),
     COBROS           (NavigationRoutes.Cobros                   , "Cobros del sitio", Icons.Filled.Payments),
+    CODIGOS          (NavigationRoutes.Codigos                  , "Códigos y promociones", Icons.Filled.ConfirmationNumber),
     PEDIDOS_ABIERTOS (NavigationRoutes.OpenOrders               , "Pedidos sin confirmar", Icons.Filled.EditNote),
     GALERIA          (NavigationRoutes.GalleryList               , "Galería web" , Icons.Filled.Collections),
     EVENTOS          (NavigationRoutes.EventList                 , "Eventos"     , Icons.Filled.Event),

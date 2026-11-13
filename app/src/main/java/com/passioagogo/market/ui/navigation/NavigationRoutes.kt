@@ -58,6 +58,7 @@ sealed class NavigationRoutes{
     @Serializable data object Wheel: NavigationRoutes()
     @Serializable data object Envios: NavigationRoutes()
     @Serializable data object Cobros: NavigationRoutes()
+    @Serializable data object Codigos: NavigationRoutes()
     @Serializable data object OpenOrders: NavigationRoutes()
     @Serializable data class EditOpenOrder(val orderId: String): NavigationRoutes()
     @Serializable data object InventoryHome:NavigationRoutes()
