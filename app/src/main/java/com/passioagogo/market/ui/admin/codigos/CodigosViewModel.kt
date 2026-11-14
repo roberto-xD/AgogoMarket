@@ -62,6 +62,13 @@ data class CodigosUiState(
     val creando: Boolean = false,
     val formulario: FormularioCodigo = FormularioCodigo(),
     val isSaving: Boolean = false,
+    /** Código que se está editando; null = ninguno. */
+    val editando: Codigo? = null,
+    val edicion: EdicionCodigo = EdicionCodigo(),
+    /** Confirmación del borrado lógico. */
+    val porOcultar: Codigo? = null,
+    /** Cuál tiene el panel abierto: solo una a la vez. */
+    val deslizada: String? = null,
     val errorMessage: String? = null,
 ) {
     /** Instante actual en ISO, para decidir qué está caducado. */
@@ -75,6 +82,21 @@ data class CodigosUiState(
         else codigos
 
     val canjeables: Int get() = codigos.count { it.canjeable(ahoraIso) }
+}
+
+/**
+ * Lo que se puede cambiar de un código ya repartido.
+ *
+ * El tipo y el porcentaje no están: quien recibió «15%» tiene que seguir
+ * recibiendo 15%. Cambiar eso sería reescribir lo prometido.
+ */
+data class EdicionCodigo(
+    val diasVigencia: String = "",
+    val usosMax: String = "1",
+    val nota: String = "",
+) {
+    val usosValidos: Boolean get() = (usosMax.toIntOrNull() ?: 0) >= 1
+    val valido: Boolean get() = usosValidos
 }
 
 @HiltViewModel
@@ -93,6 +115,67 @@ class CodigosViewModel @Inject constructor(
     }
 
     fun onSoloCanjeables(v: Boolean) = _uiState.update { it.copy(soloCanjeables = v) }
+
+    fun onDeslizada(id: String?) = _uiState.update { it.copy(deslizada = id) }
+
+    // ---- Editar ----
+
+    fun onEditar(codigo: Codigo) = _uiState.update {
+        it.copy(
+            editando = codigo,
+            edicion = EdicionCodigo(
+                // Vacío = sin caducidad; si la tiene, se recaptura en días
+                diasVigencia = "",
+                usosMax = codigo.usosMax.toString(),
+                nota = codigo.nota.orEmpty(),
+            ),
+        )
+    }
+
+    fun onCerrarEdicion() = _uiState.update { it.copy(editando = null) }
+    fun onEdicion(e: EdicionCodigo) = _uiState.update { it.copy(edicion = e) }
+
+    fun onGuardarEdicion() {
+        val codigo = _uiState.value.editando ?: return
+        val e = _uiState.value.edicion
+        if (!e.valido) return
+        _uiState.update { it.copy(isSaving = true) }
+
+        viewModelScope.launch {
+            val nuevosUsos = e.usosMax.toIntOrNull() ?: codigo.usosMax
+            val r = repository.editar(
+                id = codigo.id,
+                // Vacío conserva lo que tenía: así no se borra la
+                // caducidad por no volver a teclearla.
+                expiraAt = e.diasVigencia.toIntOrNull()?.let { caducidad(it) }
+                    ?: codigo.expiraAt,
+                usosMax = nuevosUsos,
+                nota = e.nota,
+            )
+            _uiState.update {
+                it.copy(
+                    isSaving = false,
+                    editando = null,
+                    errorMessage = (r as? DataResult.Error)?.error?.toMessage(),
+                )
+            }
+            refresh()
+        }
+    }
+
+    // ---- Ocultar ----
+
+    fun onPedirOcultar(codigo: Codigo) = _uiState.update { it.copy(porOcultar = codigo) }
+    fun onCancelarOcultar() = _uiState.update { it.copy(porOcultar = null) }
+
+    fun onOcultar() {
+        val codigo = _uiState.value.porOcultar ?: return
+        _uiState.update { it.copy(porOcultar = null) }
+        viewModelScope.launch {
+            repository.ocultar(codigo.id, true)
+            refresh()
+        }
+    }
 
     fun onAbrirAlta() = _uiState.update {
         it.copy(creando = true, formulario = FormularioCodigo(), errorMessage = null)

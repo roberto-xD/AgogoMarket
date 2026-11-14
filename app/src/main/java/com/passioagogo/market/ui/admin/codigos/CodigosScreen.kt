@@ -5,7 +5,6 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -23,11 +22,18 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.ui.graphics.Color
+import com.passioagogo.market.ui.common.AccionDeslizable
+import com.passioagogo.market.ui.common.TarjetaDeslizable
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
@@ -114,12 +120,34 @@ fun CodigosScreen(
 
                 else -> LazyColumn {
                     items(state.visibles, key = { it.id }) { codigo ->
-                        FilaCodigo(
-                            codigo = codigo,
-                            ahoraIso = state.ahoraIso,
-                            onCopiar = { copiar(context, codigo.codigo) },
-                            onCambiarActivo = { viewModel.onCambiarActivo(codigo) },
-                        )
+                        TarjetaDeslizable(
+                            acciones = listOf(
+                                AccionDeslizable(
+                                    etiqueta = "Editar",
+                                    icono = Icons.Filled.Edit,
+                                    color = Color(0xFF1976D2),
+                                    onClick = { viewModel.onEditar(codigo) },
+                                ),
+                                AccionDeslizable(
+                                    etiqueta = "Ocultar",
+                                    icono = Icons.Filled.VisibilityOff,
+                                    color = Color(0xFFE53935),
+                                    onClick = { viewModel.onPedirOcultar(codigo) },
+                                ),
+                            ),
+                            // Abrir una recoge las demás
+                            cerrar = state.deslizada,
+                            onClick = {
+                                viewModel.onDeslizada(codigo.id)
+                                copiar(context, codigo.codigo)
+                            },
+                        ) {
+                            FilaCodigo(
+                                codigo = codigo,
+                                ahoraIso = state.ahoraIso,
+                                onCambiarActivo = { viewModel.onCambiarActivo(codigo) },
+                            )
+                        }
                         HorizontalDivider()
                     }
                 }
@@ -134,6 +162,54 @@ fun CodigosScreen(
         ) {
             Icon(Icons.Filled.Add, contentDescription = "Nuevo código")
         }
+    }
+
+    state.editando?.let { codigo ->
+        EditarCodigoDialog(
+            codigo = codigo,
+            edicion = state.edicion,
+            isSaving = state.isSaving,
+            onCambiar = viewModel::onEdicion,
+            onGuardar = viewModel::onGuardarEdicion,
+            onDismiss = viewModel::onCerrarEdicion,
+        )
+    }
+
+    state.porOcultar?.let { codigo ->
+        AlertDialog(
+            onDismissRequest = viewModel::onCancelarOcultar,
+            title = { Text("Ocultar ${codigo.codigo}") },
+            text = {
+                Column {
+                    Text("Desaparece de esta lista, pero no se borra de la base.")
+                    // La distinción que evita el error caro: esconder no
+                    // es cancelar.
+                    if (codigo.canjeable(state.ahoraIso)) {
+                        Spacer(Modifier.height(12.dp))
+                        Card(
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.errorContainer,
+                            ),
+                        ) {
+                            Text(
+                                "Ojo: este código sigue activo y se seguirá " +
+                                    "canjeando. Para que deje de valer, apágalo " +
+                                    "con el interruptor.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onErrorContainer,
+                                modifier = Modifier.padding(12.dp),
+                            )
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = viewModel::onOcultar) { Text("Ocultar") }
+            },
+            dismissButton = {
+                TextButton(onClick = viewModel::onCancelarOcultar) { Text("Cancelar") }
+            },
+        )
     }
 
     if (state.creando) {
@@ -162,14 +238,12 @@ fun CodigosScreen(
 private fun FilaCodigo(
     codigo: Codigo,
     ahoraIso: String,
-    onCopiar: () -> Unit,
     onCambiarActivo: () -> Unit,
 ) {
     val canjeable = codigo.canjeable(ahoraIso)
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onCopiar)
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -366,4 +440,90 @@ private fun copiar(context: Context, codigo: String) {
     val cb = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
     cb.setPrimaryClip(ClipData.newPlainText("Código", codigo))
     Toast.makeText(context, "$codigo copiado", Toast.LENGTH_SHORT).show()
+}
+
+
+/**
+ * Edita lo que se puede cambiar sin romper lo ya prometido.
+ *
+ * El tipo y el porcentaje no aparecen: quien recibió «15%» tiene que
+ * seguir recibiendo 15%.
+ */
+@Composable
+private fun EditarCodigoDialog(
+    codigo: Codigo,
+    edicion: EdicionCodigo,
+    isSaving: Boolean,
+    onCambiar: (EdicionCodigo) -> Unit,
+    onGuardar: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(codigo.codigo) },
+        text = {
+            Column(Modifier.verticalScroll(rememberScrollState())) {
+                Text(
+                    codigo.detalle,
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                Text(
+                    "Lo que da no se cambia: quien ya lo tiene cuenta con ello.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+
+                Spacer(Modifier.height(16.dp))
+                OutlinedTextField(
+                    value = edicion.diasVigencia,
+                    onValueChange = { onCambiar(edicion.copy(diasVigencia = it)) },
+                    label = { Text("Nueva vigencia") },
+                    suffix = { Text("días") },
+                    singleLine = true,
+                    supportingText = {
+                        Text(
+                            codigo.expiraAt?.take(10)?.let { "Caduca el $it · vacío lo deja igual" }
+                                ?: "Hoy no caduca · vacío lo deja igual"
+                        )
+                    },
+                    keyboardOptions = OpcionesTeclado.Numero,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+
+                Spacer(Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = edicion.usosMax,
+                    onValueChange = { onCambiar(edicion.copy(usosMax = it)) },
+                    label = { Text("Tope de usos") },
+                    singleLine = true,
+                    isError = !edicion.usosValidos,
+                    supportingText = {
+                        Text(
+                            if (!edicion.usosValidos) "Al menos 1"
+                            // Bajarlo por debajo de lo gastado lo agota al
+                            // instante: conviene verlo antes de guardar.
+                            else "Lleva ${codigo.usos} canjeado(s)"
+                        )
+                    },
+                    keyboardOptions = OpcionesTeclado.Numero,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+
+                Spacer(Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = edicion.nota,
+                    onValueChange = { onCambiar(edicion.copy(nota = it)) },
+                    label = { Text("Descripción") },
+                    keyboardOptions = OpcionesTeclado.Texto,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(enabled = edicion.valido && !isSaving, onClick = onGuardar) {
+                Text(if (isSaving) "Guardando…" else "Guardar")
+            }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancelar") } },
+    )
 }

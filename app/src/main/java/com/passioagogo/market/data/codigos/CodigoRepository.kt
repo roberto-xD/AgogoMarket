@@ -47,6 +47,12 @@ data class Codigo(
     val activo: Boolean,
     /** ruleta o manual. */
     val origen: String,
+    /**
+     * Escondido de la lista. NO afecta al canje: un código oculto y
+     * activo se sigue canjeando, porque lo repartido no deja de valer
+     * porque administración limpie su pantalla.
+     */
+    val oculto: Boolean,
     val nota: String?,
     val createdAt: String?,
 ) {
@@ -97,6 +103,7 @@ data class CodigoDto(
     @SerialName("expira_at") val expiraAt: String? = null,
     val activo: Boolean = true,
     val origen: String = "manual",
+    val oculto: Boolean = false,
     val nota: String? = null,
     @SerialName("created_at") val createdAt: String? = null,
 ) {
@@ -104,7 +111,7 @@ data class CodigoDto(
         id = id, codigo = codigo, tipo = TipoCodigo.desde(tipo),
         descuentoPct = descuentoPct, regalo = regalo, minimoCompra = minimoCompra,
         usosMax = usosMax, usos = usos, expiraAt = expiraAt, activo = activo,
-        origen = origen, nota = nota, createdAt = createdAt,
+        origen = origen, oculto = oculto, nota = nota, createdAt = createdAt,
     )
 }
 
@@ -128,10 +135,33 @@ data class NuevoCodigoDto(
  * administración, así que no hace falta una función aparte.
  */
 interface CodigoRepository {
-    suspend fun getCodigos(soloManuales: Boolean = false): DataResult<List<Codigo>>
+    suspend fun getCodigos(
+        soloManuales: Boolean = false,
+        incluirOcultos: Boolean = false,
+    ): DataResult<List<Codigo>>
     suspend fun crear(draft: CodigoDraft): DataResult<Codigo>
     /** Apaga o enciende uno sin borrarlo: cortar una campaña a media marcha. */
     suspend fun cambiarActivo(id: String, activo: Boolean): DataResult<Unit>
+
+    /**
+     * Borrado lógico: lo saca de la lista sin tocar la base.
+     * El código sigue canjeándose si estaba activo.
+     */
+    suspend fun ocultar(id: String, oculto: Boolean = true): DataResult<Unit>
+
+    /**
+     * Cambia lo que se puede cambiar sin romper lo ya prometido.
+     *
+     * El tipo y el porcentaje NO se editan: quien recibió «15%» tiene que
+     * seguir recibiendo 15%. Esto solo mueve la caducidad, el tope de usos
+     * y la nota.
+     */
+    suspend fun editar(
+        id: String,
+        expiraAt: String?,
+        usosMax: Int,
+        nota: String?,
+    ): DataResult<Unit>
 }
 
 @Singleton
@@ -142,16 +172,24 @@ class CodigoRepositoryImpl @Inject constructor(
 
     private companion object { const val TABLE = "codigos" }
 
-    override suspend fun getCodigos(soloManuales: Boolean): DataResult<List<Codigo>> =
-        withContext(io) {
-            safeSupabaseCall("getCodigos") {
-                postgrest.from(TABLE).select {
-                    if (soloManuales) filter { eq("origen", "manual") }
-                    order("created_at", Order.DESCENDING)
-                    limit(200)
-                }.decodeList<CodigoDto>()
-            }.map { list -> list.map { it.toDomain() } }
-        }
+    override suspend fun getCodigos(
+        soloManuales: Boolean,
+        incluirOcultos: Boolean,
+    ): DataResult<List<Codigo>> = withContext(io) {
+        safeSupabaseCall("getCodigos") {
+            postgrest.from(TABLE).select {
+                filter {
+                    if (soloManuales) eq("origen", "manual")
+                    // Lo oculto se filtra aquí, no en el cliente: con 200
+                    // filas de tope, traerlo para descartarlo dejaría la
+                    // lista corta sin que se note por qué.
+                    if (!incluirOcultos) eq("oculto", false)
+                }
+                order("created_at", Order.DESCENDING)
+                limit(200)
+            }.decodeList<CodigoDto>()
+        }.map { list -> list.map { it.toDomain() } }
+    }
 
     override suspend fun crear(draft: CodigoDraft): DataResult<Codigo> = withContext(io) {
         safeSupabaseCall("crearCodigo") {
@@ -170,6 +208,32 @@ class CodigoRepositoryImpl @Inject constructor(
                 )
             ) { select() }.decodeSingle<CodigoDto>()
         }.map { it.toDomain() }
+    }
+
+    override suspend fun ocultar(id: String, oculto: Boolean): DataResult<Unit> =
+        withContext(io) {
+            safeSupabaseCall("ocultarCodigo") {
+                postgrest.from(TABLE).update({ set("oculto", oculto) }) {
+                    filter { eq("id", id) }
+                }
+                Unit
+            }
+        }
+
+    override suspend fun editar(
+        id: String,
+        expiraAt: String?,
+        usosMax: Int,
+        nota: String?,
+    ): DataResult<Unit> = withContext(io) {
+        safeSupabaseCall("editarCodigo") {
+            postgrest.from(TABLE).update({
+                set("expira_at", expiraAt)
+                set("usos_max", usosMax)
+                set("nota", nota?.trim()?.ifBlank { null })
+            }) { filter { eq("id", id) } }
+            Unit
+        }
     }
 
     override suspend fun cambiarActivo(id: String, activo: Boolean): DataResult<Unit> =
