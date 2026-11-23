@@ -21,7 +21,7 @@ import javax.inject.Singleton
         ProductEntity::class,
         ProductVariantEntity::class,
     ],
-    version = 4,
+    version = 5,
     exportSchema = false,
 )
 abstract class PADatabase : RoomDatabase() {

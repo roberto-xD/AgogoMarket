@@ -53,6 +53,8 @@ data class ProductVariantEntity(
     val precioVenta: Double,
     val costo: Double,
     val activo: Boolean,
+    /** Una de las fotos del producto padre, tal cual está en su lista. */
+    val imagen: String?,
     val updatedAt: String?,
 )
 

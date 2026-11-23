@@ -39,6 +39,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.filled.Warning
@@ -633,6 +634,20 @@ fun ProductEditScreen(
                         .padding(vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
+                    // Solo si la foto sigue en la lista del producto: una
+                    // miniatura rota aquí sería la única señal de que la
+                    // variante apunta a algo que ya no está.
+                    variant.imagen?.takeIf { it in state.imagenes }?.let { imagen ->
+                        AsyncImage(
+                            model = imagen,
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(RoundedCornerShape(6.dp)),
+                        )
+                        Spacer(Modifier.width(8.dp))
+                    }
                     Column(Modifier.weight(1f)) {
                         Text(
                             variant.titulo ?: variant.sku,
@@ -673,6 +688,10 @@ fun ProductEditScreen(
             dialog = dialog,
             isSaving = state.isSaving,
             categoryId = state.categoryId,
+            // Las opciones del selector son las fotos que el producto ya
+            // tiene: aquí no se sube ninguna nueva.
+            imagenesProducto = state.imagenes,
+            onImagen = viewModel::onVariantImagen,
             onChange = viewModel::onVariantDialogChange,
             onGenerateSku = viewModel::onGenerateSku,
             onDismiss = viewModel::onDismissVariantDialog,
@@ -686,6 +705,8 @@ private fun VariantDialog(
     dialog: VariantDialogState,
     isSaving: Boolean,
     categoryId: String?,
+    imagenesProducto: List<String>,
+    onImagen: (String) -> Unit,
     onChange: (VariantDialogState) -> Unit,
     onGenerateSku: () -> Unit,
     onDismiss: () -> Unit,
@@ -778,6 +799,18 @@ private fun VariantDialog(
                     attributesText = dialog.attributesText,
                     onClick = { showAttrs = true },
                 )
+
+                // Con una sola foto no hay nada que elegir, y con ninguna
+                // tampoco: en esos casos el selector sería solo ruido.
+                if (imagenesProducto.size > 1) {
+                    Spacer(Modifier.height(16.dp))
+                    SelectorFotoVariante(
+                        imagenes = imagenesProducto,
+                        elegida = dialog.imagen,
+                        onElegir = onImagen,
+                    )
+                }
+
                 Spacer(Modifier.height(16.dp))
                 Text("Empaque", style = MaterialTheme.typography.labelLarge)
                 Text(
@@ -966,6 +999,76 @@ private fun ProductImageThumb(
     }
 }
 
+
+/**
+ * Elige cuál de las fotos del producto representa a esta variante.
+ *
+ * La tienda usa esto para llevar el carrusel a esa foto cuando el cliente
+ * toca la presentación. Solo ofrece fotos que el producto ya tiene: la
+ * elección es un enlace, no una subida.
+ *
+ * Lo que se guarda es el string de la lista **sin tocarlo**. La tienda lo
+ * busca por igualdad exacta ahí, así que normalizarlo o reconstruirlo lo
+ * dejaría huérfano y el carrusel se quedaría quieto, sin error visible.
+ */
+@Composable
+private fun SelectorFotoVariante(
+    imagenes: List<String>,
+    elegida: String?,
+    onElegir: (String) -> Unit,
+) {
+    Text("Foto de la presentación", style = MaterialTheme.typography.labelLarge)
+    Text(
+        if (elegida == null) {
+            "Opcional. Toca una foto para que la tienda la muestre al elegir " +
+                "esta presentación."
+        } else {
+            "Toca la foto marcada para dejar esta presentación sin foto."
+        },
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+    Spacer(Modifier.height(8.dp))
+    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        items(imagenes, key = { it }) { imagen ->
+            val marcada = imagen == elegida
+            Box {
+                AsyncImage(
+                    model = imagen,
+                    contentDescription = if (marcada) "Foto elegida" else "Elegir esta foto",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .size(72.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .then(
+                            if (marcada) Modifier.border(
+                                3.dp,
+                                MaterialTheme.colorScheme.primary,
+                                RoundedCornerShape(8.dp),
+                            ) else Modifier
+                        )
+                        // El valor que viaja es el mismo que se pintó: no se
+                        // construye ninguna ruta de por medio.
+                        .clickable { onElegir(imagen) },
+                )
+                if (marcada) {
+                    Icon(
+                        Icons.Filled.CheckCircle,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(2.dp)
+                            .background(
+                                MaterialTheme.colorScheme.surface,
+                                RoundedCornerShape(50),
+                            ),
+                    )
+                }
+            }
+        }
+    }
+}
 
 /** Campo de solo lectura que resume los atributos y abre el selector. */
 @Composable

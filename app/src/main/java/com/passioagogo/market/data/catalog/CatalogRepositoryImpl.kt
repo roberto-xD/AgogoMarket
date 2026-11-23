@@ -183,6 +183,7 @@ class CatalogRepositoryImpl @Inject constructor(
                         attributes = draft.attributes,
                         precioVenta = draft.precioVenta,
                         costo = draft.costo,
+                        imagen = draft.imagen,
                     )
                 ) { select() }.decodeSingle<ProductVariantDto>()
             }.onSuccess { dao.insertVariants(listOf(it.toEntity())) }
@@ -203,6 +204,9 @@ class CatalogRepositoryImpl @Inject constructor(
                     set("precio_venta", variant.precioVenta)
                     set("costo", variant.costo)
                     set("activo", variant.activo)
+                    // Tal cual viene: es un elemento de products.imagenes y la
+                    // web lo compara por igualdad exacta contra esa lista.
+                    set("imagen", variant.imagen)
                 }) {
                     select()
                     filter { eq("id", variant.id) }
@@ -210,4 +214,27 @@ class CatalogRepositoryImpl @Inject constructor(
             }.onSuccess { dao.insertVariants(listOf(it.toEntity())) }
                 .map { it.toDomain() }
         }
+
+    override suspend fun limpiarImagenEnVariantes(
+        productId: String,
+        imagen: String,
+    ): DataResult<Unit> = withContext(io) {
+        // Tipado explícito: `set` resuelve el tipo del valor, y un null
+        // literal no le da ninguno.
+        val sinFoto: String? = null
+        safeSupabaseCall("limpiarImagenEnVariantes") {
+            // Devuelve las filas tocadas para reflejarlas en el caché: sin
+            // esto la pantalla seguiría mostrando la miniatura de una foto
+            // que ya no existe hasta el siguiente refresco completo.
+            postgrest.from(VARIANTS).update({ set("imagen", sinFoto) }) {
+                select()
+                filter {
+                    eq("product_id", productId)
+                    eq("imagen", imagen)
+                }
+            }.decodeList<ProductVariantDto>()
+        }.onSuccess { tocadas ->
+            if (tocadas.isNotEmpty()) dao.insertVariants(tocadas.map { it.toEntity() })
+        }.map { }
+    }
 }

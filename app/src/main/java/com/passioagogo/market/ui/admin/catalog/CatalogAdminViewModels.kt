@@ -218,6 +218,15 @@ data class VariantDialogState(
     val costo: String = "",
     val attributesText: String = "",
     val activo: Boolean = true,
+    /**
+     * Foto elegida, **tal cual está en `products.imagenes`**. null = sin
+     * foto, que es un estado válido y al que se puede volver.
+     *
+     * Aquí viaja el valor crudo de la lista del producto, sin resolver ni
+     * normalizar: la web lo compara por igualdad exacta contra esa misma
+     * lista, así que cualquier transformación lo deja huérfano en silencio.
+     */
+    val imagen: String? = null,
 ) {
     /** Cero o negativo haría que la paquetería rechazara la guía. */
     val medidasValidas: Boolean
@@ -419,8 +428,8 @@ class ProductEditViewModel @Inject constructor(
 
     fun onNewVariant() = _uiState.update { it.copy(variantDialog = VariantDialogState()) }
 
-    fun onEditVariant(variant: ProductVariant) = _uiState.update {
-        it.copy(
+    fun onEditVariant(variant: ProductVariant) = _uiState.update { estado ->
+        estado.copy(
             variantDialog = VariantDialogState(
                 editing = variant,
                 sku = variant.sku,
@@ -433,11 +442,24 @@ class ProductEditViewModel @Inject constructor(
                 costo = variant.costo.toString(),
                 attributesText = variant.attributes.toAttributesText(),
                 activo = variant.activo,
+                // Si la foto que tenía ya no está en el producto (se borró
+                // desde otro dispositivo), se muestra como sin foto: marcar
+                // una miniatura que no existe no se podría deshacer.
+                imagen = variant.imagen?.takeIf { it in estado.imagenes },
             )
         )
     }
 
     fun onDismissVariantDialog() = _uiState.update { it.copy(variantDialog = null) }
+
+    /** Asigna una foto a la variante en curso, o la quita si ya era esa. */
+    fun onVariantImagen(imagen: String) = _uiState.update { state ->
+        state.copy(
+            variantDialog = state.variantDialog?.let { d ->
+                d.copy(imagen = if (d.imagen == imagen) null else imagen)
+            }
+        )
+    }
 
     /**
      * Propone un SKU libre. Comprueba contra el caché para no chocar con uno
@@ -482,6 +504,7 @@ class ProductEditViewModel @Inject constructor(
                         attributes = dialog.attributesText.toAttributesJson(),
                         precioVenta = dialog.precio.toDouble(),
                         costo = dialog.costo.toDoubleOrNull() ?: 0.0,
+                        imagen = dialog.imagen,
                     )
                 )
             } else {
@@ -497,6 +520,7 @@ class ProductEditViewModel @Inject constructor(
                         precioVenta = dialog.precio.toDouble(),
                         costo = dialog.costo.toDoubleOrNull() ?: 0.0,
                         activo = dialog.activo,
+                        imagen = dialog.imagen,
                     )
                 )
             }
@@ -553,9 +577,16 @@ class ProductEditViewModel @Inject constructor(
     }
 
     fun onRemoveImage(url: String) {
+        val productId = _uiState.value.productId
         viewModelScope.launch {
             productImageRepository.delete(url) // best-effort
             persistImagenes(_uiState.value.imagenes - url)
+            // Las variantes que la señalaban se quedan sin foto: apuntar a
+            // una que ya no está en la lista no da error, simplemente deja
+            // de mover el carrusel, y eso no se ve desde ninguna pantalla.
+            if (productId != null) {
+                catalogRepository.limpiarImagenEnVariantes(productId, url)
+            }
         }
     }
 

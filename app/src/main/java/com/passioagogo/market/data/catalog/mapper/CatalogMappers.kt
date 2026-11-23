@@ -47,7 +47,7 @@ fun ProductVariantDto.toEntity() = ProductVariantEntity(
     pesoGr = pesoGr, largoCm = largoCm, anchoCm = anchoCm, altoCm = altoCm,
     attributesJson = attributes.toString(),
     precioVenta = precioVenta, costo = costo,
-    activo = activo, updatedAt = updatedAt,
+    activo = activo, imagen = imagen, updatedAt = updatedAt,
 )
 
 // ---------- Entity → Dominio (lecturas) ----------
@@ -71,6 +71,7 @@ fun ProductVariantEntity.toDomain() = ProductVariant(
     pesoGr = pesoGr, largoCm = largoCm, anchoCm = anchoCm, altoCm = altoCm,
     attributes = attributesJson.toJsonObject(),
     precioVenta = precioVenta, costo = costo, activo = activo,
+    imagen = imagen,
 )
 
 fun ProductWithVariantsLocal.toDomain(

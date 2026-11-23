@@ -57,6 +57,19 @@ data class ProductVariantDto(
     @SerialName("precio_venta") val precioVenta: Double,
     val costo: Double = 0.0,
     val activo: Boolean = true,
+    /**
+     * Cuál de las fotos del producto le corresponde a esta variante.
+     *
+     * Es **uno de los valores de `products.imagenes`, tal cual está ahí**:
+     * la web lo busca en esa lista para llevar el carrusel a esa foto. Si
+     * aquí se guardara algo transformado (una URL ya resuelta cuando la
+     * lista tiene nombres de archivo, o al revés), no coincidiría con
+     * ningún elemento y el carrusel simplemente no se movería, sin error
+     * visible en ninguna parte.
+     *
+     * null = esta presentación no mueve el carrusel. Es un estado válido.
+     */
+    val imagen: String? = null,
     @SerialName("created_at") val createdAt: String? = null,
     @SerialName("updated_at") val updatedAt: String? = null,
 )
@@ -94,4 +107,5 @@ data class NewProductVariantDto(
     val attributes: JsonObject = JsonObject(emptyMap()),
     @SerialName("precio_venta") val precioVenta: Double,
     val costo: Double = 0.0,
+    val imagen: String? = null,
 )

@@ -46,6 +46,16 @@ data class ProductVariant(
     val anchoCm: Int,
     val altoCm: Int,
     val activo: Boolean,
+    /**
+     * Qué foto del producto representa a esta variante, para que la web
+     * lleve el carrusel a ella al elegir la presentación.
+     *
+     * Guarda **uno de los valores de `products.imagenes` sin tocarlo**: la
+     * web lo busca por igualdad exacta en esa lista. null = no mueve el
+     * carrusel, que es un estado válido (presentaciones que solo cambian
+     * de tamaño no ganan nada con esto).
+     */
+    val imagen: String? = null,
 ) {
     /** Valores de arranque del script 33: señal de que falta pesarla. */
     val sinPesar: Boolean
@@ -87,6 +97,7 @@ data class VariantDraft(
     val attributes: JsonObject = JsonObject(emptyMap()),
     val precioVenta: Double,
     val costo: Double = 0.0,
+    val imagen: String? = null,
 )
 
 // ---------- Repositorio ----------
@@ -119,4 +130,16 @@ interface CatalogRepository {
     suspend fun updateProduct(product: Product): DataResult<Product>
     suspend fun createVariant(draft: VariantDraft): DataResult<ProductVariant>
     suspend fun updateVariant(variant: ProductVariant): DataResult<ProductVariant>
+
+    /**
+     * Desasigna una foto de todas las variantes del producto que la tenían.
+     *
+     * Se llama al borrar una foto del producto: si no, las variantes se
+     * quedan apuntando a algo que ya no está en la lista y dejan de mover
+     * el carrusel sin que nada lo avise.
+     */
+    suspend fun limpiarImagenEnVariantes(
+        productId: String,
+        imagen: String,
+    ): DataResult<Unit>
 }
