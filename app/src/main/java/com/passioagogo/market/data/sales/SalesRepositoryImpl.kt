@@ -12,6 +12,7 @@ import com.passioagogo.market.data.sales.remote.dto.PrecioVigenteDto
 import com.passioagogo.market.domain.common.OrderStatus
 import com.passioagogo.market.domain.common.OrderType
 import com.passioagogo.market.domain.common.PaymentMethod
+import com.passioagogo.market.domain.sales.CartLine
 import com.passioagogo.market.domain.sales.ShippingOrderDraft
 import com.passioagogo.market.domain.sales.CheckoutRequest
 import com.passioagogo.market.domain.sales.Order
@@ -23,6 +24,8 @@ import io.github.jan.supabase.auth.Auth
 import io.github.jan.supabase.postgrest.Postgrest
 import io.github.jan.supabase.postgrest.query.Columns
 import io.github.jan.supabase.postgrest.query.Order as SortOrder
+import io.github.jan.supabase.postgrest.query.Order.DESCENDING
+import io.github.jan.supabase.postgrest.query.Order.ASCENDING
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineDispatcher
@@ -400,7 +403,7 @@ class SalesRepositoryImpl @Inject constructor(
                 }
                 order(
                     "created_at",
-                    if (masNuevosPrimero) SortOrder.DESCENDING else SortOrder.ASCENDING,
+                    if (masNuevosPrimero) DESCENDING else ASCENDING,
                 )
                 limit(100)
             }.decodeList<OrderDto>()
